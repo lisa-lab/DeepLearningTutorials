@@ -119,29 +119,43 @@ encapsulates the basic behaviour for LogisticRegression:
 .. code-block:: python
 
     class LogisticRegression(object):
-        """
-
-        w: the linear part of the affine transform
-        b: the constant part of the affine transform
-        TODO: add latex math formulas, reference to publication for complex models
-        """
 
         def __init__(self, input, n_in, n_out):
-            self.w = shared(numpy.zeros((n_in, n_out), dtype=input.dtype))
-            self.b = shared(numpy.zeros((n_out,), dtype=input.dtype))
-            self.l1=abs(self.w).sum()
-            self.l2_sqr = (self.w**2).sum()
-            self.output=tensor.nnet.softmax(theano.dot(input, self.w)+self.b)
-            self.argmax=theano.tensor.argmax(self.output, axis=1)
-            self.params = [self.w, self.b]
+            """ Initialize the parameters of the logistic regression
+            :param input: symbolic variable that describes the input of the 
+            architecture ( one minibatch)
+            :param n_in: number of input units, the dimension of the space in 
+            which the datapoint lies
+            :param n_out: number of output units, the dimension of the space in 
+            which the target lies
+            """ 
 
-        def ll(self, target):
-            """Return the negative log-likelihood of the prediction of this model under a given
-            target distribution.
+            # initialize with 0 the weights W as a matrix of shape (n_in, n_out) 
+            self.W = shared( value=numpy.zeros((n_in,n_out),
+                                                dtype = theano.config.floatX) )
+            # initialize the baises b as a vector of n_out 0s
+            self.b = shared( value=numpy.zeros((n_out,), 
+                                                dtype = theano.config.floatX) )
+
+            # compute vector of class-membership probabilities in symbolic form
+            self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W)+self.b)
+
+            # compute prediction as class whose probability is maximal in 
+            # symbolic form
+            self.y_pred=T.argmax(self.p_y_given_x, axis=1)
+
+
+        def negative_log_likelihood(self, y):
+            """Return the negative log-likelihood of the prediction of this model
+            under a given target distribution.  
+            :param y: corresponds to a vector that gives for each example the
+            :correct label
             """
-            return theano.sum(theano.log(p_y_given_x)[y])
+            # TODO: inline NLL formula, refer to theano function
+            return -theano.log(self.p_y_given_x)[y]
 
-We instantiate this class as follows:
+
+We instantiate the class and declare a global cost which we wish to minimize:
 
 .. code-block:: python
 
@@ -149,6 +163,7 @@ We instantiate this class as follows:
     x = tensor.fmatrix()  # the data is presented as rasterized images
     y = tensor.lvector()  # the labels are presented as 1D vector of [long int] labels
     classifier = LogisticRegression(input=x.reshape((batch_size,784)), n_in=784, n_out=10)
+    cost = classifier.negative_log_likelihood(y).mean() 
 
 
 Learning the Model
@@ -156,24 +171,94 @@ Learning the Model
 
 To implement MSGD in most programming languages (C/C++, Matlab, Python), one
 would start by manually deriving the expressions for the gradient of the loss
-with respect to the parameters :math:`\partial{\ell}/\partial{\theta}` (in
-this case :math:`\partial{\ell}/\partial{W}`.
-This can get pretty tricky for complex models, as expressions for
-:math:`\partial{\ell}/\partial{\theta}` can get fairly complex, especially
-when taking into account problems of numerical stability.  With Theano, this
-work is greatly simplified as it performs automatic differention and applies
-certain math transforms to improve numerical stability.
+with respect to the parameters: in this case :math:`\partial{\ell}/\partial{W}`,
+and :math:`\partial{\ell}/\partial{b}`, This can get pretty tricky for complex
+models, as expressions for :math:`\partial{\ell}/\partial{\theta}` can get
+fairly complex, especially when taking into account problems of numerical
+stability.  With Theano, this work is greatly simplified as it performs
+automatic differentiation and applies certain math transforms to improve
+numerical stability.
 
 
 .. code-block:: python
 
-    # create a function to compute the mistakes that are made by the model
-    test_model = pfunc([x,y], classifier.errors(y))
+    # set a learning rate
+    learning_rate=0.01
 
-    # train_model is a function that updates the model parameters by SGD
-    train_model = pfunc([x, y], cost,
-            updates=[(p, p - numpy.asarray(learning_rate,dtype=x.dtype)*gp)
-                for (p, gp) in zip(classifier.params, tensor.grad(cost, classifier.params))])
+    # compute the gradient of cost with respect to theta = (W,b)
+    g_W = T.grad(cost, classifier.W)
+    g_b = T.grad(cost, classifier.b)
+
+    # specify how to update the parameters of the model as a dictionary
+    updates ={classifier.W: classifier.W - numpy.asarray(learning_rate)*g_W,\
+              classifier.b: classifier.b - numpy.asarray(learning_rate)*g_b}
+
+    # compiling a theano function `train_model` that returns the cost, but in
+    # the same time updates the parameter of the model based on the rules
+    # defined in `updates`
+    train_model = pfunc([x, y], cost, updates = updates )
+
+
+In the above code, ``T.grad`` is used to define the symbolic gradients of the
+cost functions with respect to :math:`W,b`. We then define an ``updates``
+dictionary, which contains, for each parameter, the stochastic gradient update
+operation. The function ``train_model`` is then defined such that:
+
+* the inputs are the mini-batch :math:`x` with corresponding labels :math:`y`
+* the return value is the cost/loss associated with inputs (x,y)
+* on every function call, it applies the operations defined in the ``updates``
+  dictionary. 
+
+Each time ``train_model(x,y)`` function is called, it will thus compute and return the appropriate cost, while also performing a step of MSGD. The entire learning algorithm thus consists in looping over all examples in the dataset, and repeatedly calling the ``train_model`` function.
+
+The finished product is as follows:
+
+.. todo:
+   talk about test_model function
+
+.. code-block:: python
+
+    # early-stopping parameters
+    patience              = 2000 # look as this many examples regardless
+    patience_increase     = 2    # wait this much longer when a new best is 
+                                 # found
+    improvement_threshold = 0.99 # a relative improvement of this much is 
+                                 # considered significant
+    validation_frequency  = 1000 # make this many SGD updates between 
+                                 # validations
+
+    best_params          = None
+    best_validation_loss = float('inf')
+
+
+    for i in xrange(n_iter):
+        # go through the training set and update the model parameters
+        for x,y in train_batches:
+            cost_ij = train_model(x, y)
+        
+
+        # test the model on the validation set ( measuring the average number
+        # of errors )
+        valid_score = 0.
+        for x,y in valid_batches:
+            # sum up the errors for each minibatch
+            valid_score += test_model(x,y)
+        # get the average by dividing with the number of minibatches
+        valid_score /= len(valid_batches)
+
+        print('epoch %i, validation error %f' % (i, valid_score))
+
+
+        # if we got the best validation score until now
+        if valid_score < best_valid_score:
+            best_valid_score = valid_score
+            # test it on the test set
+
+            test_score = 0.
+            for x,y in test_batches:
+                test_score += test_model(x,y)
+            test_score /= len(test_batches)
+            print('epoch %i, test error of best model %f' % (i, test_score))
 
 
 
