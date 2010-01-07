@@ -9,8 +9,8 @@ Classifying MNIST digits using Logistic Regression
 
 In this section, we show how Theano can be used to implement the most basic
 classifier: the logistic regression. We start off with a quick primer of the
-model, which serves as a refresher but also to anchor the notation and show
-how mathematical expressions can easily be mapped onto theano graphs.
+model, which serves both as a refresher but also to anchor the notation and
+show how mathematical expressions are mapped onto theano graphs.
 
 In the deepest of machine learning traditions, this tutorial will tackle the exciting
 problem of MNIST digit classification.
@@ -21,7 +21,7 @@ The Model
 Logistic regression is a probabilistic, linear classifier. It is parametrized
 by a weight matrix :math:`W` and a bias vector :math:`b`. Classification is
 done by projecting data points onto a set of hyperplanes, the distance to
-which is used to determine a class membership probability. 
+which reflects a class membership probability. 
 
 Mathematically, this can be written as:
 
@@ -70,25 +70,31 @@ The code to do this in theano is the following:
   classify = theano.function([x,y], y_pred)
 
 
-We first start by allocating symbolic variables for the inputs
-:math:`x,y`. Afterwards we allocate shared variables for the parameters :math:`W,b`.
-This step declares them both as symbolic theano
-variables, but also initializes their contents. The dot and softmax operators
-are then used to compute the vector :math:`P(Y|x, W,b)`. The resulting
-variable p_y_given_x is a symbolic variable pointing to a vector. The function 
-`get_p_y_given_x` computs this vector for a given x. The output of the
-function is a vector and can thus be index to retrieve a
-particular entry :math:`P(Y=i|x, W,b)`. The final model prediction is then
-computed using the T.argmax operator.
+We first start by allocating symbolic variables for the inputs :math:`x,y`.
+Since the parameters of the model must maintain a persistent state throughout
+training, we allocate shared variables for :math:`W,b`.
+This declares them both as being symbolic theano variables, but also
+initializes their contents. The dot and softmax operators are then used to compute the vector
+:math:`P(Y|x, W,b)`. The resulting variable p_y_given_x is a symbolic variable
+of vector-type. 
 
-Up to this point, we have only defined the graph of calculations which theano
-should perform. To calculate the actual prediction, we construct a function
-``classify``, which takes as input x and y and outputs the vector of
-predicted classes for each example in x.
+Up to this point, we have only defined the graph of computations which theano
+should perform. To get the actual numerical value of :math:`P(Y|x, W,b)`, we
+must create a function ``get_p_y_given_x``, which takes as input ``x`` and
+returns ``p_y_given_x``. We can then index its return value with the
+index :math:`i` to get the membership probability of the :math:`i`th class.
 
-At this point in time, the model we have defined does not do anything useful
-because the parameters are random.  The following section will thus cover how
-to learn the optimal parameters.
+Now let's finishing building the theano graph. To get the actual model
+prediction, we can use the ``T.argmax`` operator, which will return the index at
+which ``p_y_given_x`` is maximal (i.e. the class with maximum probability).
+
+Again, to calculate the actual prediction for a given input, we construct a
+function ``classify``. This function takes as input x and y and outputs a
+vector, containing the predicted class for each example in x.
+
+Now of course, the model we have defined so far does not do anything useful yet,
+since its parameters are still in their initial random state. The following
+section will thus cover how to learn the optimal parameters.
 
 
 .. note::
@@ -116,7 +122,7 @@ descent is by far the simplest method for minimizing arbitrary non-linear
 functions. This tutorial will use the method of stochastic gradient method with
 mini-batches (MSGD, see :doc:`optimization`).
 
-The following Theano code defines the loss for a given minibatch:
+The following Theano code defines the (symbolic) loss for a given minibatch:
 
 .. code-block:: python
 
@@ -130,8 +136,9 @@ The following Theano code defines the loss for a given minibatch:
 Creating a LogisticRegression class
 +++++++++++++++++++++++++++++++++++
 
-We now have all the tools we need to define the following class, which
-encapsulates the basic behaviour for LogisticRegression:
+We now have all the tools we need to define a ``LogisticRegression`` class, which
+encapsulates the basic behaviour of logistic regression. The code is very
+similar to what we have covered so far, and should be self explanatory.
 
 .. code-block:: python
 
@@ -173,7 +180,7 @@ encapsulates the basic behaviour for LogisticRegression:
             return -theano.log(self.p_y_given_x)[y]
 
 
-We instantiate the class and declare a global cost which we wish to minimize:
+We instantiate this class as follows:
 
 .. code-block:: python
 
@@ -185,9 +192,20 @@ We instantiate the class and declare a global cost which we wish to minimize:
     classifier = LogisticRegression( \
                    input=x.reshape((batch_size,28*28)), n_in=28*28, n_out=10)
 
-    # the cost we minimize during training is the negative log likelihood of 
-    # the model in symbolic format
+Note that the inputs x and y are defined outside the scope of the
+``LogisticRegression`` object. Since the class requires the input x to build its
+graph however, it is passed as a parameter of the ``__init__`` function.
+
+The last step involves defining a (symbolic) cost variable to minimize, using
+the instance method ``classifier.negative_log_likelihood``.
+
+.. code-block:: python
+
     cost = classifier.negative_log_likelihood(y).mean() 
+
+Note that the return value of ``classifier.negative_log_likelihood`` is a vector
+containing the cost for each training example within the minibatch. Since we are
+using MSGD, the cost to minimize is the mean cost across the minibatch.
 
 
 Learning the Model
@@ -199,19 +217,29 @@ with respect to the parameters: in this case :math:`\partial{\ell}/\partial{W}`,
 and :math:`\partial{\ell}/\partial{b}`, This can get pretty tricky for complex
 models, as expressions for :math:`\partial{\ell}/\partial{\theta}` can get
 fairly complex, especially when taking into account problems of numerical
-stability.  With Theano, this work is greatly simplified as it performs
+stability.  
+
+With Theano, this work is greatly simplified as it performs
 automatic differentiation and applies certain math transforms to improve
 numerical stability.
 
+To get the gradients :math:`\partial{\ell}/\partial{W}` and
+:math:`\partial{\ell}/\partial{b}` in Theano, simply do the following:
+
+.. code-block:: python
+
+    # compute the gradient of cost with respect to theta = (W,b)
+    g_W = T.grad(cost, classifier.W)
+    g_b = T.grad(cost, classifier.b)
+
+``g_W`` and ``g_b`` are again symbolic variables, which can be used as part of a
+computation graph. Performing one-step of gradient descent can then done as
+follows:
 
 .. code-block:: python
 
     # set a learning rate
     learning_rate=0.01
-
-    # compute the gradient of cost with respect to theta = (W,b)
-    g_W = T.grad(cost, classifier.W)
-    g_b = T.grad(cost, classifier.b)
 
     # specify how to update the parameters of the model as a dictionary
     updates ={classifier.W: classifier.W - numpy.asarray(learning_rate)*g_W,\
@@ -222,18 +250,23 @@ numerical stability.
     # defined in `updates`
     train_model = pfunc([x, y], cost, updates = updates )
 
-
-In the above code, ``T.grad`` is used to define the symbolic gradients of the
-cost functions with respect to :math:`W,b`. We then define an ``updates``
-dictionary, which contains, for each parameter, the stochastic gradient update
-operation. The function ``train_model`` is then defined such that:
+The ``updates`` dictionary contains, for each parameter, the
+stochastic gradient update operation. The function ``train_model`` is then
+defined such that:
 
 * the inputs are the mini-batch :math:`x` with corresponding labels :math:`y`
-* the return value is the cost/loss associated with inputs (x,y)
-* on every function call, it applies the operations defined in the ``updates``
-  dictionary. 
+* the return value is the cost/loss associated with inputs x, y
+* on every function call, it will apply the operations defined by the
+  ``updates`` dictionary. 
 
-Each time ``train_model(x,y)`` function is called, it will thus compute and return the appropriate cost, while also performing a step of MSGD. The entire learning algorithm thus consists in looping over all examples in the dataset, and repeatedly calling the ``train_model`` function.
+Each time ``train_model(x,y)`` function is called, it will thus compute and
+return the appropriate cost, while also performing a step of MSGD. The entire
+learning algorithm thus consists in looping over all examples in the dataset,
+and repeatedly calling the ``train_model`` function.
+
+
+Putting it All Together
++++++++++++++++++++++++
 
 The finished product is as follows:
 
