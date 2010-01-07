@@ -40,27 +40,44 @@ The code to do this in theano is the following:
 
 .. code-block:: python
 
-  # allocate shared variables for inputs and model params
-  x = theano.shared(numpy.zeros((5,784))
-  y = theano.shared(numpy.zeros((5))
+  # generate symbolic variables for input (x and y represent a
+  # minibatch)
+  x = T.fmatrix()
+  y = T.lvector()
+
+  # allocate shared variables model params
   b = theano.shared(numpy.random(10))
   W = theano.shared(numpy.random(784,10))
 
-  # compute vector of class-membership probabilities
+  # symbolic expression for computing the vector of 
+  # class-membership probabilities 
   p_y_given_x = T.softmax(T.dot(x,w)+b)
 
-  print 'Probability that x is of class %i is %f' % i, p_y_given_x[i]
+  # compiled theano function that returns the vector of class-membership
+  # probabilities
+  get_p_y_given_x = theano.function( x, p_y_given_x)
 
-  # compute prediction as class whose probability is maximal
+  # print the probability of some example represented by x_value 
+  # x_value is not a symbolic variable but a numpy array describing the
+  # datapoint
+  print 'Probability that x is of class %i is %f' % i, get_p_y_given_x(x_value)[i]
+
+  # symbolic description of how to compute prediction as class whose probability 
+  # is maximal 
   y_pred = T.argmax(p_y_given_x)
-  classify = pfunc([x,y], y_pred)
+
+  # compiled theano function that returns this value
+  classify = theano.function([x,y], y_pred)
 
 
-We first start by allocating shared variables for the parameters :math:`W,b` and
-and inputs :math:`x,y`. This step declares them both as symbolic theano
+We first start by allocating symbolic variables for the inputs
+:math:`x,y`. Afterwards we allocate shared variables for the parameters :math:`W,b`.
+This step declares them both as symbolic theano
 variables, but also initializes their contents. The dot and softmax operators
 are then used to compute the vector :math:`P(Y|x, W,b)`. The resulting
-variable p_y_given_x is a vector and can thus be index to retrieve a
+variable p_y_given_x is a symbolic variable pointing to a vector. The function 
+`get_p_y_given_x` computs this vector for a given x. The output of the
+function is a vector and can thus be index to retrieve a
 particular entry :math:`P(Y=i|x, W,b)`. The final model prediction is then
 computed using the T.argmax operator.
 
@@ -103,10 +120,10 @@ The following Theano code defines the loss for a given minibatch:
 
 .. code-block:: python
 
-  loss = theano.sum(theano.log(p_y_given_x)[y])
+  loss = T.sum(T.log(p_y_given_x)[y])
 
 .. note::
-    In practice, we will use the mean (theano.mean) instead of the sum. This
+    In practice, we will use the mean (T.mean) instead of the sum. This
     allows for the learning rate to be independent of the minibatch size.
     
 
@@ -119,6 +136,7 @@ encapsulates the basic behaviour for LogisticRegression:
 .. code-block:: python
 
     class LogisticRegression(object):
+
 
         def __init__(self, input, n_in, n_out):
             """ Initialize the parameters of the logistic regression
@@ -160,9 +178,15 @@ We instantiate the class and declare a global cost which we wish to minimize:
 .. code-block:: python
 
     # allocate symbolic variables for the data
-    x = tensor.fmatrix()  # the data is presented as rasterized images
-    y = tensor.lvector()  # the labels are presented as 1D vector of [long int] labels
-    classifier = LogisticRegression(input=x.reshape((batch_size,784)), n_in=784, n_out=10)
+    x = T.fmatrix()  # the data is presented as rasterized images
+    y = T.lvector()  # the labels are presented as 1D vector of [long int] labels
+
+    # construct the logistic regression class
+    classifier = LogisticRegression( \
+                   input=x.reshape((batch_size,28*28)), n_in=28*28, n_out=10)
+
+    # the cost we minimize during training is the negative log likelihood of 
+    # the model in symbolic format
     cost = classifier.negative_log_likelihood(y).mean() 
 
 
@@ -219,46 +243,67 @@ The finished product is as follows:
 .. code-block:: python
 
     # early-stopping parameters
-    patience              = 2000 # look as this many examples regardless
-    patience_increase     = 2    # wait this much longer when a new best is 
-                                 # found
-    improvement_threshold = 0.99 # a relative improvement of this much is 
-                                 # considered significant
-    validation_frequency  = 1000 # make this many SGD updates between 
-                                 # validations
+    patience              = 5000  # look as this many examples regardless
+    patience_increase     = 2     # wait this much longer when a new best is 
+                                  # found
+    improvement_threshold = 0.995 # a relative improvement of this much is 
+                                  # considered significant
+    validation_frequency  = 1000  # make this many SGD updates between 
+                                  # validations
 
     best_params          = None
     best_validation_loss = float('inf')
+    test_score           = 0.
+
+    # have a maximum of `n_iter` iterations through the entire dataset
+    for iter in xrange(n_iter* len(train_batches)):
+
+        # get epoch and minibatch index
+        epoch           = iter / len(train_batches)
+        minibatch_index =  iter % len(train_batches)
+
+        # get the minibatches corresponding to `iter` modulo
+        # `len(train_batches)`
+        x,y = train_batches[ minibatch_index ]
+        cost_ij = train_model(x,y)
+
+        if (iter+1) % validation_frequency == 0: 
+            # compute zero-one loss on validation set 
+            this_validation_loss = 0.
+            for x,y in valid_batches:
+                # sum up the errors for each minibatch
+                this_validation_loss += test_model(x,y)
+            # get the average by dividing with the number of minibatches
+            this_validation_loss /= len(valid_batches)
+
+            print('epoch %i, validation error %f' % 
+                                (epoch, this_validation_loss))
+
+            #improve patience 
+            if this_validation_loss < best_validation_loss *  \
+                                      improvement_threshold :
+                patience = max(patience, iter * patience_increase)
 
 
-    for i in xrange(n_iter):
-        # go through the training set and update the model parameters
-        for x,y in train_batches:
-            cost_ij = train_model(x, y)
-        
+            # if we got the best validation score until now
+            if this_validation_loss < best_validation_loss:
+                best_validation_loss = this_validation_loss
+                # test it on the test set
+            
+                test_score = 0.
+                for x,y in test_batches:
+                    test_score += test_model(x,y)
+                test_score /= len(test_batches)
+                print('     epoch %i, test error of best model %f' % 
+                                    (epoch, test_score))
 
-        # test the model on the validation set ( measuring the average number
-        # of errors )
-        valid_score = 0.
-        for x,y in valid_batches:
-            # sum up the errors for each minibatch
-            valid_score += test_model(x,y)
-        # get the average by dividing with the number of minibatches
-        valid_score /= len(valid_batches)
-
-        print('epoch %i, validation error %f' % (i, valid_score))
+        if patience <= iter :
+                break
 
 
-        # if we got the best validation score until now
-        if valid_score < best_valid_score:
-            best_valid_score = valid_score
-            # test it on the test set
+    print(('Optimization complete with best validation score of %f,'
+           'with test performance %f') %  (best_validation_loss, test_score))
 
-            test_score = 0.
-            for x,y in test_batches:
-                test_score += test_model(x,y)
-            test_score /= len(test_batches)
-            print('epoch %i, test error of best model %f' % (i, test_score))
 
 
 

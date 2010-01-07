@@ -190,6 +190,6 @@ def cg_optimization_mnist(batch_size=16, learning_rate=0.01, l1_reg=0.0001, l2_r
         tuple(validation_scores))
 
 if __name__ == '__main__':
-    sgd_optimization_mnist()
-    #cg_optimization_mnist()
+    #sgd_optimization_mnist()
+    cg_optimization_mnist()
 
