@@ -1,36 +1,17 @@
 """
-This tutorial introduces logistic regression using Theano and stochastic 
-gradient descent.  
+This tutorial introduces the multi-layer perceptron using Theano.  
 
-Logistic regression is a probabilistic, linear classifier. It is parametrized
-by a weight matrix :math:`W` and a bias vector :math:`b`. Classification is
-done by projecting data points onto a set of hyperplanes, the distance to
-which is used to determine a class membership probability. 
-
-Mathematically, this can be written as:
-
-.. math::
-  P(Y=i|x, W,b) &= softmax_i(W x + b) \\
-                &= \frac {e^{W_i x + b_i}} {\sum_j e^{W_j x + b_j}}
+Long description with formulas
 
 
-The output of the model or prediction is then done by taking the argmax of 
-the vector whose i'th element is P(Y=i|x).
-
-.. math::
-
-  y_{pred} = argmax_i P(Y=i|x,W,b)
-
-
-This tutorial presents a stochastic gradient descent optimization method 
-suitable for large datasets, and a conjugate gradient optimization method 
-that is suitable for smaller datasets.
-
+..math::
+    y_k(x,W) = \softmax( \sum_j w^{(2)}_{kj} *
+                \tanh( \sum_i w^{(1)}_{ji} x_i + b^{(1)}_j) + b^{(2)}_k)
 
 References:
 
     - textbooks: "Pattern Recognition and Machine Learning" - 
-                 Christopher M. Bishop, section 4.3.2
+                 Christopher M. Bishop, section 5
 
 TODO: recommended preprocessing, lr ranges, regularization ranges (explain 
       to do lr first, then add regularization)
@@ -48,21 +29,16 @@ import theano.tensor as T
 from theano.compile.sandbox import shared, pfunc
 import theano.tensor.nnet
 
+class MLP(object):
+    """Multi-Layer Perceptron Class
 
-class LogisticRegression(object):
-    """Multi-class Logistic Regression Class
-
-    The logistic regression is fully described by a weight matrix :math:`W` 
-    and bias vector :math:`b`. Classification is done by projecting data 
-    points onto a set of hyperplanes, the distance to which is used to 
-    determine a class membership probability. 
+    shor description
     """
 
 
 
-
-    def __init__(self, input, n_in, n_out):
-        """ Initialize the parameters of the logistic regression
+    def __init__(self, input, n_in, n_hidden, n_out):
+        """Initialize the parameters for the multilayer perceptron
 
         :param input: symbolic variable that describes the input of the 
         architecture (one minibatch)
@@ -70,28 +46,53 @@ class LogisticRegression(object):
         :param n_in: number of input units, the dimension of the space in 
         which the datapoints lie
 
+        :param n_hidden: number of hidden units 
+
         :param n_out: number of output units, the dimension of the space in 
         which the labels lie
 
-        """ 
+        """
 
-        # initialize with 0 the weights W as a matrix of shape (n_in, n_out) 
-        self.W = shared( value=numpy.zeros((n_in,n_out),
-                                            dtype = theano.config.floatX) )
-        # initialize the baises b as a vector of n_out 0s
-        self.b = shared( value=numpy.zeros((n_out,), 
-                                            dtype = theano.config.floatX) )
+        # initialize the parameters theta = (W1,b1,W2,b2) ; note that this 
+        # example contains only one hidden layer, but one can have as many 
+        # layers as he/she wishes, making the network deeper. The only 
+        # problem making the network deep this way is during learning, 
+        # backpropagation being unable to move the network from the starting
+        # point towards; this is where pre-training helps, giving a good 
+        # starting point for backpropagation, but more about this in the 
+        # other tutorials
+        
+        # `W1` is initialized with `W1_values` which is uniformely sampled
+        # from -1/sqrt(n_in) and 1/sqrt(n_in)
+        # the output of uniform if converted using asarray to dtype 
+        # theano.config.floatX so that the code is runable on GPU
+        W1_values = numpy.asarray( numpy.random.uniform( \
+              low = -1/numpy.sqrt(n_in), high = +1/numpy.sqrt(n_in), \
+              size = (n_in, n_hidden)), dtype = theano.config.floatX)
+        # `W2` is initialized with `W2_values` which is uniformely sampled 
+        # from -1/sqrt(n_hidden) and 1/sqrt(n_hidden)
+        # the output of uniform if converted using asarray to dtype 
+        # theano.config.floatX so that the code is runable on GPU
+        W2_values = numpy.asarray( numpy.random.uniform( 
+              low = -1/numpy.sqrt(n_hidden), high= 1/numpy.sqrt(n_hidden),\
+              size= (n_hidden, n_out)), dtype = theano.config.floatX)
 
+        self.W1 = shared( value = W1_values )
+        self.b1 = shared( value = numpy.zeros((n_hidden,), 
+                                                dtype= theano.config.floatX))
+        self.W2 = shared( value = W2_values )
+        self.b2 = shared( value = numpy.zeros((n_out,), 
+                                                dtype= theano.config.floatX))
 
-        # compute vector of class-membership probabilities in symbolic form
-        self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W)+self.b)
+        # symbolic expression computing the values of the hidden layer
+        self.hidden = T.tanh(T.dot(input, self.W1)+ self.b1)
+
+        # symbolic expression computing the values of the top layer 
+        self.p_y_given_x= T.nnet.softmax(T.dot(self.hidden, self.W2)+self.b2)
 
         # compute prediction as class whose probability is maximal in 
         # symbolic form
-        self.y_pred=T.argmax(self.p_y_given_x, axis=1)
-
-
-
+        self.y_pred = T.argmax( self.p_y_given_x, axis =1)
 
 
     def negative_log_likelihood(self, y):
@@ -106,10 +107,7 @@ class LogisticRegression(object):
         # TODO: inline NLL formula, refer to theano function
         return T.nnet.categorical_crossentropy(self.p_y_given_x, y)
 
-
-
-
-
+   
     def errors(self, y):
         """Return a float representing the number of errors in the minibatch 
         over the total number of examples of the minibatch 
@@ -129,12 +127,10 @@ class LogisticRegression(object):
 
 
 
-
-
 def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
     """
-    Demonstrate stochastic gradient descent optimization of a log-linear 
-    model
+    Demonstrate stochastic gradient descent optimization for a multilayer 
+    perceptron
 
     This is demonstrated on MNIST.
     
@@ -152,16 +148,16 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
     f.close()
 
     ishape     = (28,28) # this is the size of MNIST images
-    batch_size =  5      # size of the minibatch 
+    batch_size = 5       # size of the minibatch 
 
     # allocate symbolic variables for the data
     x = T.fmatrix()  # the data is presented as rasterized images
     y = T.lvector()  # the labels are presented as 1D vector of 
-                     # [long int] labels
+                          # [long int] labels
 
     # construct the logistic regression class
-    classifier = LogisticRegression( \
-                   input=x.reshape((batch_size,28*28)), n_in=28*28, n_out=10)
+    classifier = MLP( input=x.reshape((batch_size,28*28)),\
+                      n_in=28*28, n_hidden = 500, n_out=10)
 
     # the cost we minimize during training is the negative log likelihood of 
     # the model in symbolic format
@@ -171,13 +167,18 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
     # the model on a minibatch
     test_model = pfunc([x,y], classifier.errors(y))
 
-    # compute the gradient of cost with respect to theta = (W,b) 
-    g_W = T.grad(cost, classifier.W)
-    g_b = T.grad(cost, classifier.b)
+    # compute the gradient of cost with respect to theta = (W1, b1, W2, b2) 
+    g_W1 = T.grad(cost, classifier.W1)
+    g_b1 = T.grad(cost, classifier.b1)
+    g_W2 = T.grad(cost, classifier.W2)
+    g_b2 = T.grad(cost, classifier.b2)
 
     # specify how to update the parameters of the model as a dictionary
-    updates ={classifier.W: classifier.W - numpy.asarray(learning_rate)*g_W,\
-              classifier.b: classifier.b - numpy.asarray(learning_rate)*g_b}
+    updates = \
+        { classifier.W1: classifier.W1 - numpy.asarray(learning_rate)*g_W1 \
+        , classifier.b1: classifier.b1 - numpy.asarray(learning_rate)*g_b1 \
+        , classifier.W2: classifier.W2 - numpy.asarray(learning_rate)*g_W2 \
+        , classifier.b2: classifier.b2 - numpy.asarray(learning_rate)*g_b2 }
 
     # compiling a theano function `train_model` that returns the cost, but in 
     # the same time updates the parameter of the model based on the rules 
@@ -188,7 +189,7 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
     patience              = 5000  # look as this many examples regardless
     patience_increase     = 2     # wait this much longer when a new best is 
                                   # found
-    improvement_threshold = 0.995 # a relative improvement of this much is 
+    improvement_threshold = 0.99  # a relative improvement of this much is 
                                   # considered significant
     validation_frequency  = 1000  # make this many SGD updates between 
                                   # validations
@@ -245,9 +246,6 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
 
     print(('Optimization complete with best validation score of %f,'
            'with test performance %f') %  (best_validation_loss, test_score))
-
-
-
 
 
 

@@ -151,10 +151,10 @@ def cg_optimization_mnist( n_iter=50 ):
     train_batches, valid_batches, test_batches = cPickle.load(f)
     f.close()
 
-    ishape     = (28,28) #this is the size of MNIST images
-    batch_size = 10 # size of the minibatch 
-    n_in       = 28*28 # number of input units
-    n_out      = 10 # number of output units
+    ishape     = (28,28) # this is the size of MNIST images
+    batch_size = 5       # size of the minibatch 
+    n_in       = 28*28   # number of input units
+    n_out      = 10      # number of output units
     # allocate symbolic variables for the data
     x = T.fmatrix()  # the data is presented as rasterized images
     y = T.lvector()  # the labels are presented as 1D vector of 
