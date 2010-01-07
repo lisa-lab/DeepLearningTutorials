@@ -1,0 +1,186 @@
+Classifying MNIST digits using Logistic Regression
+==================================================
+
+.. note::
+    This sections assumes the reader is familiar with the following Theano
+    concepts: shared variables, basic arithmetic ops, tensor.grad.
+    ((TODO: html links into theano documentation))
+
+
+In this section, we show how Theano can be used to implement the most basic
+classifier: the logistic regression. We start off with a quick primer of the
+model, which serves as a refresher but also to anchor the notation and show
+how mathematical expressions can easily be mapped onto theano graphs.
+
+In the deepest of machine learning traditions, this tutorial will tackle the exciting
+problem of MNIST digit classification.
+
+The Model
++++++++++
+
+Logistic regression is a probabilistic, linear classifier. It is parametrized
+by a weight matrix :math:`W` and a bias vector :math:`b`. Classification is
+done by projecting data points onto a set of hyperplanes, the distance to
+which is used to determine a class membership probability. 
+
+Mathematically, this can be written as:
+
+.. math::
+  P(Y=i|x, W,b) &= softmax_i(W x + b) \\
+                &= \frac {e^{W_i x + b_i}} {\sum_j e^{W_j x + b_j}}
+
+The output of the model or prediction is then done by taking the argmax of the vector whose i'th element is P(Y=i|x).
+
+.. math::
+  y_{pred} = argmax_i P(Y=i|x,W,b)
+
+
+
+The code to do this in theano is the following:
+
+.. code-block:: python
+
+  # allocate shared variables for inputs and model params
+  x = theano.shared(numpy.zeros((5,784))
+  y = theano.shared(numpy.zeros((5))
+  b = theano.shared(numpy.random(10))
+  W = theano.shared(numpy.random(784,10))
+
+  # compute vector of class-membership probabilities
+  p_y_given_x = T.softmax(T.dot(x,w)+b)
+
+  print 'Probability that x is of class %i is %f' % i, p_y_given_x[i]
+
+  # compute prediction as class whose probability is maximal
+  y_pred = T.argmax(p_y_given_x)
+  classify = pfunc([x,y], y_pred)
+
+
+We first start by allocating shared variables for the parameters :math:`W,b` and
+and inputs :math:`x,y`. This step declares them both as symbolic theano
+variables, but also initializes their contents. The dot and softmax operators
+are then used to compute the vector :math:`P(Y|x, W,b)`. The resulting
+variable p_y_given_x is a vector and can thus be index to retrieve a
+particular entry :math:`P(Y=i|x, W,b)`. The final model prediction is then
+computed using the T.argmax operator.
+
+Up to this point, we have only defined the graph of calculations which theano
+should perform. To calculate the actual prediction, we construct a function
+``classify``, which takes as input x and y and outputs the vector of
+predicted classes for each example in x.
+
+At this point in time, the model we have defined does not do anything useful
+because the parameters are random.  The following section will thus cover how
+to learn the optimal parameters.
+
+
+.. note::
+    For a complete list of Theano ops, see: TODO
+
+
+Defining a Loss Function
+++++++++++++++++++++++++
+
+Learning optimal model parameters involves minimizing a loss function. In the
+case of multi-class logistic regression, it is very common to use the negative
+likelihood as the loss. This is equivalent to maximizing the likelihood of the
+data set :math:`\cal{D}` under the model parameterized by :math:`\theta`. Let
+us first start by defining the likelihood :math:`\cal{L}` and loss
+:math:`\ell`:
+
+.. math::
+
+   \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+     \sum_{i=0}^{|\mathcal{D}|} log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+   \ell (\theta=\{W,b\}, \mathcal{D}) = - \mathcal{L} (\theta=\{W,b\}, \mathcal{D})
+
+While entire books are dedicated to the topic of minimization, gradient
+descent is by far the simplest method for minimizing arbitrary non-linear
+functions. This tutorial will use the method of stochastic gradient method with
+mini-batches (MSGD, see :doc:`optimization`).
+
+The following Theano code defines the loss for a given minibatch:
+
+.. code-block:: python
+
+  loss = theano.sum(theano.log(p_y_given_x)[y])
+
+.. note::
+    In practice, we will use the mean (theano.mean) instead of the sum. This
+    allows for the learning rate to be independent of the minibatch size.
+    
+
+Creating a LogisticRegression class
++++++++++++++++++++++++++++++++++++
+
+We now have all the tools we need to define the following class, which
+encapsulates the basic behaviour for LogisticRegression:
+
+.. code-block:: python
+
+    class LogisticRegression(object):
+        """
+
+        w: the linear part of the affine transform
+        b: the constant part of the affine transform
+        TODO: add latex math formulas, reference to publication for complex models
+        """
+
+        def __init__(self, input, n_in, n_out):
+            self.w = shared(numpy.zeros((n_in, n_out), dtype=input.dtype))
+            self.b = shared(numpy.zeros((n_out,), dtype=input.dtype))
+            self.l1=abs(self.w).sum()
+            self.l2_sqr = (self.w**2).sum()
+            self.output=tensor.nnet.softmax(theano.dot(input, self.w)+self.b)
+            self.argmax=theano.tensor.argmax(self.output, axis=1)
+            self.params = [self.w, self.b]
+
+        def ll(self, target):
+            """Return the negative log-likelihood of the prediction of this model under a given
+            target distribution.
+            """
+            return theano.sum(theano.log(p_y_given_x)[y])
+
+We instantiate this class as follows:
+
+.. code-block:: python
+
+    # allocate symbolic variables for the data
+    x = tensor.fmatrix()  # the data is presented as rasterized images
+    y = tensor.lvector()  # the labels are presented as 1D vector of [long int] labels
+    classifier = LogisticRegression(input=x.reshape((batch_size,784)), n_in=784, n_out=10)
+
+
+Learning the Model
+++++++++++++++++++
+
+To implement MSGD in most programming languages (C/C++, Matlab, Python), one
+would start by manually deriving the expressions for the gradient of the loss
+with respect to the parameters :math:`\partial{\ell}/\partial{\theta}` (in
+this case :math:`\partial{\ell}/\partial{W}`.
+This can get pretty tricky for complex models, as expressions for
+:math:`\partial{\ell}/\partial{\theta}` can get fairly complex, especially
+when taking into account problems of numerical stability.  With Theano, this
+work is greatly simplified as it performs automatic differention and applies
+certain math transforms to improve numerical stability.
+
+
+.. code-block:: python
+
+    # create a function to compute the mistakes that are made by the model
+    test_model = pfunc([x,y], classifier.errors(y))
+
+    # train_model is a function that updates the model parameters by SGD
+    train_model = pfunc([x, y], cost,
+            updates=[(p, p - numpy.asarray(learning_rate,dtype=x.dtype)*gp)
+                for (p, gp) in zip(classifier.params, tensor.grad(cost, classifier.params))])
+
+
+
+.. rubric:: Footnotes
+
+.. [#f1] For smaller datasets and simpler models, more sophisticated descent
+         algorithms can be more effective. The sample code for logistic regression
+         demonstrates how to use SciPy's conjugate gradient solver with theano.
+
+

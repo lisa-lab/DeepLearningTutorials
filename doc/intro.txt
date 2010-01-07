@@ -1,0 +1,20 @@
+Introduction
+============
+
+Welcome to the exciting world of Deep Learning !
+
+ - what is deep learning
+ - icml workshop has reading list
+ - point to theano   
+ - public wiki has readings
+ - goeff has readings from last years nips tutorial
+
+Namespaces
+++++++++++
+
+Tutorial code assumes the following namespace:
+
+.. code-block:: python
+
+    import theano
+    import theano.tensor as T

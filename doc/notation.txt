@@ -1,0 +1,35 @@
+Notation
+========
+
+Data set notation
++++++++++++++++++
+
+We label data sets as :math:`\mathcal{D}`. When the distinction is important, we
+indicate train, validation, and test sets as: :math:`\mathcal{D}_{train}`,
+:math:`\mathcal{D}_{valid}` and :math:`\mathcal{D}_{test}`.
+
+The tutorials mostly deal with classification problems, where each data set
+:math:`\mathcal{D}` is an indexed set of pairs :math:`(x^{(i)},y^{(i)})`. We
+use superscripts to distinguish training set examples. :math:`x^{(i)} \in
+\mathcal{R}^D` is thus the i-th training example of dimensionality :math:`D`. Similarly,
+:math:`y^{(i)} \in \{0, ..., L\}` is the i-th label assigned to input
+:math:`x^{(i)}`.
+
+List of Symbols
++++++++++++++++
+
+* L is for the number of labels.
+* D is the number of input dimensions.
+* :math:`W` upper-case symbols refer to a matrix unless specified otherwise
+* :math:`W_{ij}` element at i-th row and j-th column of matrix :math:`W`
+* :math:`W_{i \cdot}, W_i` vector, i-th row of matrix :math:`W`
+* :math:`W_{\cdot j}` vector, j-th column of matrix :math:`W`
+* :math:`b` lower-case symbols refer to a vector unless specified otherwise
+* :math:`b_i` i-th element of vector :math:`b`
+* :math:`\theta` is the set of all parameters for a given model
+* :math:`\mathcal{L}(\theta, \cal{D})` likelihood of dataset :math:`\cal{D}`
+  under the model defined by parameters :math:`\theta`.
+* :math:`\ell(\theta, \cal{D})` empirical loss of the prediction function
+  parameterized by :math:`\theta` on data set :math:`\cal{D}`. TODO: put it in terms of P(Y|X) ?
+
+

@@ -1,0 +1,237 @@
+A Short Primer on [Supervised] Optimization for Deep Learning
+================================================
+
+
+.. _stoch-grad-label:
+
+What's exciting about Deep Learning is largely the use of unsupervised learning
+of deep networks.  But supervised learning also plays an important role.  The
+utility of unsupervised *pre-training* is often evaluated on the basis of what
+performance can be achieved after supervised *fine-tuning*.  This chapter
+reviews the basics of supervised learning for classification models, and covers
+the minibatch stochastic gradient descent algorithm that is used to fine-tune
+many of the models in the Deep Learning Tutorials.
+
+
+Learning a Classifier
++++++++++++++++++++++
+
+The models presented in these deep learning tutorials are as classifiers.
+The objective in training a classifier is to minimize the number of errors (zero-one loss) on unseen examples.
+
+.. math::
+    ***zero one loss ***
+
+But the zero-one loss is not differentiable, so optimizing it for large
+models (thousands or millions of parameters) is prohibitively computationally
+expensive.  Instead, we optimize the log-likelihood of our classifier given all the
+labels in a training set.
+
+.. math::
+    *** log likelihood ***
+
+The likelihood of the right answers is not the same as the number of right
+predictions, but from the point of view of a randomly initialized classifier they
+are pretty similar.  Later in training you can see that the number of right
+predictions in a validation set often decreases a little even after the probability
+of the right answers starts to drop (indicating overfitting), but not much.
+
+The log-likelihood of our classifier is a differentiable surrogate for the
+zero-one loss, and we use the gradient of this function over our training data
+as a supervised learning signal for deep learning.
+
+Stochastic Gradient Descent
++++++++++++++++++++++++++++
+
+What is normal gradient descent?  Normal [steepest] gradient descent is a simple
+algorithm in which we repeatedly make small steps downward on an error surface
+defined by a loss function of some parameters.  In logistic regression the
+parameters are the :math:`W` and :math:`b`.  For the purpose of steepest
+gradient descent we consider that the training data is rolled into the loss
+function.
+
+.. code-block:: python
+
+    # STEEPEST DESCENT
+    while True:
+        loss = f(params)
+        d_loss_wrt_params = ... # compute gradient
+        params -= learning_rate * d_loss_wrt_params
+        if <stopping condition is met>:
+            return params
+
+Stochastic gradient descent (SGD) works according to the same principles as
+steepest descent, but proceeds more quickly by estimating the gradient from just
+a few examples at a time instead of the entire training set.  In its purest
+form, we estimate the gradient from just a single example at a time.
+
+.. code-block:: python
+
+    # STOCHASTIC GRADIENT DESCENT
+    for (x_i,y_i) in training_set:  
+                                # imagine an infinite generator 
+                                # that may repeat examples
+        loss = f(params, x_i, y_i)
+        d_loss_wrt_params = ... # compute gradient
+        params -= learning_rate * d_loss_wrt_params
+        if <stopping condition is met>:
+            return params
+
+The variant that we recommend for deep learning is a further twist on
+stochastic gradient descent using so-called "minibatches" ***other terms for
+this?***.  Minibatch SGD works identically to SGD, except that we use more than
+one training example to make each estimate of the gradient.  This technique reduces
+variance in the estimate of the gradient, and often makes better use of the
+hierarchical memory organization in modern computers. 
+
+.. code-block:: python
+
+    for (x_batch,y_batch) in training_set_batches(batchsize=B):  
+                                # imagine an infinite generator 
+                                # that may repeat examples
+        loss = f(params, x_batch, y_batch)
+        d_loss_wrt_params = ... # compute gradient
+        params -= learning_rate * d_loss_wrt_params
+        if <stopping condition is met>:
+            return params
+
+
+There is a tradeoff in the choice of :math:`B` the minibatch size.  The
+reduction of variance and use of SIMD instructions helps most when increasing
+:math:`B` from 1 to 2, but the marginal improvement fades rapidly to nothing.
+With large :math:`B`, time is wasted in reducing the variance of the gradient
+estimator, that time would be better spent on additional gradient steps.
+An optimal :math:`B` is model-, dataset-, and hardware-dependent, and can be
+anywhere from 1 to maybe 64.  In the tutorial we set it to 5, but this choice
+is almost arbitrary (though harmless).
+
+
+.. todo:: 
+    At this point, we can show how to allocate and apply a classifier with
+    theano, load data, calculate: error rates, etc.
+
+
+.. code-block:: python
+
+  zero_one_loss = theano.sum(theano.neq(argmax(p_y_given_x), y)) ???
+
+  loss = theano.sum(theano.log(p_y_given_x)[y])  #option 1 (TODO: advanced indexing, optimization pattern)
+  
+  loss = theano.log(p_y_given_x[0,y[0]]) + theano.log(p_y_given_x[1, y[1]]) # option 2: simple indexing on each minibatch element
+
+  loss = theano.sum(theano.log(p_y_given_x) * one_of_n(y))   # option 3 (TODO: one_of_n:: integer array, optimization pattern)
+
+  loss = theano.sum(theano.nnet.categorical_crossentropy(p_y_given_x, y)) # option 4: 
+
+  gw, gb = theano.grad(L, [w,b])
+
+
+
+Early Stopping
+++++++++++++++
+
+[Un?]Fortunately, there is more to machine learning than optimization.  When we
+train our model from data we are trying to prepare it to do well on *new*
+examples, not the ones it has already seen.  The training loop above for MSGD
+does not take this into account, and will overfit the training examples.
+The way to combat with overfitting is through regularization.
+There are several techniques for regularization***, but the one we will use is
+cross-validation.
+
+Cross-validation combats overfitting by monitoring the model's performance on a
+*validation set*.  A validation set is a set of examples that we never use for
+gradient descent, but which is also not a part of the *test set*.  The
+validation examples are considered to be representative of future test examples.
+We can use them during training because they are not part of the test set.
+If the model's performance ceases to improve [sufficiently quickly] on the
+validation set, or even degrades with further optimization, then it is ok to
+give up on further optimization.  
+
+
+The choice of when to stop is a
+judgement call and a few heuristics exist***, but these tutorials will make use
+of a strategy based on a geometrically increasing amount of patience.
+
+.. code-block:: python
+
+    # PRE-CONDITION
+    # params refers to [initialized] parameters of our model
+
+    # early-stopping parameters
+    patience = 2000               # look at this many training examples regardless
+    patience_increase = 2         # wait this much longer when a new best is found
+    improvement_threshold = 0.99  # a relative improvement of this much is considered significant
+    validation_frequency = 1000   # make this many SGD updates between validations
+
+    # initialize cross-validation variables
+    best_params = None
+    best_validation_loss = float('inf')
+
+    for iter, (x_batch,y_batch) in enumerate(training_set_batches(batchsize=B)): 
+        d_loss_wrt_params = ... # compute gradient
+        params -= learning_rate * d_loss_wrt_params # gradient descent
+
+        if iter % validation_frequency == 0:
+
+            this_validation_loss = ... # compute zero-one loss on validation set
+            if this_validation_loss < best_validation_loss:
+                best_params = copy.deepcopy(params)
+                best_validation_loss = this_validation_loss
+
+            if this_validation_loss < best_validation_loss*improvement_threshold:
+                patience = iter * patience_increase
+
+        if patience <= iter:
+            break
+
+    # POSTCONDITION:
+    # best_params refers to the best out-of-sample parameters observed during the optimization
+
+If we run out of batches of training data before running out of patience, then
+we just go back to the beginning of the training set and repeat.  It is a good
+idea to reshuffle the training data between these iterations, but not necessary.
+
+.. note::
+
+    This algorithm could be improved by using a test of statistical significance
+    rather than the simple comparison, when deciding whether to increase the
+    patience.
+
+
+
+
+Testing
++++++++
+
+After the loop exits, the best_params variable refers to the best-performing
+model on the validation set.  If we repeat this procedure for another model
+class, or even another random initialization, we should use the same
+train/valid/test split of the data, and get other best-performing
+models.  If we have to choose what the best model class or the best
+initialization was, we compare the best_validation_loss for each model.  When
+we have finally chosen the model we think is the best (on validation data), we
+report that model's test set performance.  That is the performance we expect on
+unseen examples.
+
+Recap
++++++
+
+That's it for the optimization section.
+The technique of cross-validation requires us to partition the set of examples into three sets 
+(training :math:`\mathcal{D}_{train}`,
+validation :math:`\mathcal{D}_{valid}`,
+test :math:`\mathcal{D}_{test}`). 
+The training set is used for minibatch stochastic gradient descent on the
+differentiable approximation of the objective function.
+As we perform this gradient descent, we periodically consult the validation set
+to see how our model is doing on the real objective function (or at least our
+empirical estimate of it).
+When we see a good model on the validation set, we save it.
+When it has been a long time since seeing a good model, we abandon our search
+and return the best parameters found, for evaluation on the test set.
+
+
+
+
+
+

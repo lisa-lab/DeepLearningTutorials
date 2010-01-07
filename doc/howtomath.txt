@@ -1,0 +1,11 @@
+==========================
+Artificial Neural Networks
+==========================
+
+Inline equations :math:`a = \sum_h p(v)^2`.
+
+.. math::
+    z_t &= \tanh( z_{t-1} A + x_{t-1})
+    :label: tanh
+
+Reference to :eq:`tanh`.
