@@ -93,6 +93,14 @@ class MLP(object):
         # compute prediction as class whose probability is maximal in 
         # symbolic form
         self.y_pred = T.argmax( self.p_y_given_x, axis =1)
+        
+        # L1 norm ; one regularization option is to enforce L1 norm to 
+        # be small 
+        self.L1     = abs(self.W1).sum() + abs(self.W2).sum()
+
+        # square of L2 norm ; one regularization option is to enforce 
+        # square of L2 norm to be small
+        self.L2_sqr = (self.W1**2).sum() + (self.W2**2).sum()
 
 
     def negative_log_likelihood(self, y):
@@ -127,7 +135,8 @@ class MLP(object):
 
 
 
-def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
+def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0001, \
+                            L2_reg = 0.0001, n_iter=100):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer 
     perceptron
@@ -139,6 +148,11 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
 
     :param n_iter: number of iterations ot run the optimizer 
 
+    :param L1_reg: L1-norm's weight when added to the cost (see 
+    regularization)
+
+    :param L2_reg: L2-norm's weight when added to the cost (see 
+    regularization)
     """
 
     # Load the dataset ; note that the dataset is already divided in
@@ -160,8 +174,11 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
                       n_in=28*28, n_hidden = 500, n_out=10)
 
     # the cost we minimize during training is the negative log likelihood of 
-    # the model in symbolic format
-    cost = classifier.negative_log_likelihood(y).mean() 
+    # the model plus the regularization terms (L1 and L2); cost is expressed
+    # here symbolically
+    cost = classifier.negative_log_likelihood(y).mean() \
+         + L1_reg * classifier.L1 \
+         + L2_reg * classifier.L2_sqr 
 
     # compiling a theano function that computes the mistakes that are made by 
     # the model on a minibatch
@@ -189,7 +206,7 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
     patience              = 5000  # look as this many examples regardless
     patience_increase     = 2     # wait this much longer when a new best is 
                                   # found
-    improvement_threshold = 0.99  # a relative improvement of this much is 
+    improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
     validation_frequency  = 1000  # make this many SGD updates between 
                                   # validations
