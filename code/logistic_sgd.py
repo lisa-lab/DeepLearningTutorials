@@ -185,50 +185,66 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
     train_model = pfunc([x, y], cost, updates = updates )
 
     # early-stopping parameters
-    patience              = 2000 # look as this many examples regardless
-    patience_increase     = 2    # wait this much longer when a new best is 
-                                 # found
-    improvement_threshold = 0.99 # a relative improvement of this much is 
-                                 # considered significant
-    validation_frequency  = 1000 # make this many SGD updates between 
-                                 # validations
+    patience              = 5000  # look as this many examples regardless
+    patience_increase     = 2     # wait this much longer when a new best is 
+                                  # found
+    improvement_threshold = 0.995 # a relative improvement of this much is 
+                                  # considered significant
+    validation_frequency  = 1000  # make this many SGD updates between 
+                                  # validations
 
     best_params          = None
     best_validation_loss = float('inf')
+    test_score           = 0.
+
+    # have a maximum of `n_iter` iterations through the entire dataset
+    for iter in xrange(n_iter* len(train_batches)):
+
+        # get epoch and minibatch index
+        epoch           = iter / len(train_batches)
+        minibatch_index =  iter % len(train_batches)
+
+        # get the minibatches corresponding to `iter` modulo
+        # `len(train_batches)`
+        x,y = train_batches[ minibatch_index ]
+        cost_ij = train_model(x,y)
+
+        if (iter+1) % validation_frequency == 0: 
+            # compute zero-one loss on validation set 
+            this_validation_loss = 0.
+            for x,y in valid_batches:
+                # sum up the errors for each minibatch
+                this_validation_loss += test_model(x,y)
+            # get the average by dividing with the number of minibatches
+            this_validation_loss /= len(valid_batches)
+
+            print('epoch %i, validation error %f' % 
+                                (epoch, this_validation_loss))
+
+            #improve patience 
+            if this_validation_loss < best_validation_loss *  \
+                                      improvement_threshold :
+                patience = max(patience, iter * patience_increase)
 
 
-    for i in xrange(n_iter):
-        # go through the training set and update the model parameters
-        for x,y in train_batches:
-            cost_ij = train_model(x, y)
-        
+            # if we got the best validation score until now
+            if this_validation_loss < best_validation_loss:
+                best_validation_loss = this_validation_loss
+                # test it on the test set
+            
+                test_score = 0.
+                for x,y in test_batches:
+                    test_score += test_model(x,y)
+                test_score /= len(test_batches)
+                print('     epoch %i, test error of best model %f' % 
+                                    (epoch, test_score))
 
-        # test the model on the validation set ( measuring the average number
-        # of errors )
-        valid_score = 0.
-        for x,y in valid_batches:
-            # sum up the errors for each minibatch
-            valid_score += test_model(x,y)
-        # get the average by dividing with the number of minibatches
-        valid_score /= len(valid_batches)
-
-        print('epoch %i, validation error %f' % (i, valid_score))
-
-
-        # if we got the best validation score until now
-        if valid_score < best_valid_score:
-            best_valid_score = valid_score
-            # test it on the test set
-
-            test_score = 0.
-            for x,y in test_batches:
-                test_score += test_model(x,y)
-            test_score /= len(test_batches)
-            print('epoch %i, test error of best model %f' % (i, test_score))
+        if patience <= iter :
+                break
 
 
     print(('Optimization complete with best validation score of %f,'
-           'with test performance %f') %  (best_valid_score, test_score))
+           'with test performance %f') %  (best_validation_loss, test_score))
 
 
 
