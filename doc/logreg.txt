@@ -114,7 +114,7 @@ us first start by defining the likelihood :math:`\cal{L}` and loss
 .. math::
 
    \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
-     \sum_{i=0}^{|\mathcal{D}|} log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+     \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
    \ell (\theta=\{W,b\}, \mathcal{D}) = - \mathcal{L} (\theta=\{W,b\}, \mathcal{D})
 
 While entire books are dedicated to the topic of minimization, gradient
@@ -305,6 +305,14 @@ Putting it All Together
 The finished product is as follows.
 
 .. literalinclude:: ../code/logistic_sgd.py
+
+The user can classify MNIST digits to his heart's content, by typing, from
+within the DeepLearningTutorials folder:
+
+.. code-block:: bash
+
+    python code/logistic_sgd.py
+
 
 
 .. rubric:: Footnotes

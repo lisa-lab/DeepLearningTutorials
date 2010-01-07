@@ -18,29 +18,65 @@ many of the models in the Deep Learning Tutorials.
 Learning a Classifier
 +++++++++++++++++++++
 
-The models presented in these deep learning tutorials are as classifiers.
-The objective in training a classifier is to minimize the number of errors (zero-one loss) on unseen examples.
+Zero-One Loss
+-------------
+
+The models presented in these deep learning tutorials are mostly used as
+for classification. The objective in training a classifier is to minimize the number
+of errors (zero-one loss) on unseen examples. If :math:`f: R^D \rightarrow
+\{0,...,L\}` is the prediction function, then this loss can be written as:
 
 .. math::
-    ***zero one loss ***
-
-But the zero-one loss is not differentiable, so optimizing it for large
-models (thousands or millions of parameters) is prohibitively computationally
-expensive.  Instead, we optimize the log-likelihood of our classifier given all the
-labels in a training set.
+    
+    \ell_{0,1} = \sum_{i=0}^{|\mathcal{D}|} I_{f(x^{(i)}) \neq y^{(i)}}
+    
+where :math:`\mathcal{D} \cap \mathcal{D}_{train} = \emptyset` and :math:`I` is the
+indicator function defined as:
 
 .. math::
-    *** log likelihood ***
 
-The likelihood of the right answers is not the same as the number of right
-predictions, but from the point of view of a randomly initialized classifier they
-are pretty similar.  Later in training you can see that the number of right
-predictions in a validation set often decreases a little even after the probability
-of the right answers starts to drop (indicating overfitting), but not much.
+    I_x = \left\{\begin{array}{ccc} 
+          1&\mbox{ if x is True} \\
+          0&\mbox{ otherwise}\end{array}\right.
 
-The log-likelihood of our classifier is a differentiable surrogate for the
-zero-one loss, and we use the gradient of this function over our training data
-as a supervised learning signal for deep learning.
+In this tutorial, :math:`f` is defined as:
+
+.. math::
+    
+    f(x) = argmax_k P(Y=k | x, \theta)
+
+
+Negative Log-Likelihood Loss
+----------------------------
+
+Since the zero-one loss is not differentiable, optimizing it for large models
+(thousands or millions of parameters) is prohibitively expensive
+(computationally). We thus maximize the log-likelihood of our classifier given
+all the labels in a training set.
+
+.. math::
+
+    \mathcal{L}(\theta, \mathcal{D}) = 
+        \sum_{i=0}^{|\mathcal{D}|} \log P(Y=y^{(i)} | x^{(i)}, \theta)
+
+The likelihood of the inputs for their respective class is not the same as the
+number of right predictions, but from the point of view of a randomly
+initialized classifier they are pretty similar.  Later in training you can see
+that the number of right predictions in a validation set often decreases a
+little even after the probability of the right answers starts to drop
+(indicating overfitting), but not much.
+
+Since we usually speak in terms of minimizing a loss function, learning will
+thus attempt to **minimize** the **negative** log-likelihood (NLL), defined
+as:
+
+.. math::
+
+    NLL(\theta, \mathcal{D}) = - \sum_{i=0}^{|\mathcal{D}|} \log P(Y=y^{(i)} | x^{(i)}, \theta)
+
+The NLL of our classifier is a differentiable surrogate for the zero-one loss,
+and we use the gradient of this function over our training data as a
+supervised learning signal for deep learning.
 
 .. _opt_SGD:
 
