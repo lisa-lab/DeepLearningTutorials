@@ -42,8 +42,8 @@ source_suffix = '.txt'
 master_doc = 'contents'
 
 # General substitutions.
-project = 'Jobman'
-copyright = '2008--2009, LISA lab'
+project = 'Deep Learning'
+copyright = '2008--2010, LISA lab'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.

@@ -4,10 +4,10 @@ Introduction
 Welcome to the exciting world of Deep Learning !
 
  - what is deep learning
- - icml workshop has reading list
+ - The ICML 2009 Workshop on Learning Feature Hierarchies `webpage <http://www.cs.toronto.edu/~rsalakhu/deeplearning/index.html>`_ has a `reading list <http://www.cs.toronto.edu/~rsalakhu/deeplearning/references.html>`_
  - point to theano   
- - public wiki has readings
- - goeff has readings from last years nips tutorial
+ - The LISA `public wiki <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/WebHome>`_ has a `reading list <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/ReadingOnDeepNetworks>`_ and a `bibliography <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/DeepNetworksBibliography>`_
+ - Geoff Hinton has `readings <http://www.cs.toronto.edu/~hinton/deeprefs.html>`_ from last year's `NIPS tutorial <http://videolectures.net/jul09_hinton_deeplearn/>`_
 
 Namespaces
 ++++++++++
