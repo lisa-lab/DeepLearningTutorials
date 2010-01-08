@@ -33,7 +33,6 @@ import theano.tensor as T
 
 import time 
 
-from theano.compile.sandbox import shared, pfunc
 import theano.tensor.nnet
 
 class MLP(object):
@@ -84,11 +83,11 @@ class MLP(object):
               low = -1/numpy.sqrt(n_hidden), high= 1/numpy.sqrt(n_hidden),\
               size= (n_hidden, n_out)), dtype = theano.config.floatX)
 
-        self.W1 = shared( value = W1_values )
-        self.b1 = shared( value = numpy.zeros((n_hidden,), 
+        self.W1 = theano.shared( value = W1_values )
+        self.b1 = theano.shared( value = numpy.zeros((n_hidden,), 
                                                 dtype= theano.config.floatX))
-        self.W2 = shared( value = W2_values )
-        self.b2 = shared( value = numpy.zeros((n_out,), 
+        self.W2 = theano.shared( value = W2_values )
+        self.b2 = theano.shared( value = numpy.zeros((n_out,), 
                                                 dtype= theano.config.floatX))
 
         # symbolic expression computing the values of the hidden layer
@@ -189,7 +188,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
 
     # compiling a theano function that computes the mistakes that are made by 
     # the model on a minibatch
-    test_model = pfunc([x,y], classifier.errors(y))
+    test_model = theano.function([x,y], classifier.errors(y))
 
     # compute the gradient of cost with respect to theta = (W1, b1, W2, b2) 
     g_W1 = T.grad(cost, classifier.W1)
@@ -207,7 +206,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
     # compiling a theano function `train_model` that returns the cost, but in 
     # the same time updates the parameter of the model based on the rules 
     # defined in `updates`
-    train_model = pfunc([x, y], cost, updates = updates )
+    train_model = theano.function([x, y], cost, updates = updates )
 
     # early-stopping parameters
     patience              = 10000 # look as this many examples regardless

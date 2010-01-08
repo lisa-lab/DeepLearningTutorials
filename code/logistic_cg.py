@@ -41,11 +41,10 @@ __docformat__ = 'restructedtext en'
 
 import numpy, cPickle, gzip
 
+import time
 
 import theano
 import theano.tensor as T
-
-from theano.compile.sandbox import shared, pfunc
 import theano.tensor.nnet
 
 
@@ -78,7 +77,7 @@ class LogisticRegression(object):
         # initialize theta = (W,b) with 0s; W gets the shape (n_in, n_out), 
         # while b is a vector of n_out elements, making theta a vector of
         # n_in*n_out + n_out elements
-        self.theta = shared( value = numpy.zeros(n_in*n_out+n_out) )
+        self.theta = theano.shared( value = numpy.zeros(n_in*n_out+n_out) )
         # W is represented by the fisr n_in*n_out elements of theta
         self.W = self.theta[0:n_in*n_out].reshape((n_in,n_out))
         # b is the rest (last n_out elements)
@@ -171,12 +170,12 @@ def cg_optimization_mnist( n_iter=50 ):
 
     # compile a theano function that computes the mistakes that are made by 
     # the model on a minibatch
-    test_model = pfunc([x,y], classifier.errors(y))
+    test_model = theano.function([x,y], classifier.errors(y))
     # compile a theano function that returns the gradient of the minibatch 
     # with respect to theta
-    batch_grad = pfunc([x, y], T.grad(cost, classifier.theta))
+    batch_grad = theano.function([x, y], T.grad(cost, classifier.theta))
     #  compile a thenao function that returns the cost of a minibatch
-    batch_cost = pfunc([x, y], cost)
+    batch_cost = theano.function([x, y], cost)
 
     # creates a function that computes the average cost on the training set
     def train_fn(theta_value):

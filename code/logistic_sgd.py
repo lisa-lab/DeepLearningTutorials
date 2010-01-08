@@ -46,7 +46,6 @@ import time
 import theano
 import theano.tensor as T
 
-from theano.compile.sandbox import shared, pfunc
 import theano.tensor.nnet
 
 
@@ -77,10 +76,10 @@ class LogisticRegression(object):
         """ 
 
         # initialize with 0 the weights W as a matrix of shape (n_in, n_out) 
-        self.W = shared( value=numpy.zeros((n_in,n_out),
+        self.W = theano.shared( value=numpy.zeros((n_in,n_out),
                                             dtype = theano.config.floatX) )
         # initialize the baises b as a vector of n_out 0s
-        self.b = shared( value=numpy.zeros((n_out,), 
+        self.b = theano.shared( value=numpy.zeros((n_out,), 
                                             dtype = theano.config.floatX) )
 
 
@@ -170,7 +169,7 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
 
     # compiling a theano function that computes the mistakes that are made by 
     # the model on a minibatch
-    test_model = pfunc([x,y], classifier.errors(y))
+    test_model = theano.function([x,y], classifier.errors(y))
 
     # compute the gradient of cost with respect to theta = (W,b) 
     g_W = T.grad(cost, classifier.W)
@@ -183,7 +182,7 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
     # compiling a theano function `train_model` that returns the cost, but in 
     # the same time updates the parameter of the model based on the rules 
     # defined in `updates`
-    train_model = pfunc([x, y], cost, updates = updates )
+    train_model = theano.function([x, y], cost, updates = updates )
 
     # early-stopping parameters
     patience              = 5000  # look as this many examples regardless
