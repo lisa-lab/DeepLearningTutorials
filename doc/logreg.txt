@@ -3,7 +3,7 @@ Classifying MNIST digits using Logistic Regression
 
 .. note::
     This sections assumes the reader is familiar with the following Theano
-    concepts: `shared variables <, basic arithmetic ops, T.grad.
+    concepts: shared variables , basic arithmetic ops, T.grad.
     ((TODO: html links into theano documentation))
 
 
