@@ -15,12 +15,12 @@ MNIST Dataset
 
  Here are some examples of MNIST digits: |5|, |0|, |4|, |1|, |9|, |2|
 
- .. |5| image:: /images/mnist_0.png
- .. |0| image:: /images/mnist_1.png
- .. |4| image:: /images/mnist_2.png
- .. |1| image:: /images/mnist_3.png
- .. |9| image:: /images/mnist_4.png
- .. |2| image:: /images/mnist_5.png
+ .. |5| image:: images/mnist_0.png
+ .. |0| image:: images/mnist_1.png
+ .. |4| image:: images/mnist_2.png
+ .. |1| image:: images/mnist_3.png
+ .. |9| image:: images/mnist_4.png
+ .. |2| image:: images/mnist_5.png
  
  For convenience we pickled the dataset to make it easier to use in python.
  The pickled file represents a tuple of 3 lists : the training set, the 
