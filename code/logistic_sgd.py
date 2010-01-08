@@ -41,6 +41,7 @@ __docformat__ = 'restructedtext en'
 
 import numpy, cPickle, gzip
 
+import time
 
 import theano
 import theano.tensor as T
@@ -197,6 +198,7 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
     best_validation_loss = float('inf')
     test_score           = 0.
 
+    start_time = time.clock()
     # have a maximum of `n_iter` iterations through the entire dataset
     for iter in xrange(n_iter* len(train_batches)):
 
@@ -218,8 +220,8 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
             # get the average by dividing with the number of minibatches
             this_validation_loss /= len(valid_batches)
 
-            print('epoch %i, validation error %f' % 
-                                (epoch, this_validation_loss))
+            print('epoch %i, validation error %f %%' % 
+                                (epoch, this_validation_loss*100.))
 
             #improve patience 
             if this_validation_loss < best_validation_loss *  \
@@ -236,15 +238,17 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
                 for x,y in test_batches:
                     test_score += test_model(x,y)
                 test_score /= len(test_batches)
-                print('     epoch %i, test error of best model %f' % 
-                                    (epoch, test_score))
+                print('     epoch %i, test error of best model %f %%' % 
+                                    (epoch, test_score*100.))
 
         if patience <= iter :
                 break
 
-
-    print(('Optimization complete with best validation score of %f,'
-           'with test performance %f') %  (best_validation_loss, test_score))
+    end_time = time.clock()
+    print(('Optimization complete with best validation score of %f %%,'
+           'with test performance %f %%') %  
+                 (best_validation_loss * 100., test_score*100.))
+    print ('The code ran for %f minutes' % ((end_time-start_time)/60.))
 
 
 

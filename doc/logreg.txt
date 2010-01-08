@@ -82,7 +82,7 @@ Up to this point, we have only defined the graph of computations which theano
 should perform. To get the actual numerical value of :math:`P(Y|x, W,b)`, we
 must create a function ``get_p_y_given_x``, which takes as input ``x`` and
 returns ``p_y_given_x``. We can then index its return value with the
-index :math:`i` to get the membership probability of the :math:`i`th class.
+index :math:`i` to get the membership probability of the :math:`i` th class.
 
 Now let's finishing building the theano graph. To get the actual model
 prediction, we can use the ``T.argmax`` operator, which will return the index at
@@ -313,12 +313,26 @@ within the DeepLearningTutorials folder:
 
     python code/logistic_sgd.py
 
+The output one should expect is of the form :
 
+.. code-block:: bash
+
+  epoch 0, validation error 12.210000 %
+       epoch 0, test error of best model 12.660000 %
+  ...
+  epoch 25, validation error 7.090000 %
+  Optimization complete with best validation score of 6.97%, with test performance 7.62%
+  The code ran for 2.840833 minutes
+
+On a **what type of machine is simplet??** the code run with
+approximately 6.8179992 sec/epoch and it took 25 epochs to reach a test
+error of 7.62%. 
 
 .. rubric:: Footnotes
 
 .. [#f1] For smaller datasets and simpler models, more sophisticated descent
-         algorithms can be more effective. The sample code for logistic regression
-         demonstrates how to use SciPy's conjugate gradient solver with theano.
+         algorithms can be more effective. The sample code logistic_cg.py
+         demonstrates how to use SciPy's conjugate gradient solver with theano 
+         on the logistic regression task.
 
 

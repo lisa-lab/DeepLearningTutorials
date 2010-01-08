@@ -209,7 +209,7 @@ def cg_optimization_mnist( n_iter=50 ):
 
         this_validation_loss /= len(valid_batches)
 
-        print('validation error %f' % (this_validation_loss,))
+        print('validation error %f %%' % (this_validation_loss*100.,))
         
         # check if it is better then best validation score got until now
         if this_validation_loss < validation_scores[0]:
@@ -224,6 +224,7 @@ def cg_optimization_mnist( n_iter=50 ):
     # using scipy conjugate gradient optimizer 
     import scipy.optimize
     print ("Optimizing using scipy.optimize.fmin_cg...")
+    start_time = time.clock()
     best_w_b = scipy.optimize.fmin_cg(
             f=train_fn, 
             x0=numpy.zeros((n_in+1)*n_out, dtype=x.dtype),
@@ -231,9 +232,12 @@ def cg_optimization_mnist( n_iter=50 ):
             callback=callback,
             disp=0,
             maxiter=n_iter)
+    end_time = time.clock()
+    print(('Optimization complete with best validation score of %f %%, with'
+          'test performance %f %%') % 
+               (best_validation_loss*100., test_score*100.))
 
-    print(('Optimization complete with best validation score of %f, with'
-          'test performance %f') % (best_validation_loss, test_score))
+    print ('The code ran for %f minutes' % ((end_time-start_time)/60.))
 
 
 
