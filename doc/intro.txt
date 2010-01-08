@@ -1,11 +1,13 @@
 Introduction
 ============
 
-Welcome to the exciting world of Deep Learning !
+Welcome to the exciting world of Deep Learning (with theano)!
 
  - what is deep learning
  - icml workshop has reading list
- - point to theano   
+ - point to theano_  (you should read through at least theano's `basic tutorial`_
+
+   before tackling this tutorial)
  - public wiki has readings
  - goeff has readings from last years nips tutorial
 
@@ -18,3 +20,11 @@ Tutorial code assumes the following namespace:
 
     import theano
     import theano.tensor as T
+
+
+
+
+.. _theano: http://www.pylearn.org/theano
+
+.. _basic tutorial: http://www.pylearn.org/theano/basic_tutorial
+
