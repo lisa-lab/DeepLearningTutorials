@@ -3,13 +3,19 @@ Introduction
 
 Welcome to the exciting world of Deep Learning (with theano)!
 
- - what is deep learning
- - icml workshop has reading list
- - point to theano_  (you should read through at least theano's `basic tutorial`_
+Deep Learning is about learning multiple layers of abstractions that help to
+make sense of data such as images, sound, and text.
 
-   before tackling this tutorial)
- - public wiki has readings
- - goeff has readings from last years nips tutorial
+ - The ICML 2009 Workshop on Learning Feature Hierarchies `webpage <http://www.cs.toronto.edu/~rsalakhu/deeplearning/index.html>`_ has a `reading list <http://www.cs.toronto.edu/~rsalakhu/deeplearning/references.html>`_
+ - The LISA `public wiki <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/WebHome>`_ has a `reading list <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/ReadingOnDeepNetworks>`_ and a `bibliography <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/DeepNetworksBibliography>`_
+ - Geoff Hinton has `readings <http://www.cs.toronto.edu/~hinton/deeprefs.html>`_ from last year's `NIPS tutorial <http://videolectures.net/jul09_hinton_deeplearn/>`_
+
+This tutorial will introduce you to some of the most important deep learning
+algorithms and show you how to run them using theano_, a python library.  The
+theano library makes writing deep learning models easy, and gives the option of
+training them on a GPU.  Since this tutorial is about *using* theano, you
+should read over the `theano basic tutorial`_ first before launching into this
+one.
 
 Namespaces
 ++++++++++
@@ -23,8 +29,7 @@ Tutorial code assumes the following namespace:
 
 
 
-
 .. _theano: http://www.pylearn.org/theano
 
-.. _basic tutorial: http://www.pylearn.org/theano/basic_tutorial
+.. _theano basic tutorial: http://www.pylearn.org/theano/basic_tutorial
 

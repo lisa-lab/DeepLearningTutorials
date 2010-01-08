@@ -1,5 +1,5 @@
 """
-This tutorial introduces logistic regression using Theano and stochastic 
+This tutorial introduces logistic regression using Theano and conjugate 
 gradient descent.  
 
 Logistic regression is a probabilistic, linear classifier. It is parametrized
@@ -29,7 +29,8 @@ that is suitable for smaller datasets.
 
 References:
 
-    - textbooks: Bishop, other...
+   - textbooks: "Pattern Recognition and Machine Learning" - 
+                 Christopher M. Bishop, section 4.3.2
 
 TODO: recommended preprocessing, lr ranges, regularization ranges (explain 
       to do lr first, then add regularization)
@@ -132,110 +133,13 @@ class LogisticRegression(object):
 
 
 
-def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
-    """
-    Demonstrate stochastic gradient descent optimization of a log-linear 
-    model
-
-    This is demonstrated on MNIST.
-    
-    :param learning_rate: learning rate used (factor for the stochastic 
-    gradient
-
-    :param n_iter: number of iterations ot run the optimizer 
-
-    """
-
-    # Load the dataset ; note that the dataset is already divided in
-    # minibatches of size 10; 
-    f = gzip.open('mnist.pkl.gz','rb')
-    train_batches, valid_batches, test_batches = cPickle.load(f)
-    f.close()
-
-    ishape=(28,28) #this is the size of MNIST images
-    batch_size = 10 # size of the minibatch 
-
-    # allocate symbolic variables for the data
-    x = T.fmatrix()  # the data is presented as rasterized images
-    y = T.lvector()  # the labels are presented as 1D vector of 
-                          # [long int] labels
-
-    # construct the logistic regression class
-    classifier = LogisticRegression( \
-                   input=x.reshape((batch_size,28*28)), n_in=28*28, n_out=10)
-
-    # the cost we minimize during training is the negative log likelihood of 
-    # the model in symbolic format
-    cost = classifier.negative_log_likelihood(y).mean() 
-
-    # compiling a theano function that computes the mistakes that are made by 
-    # the model on a minibatch
-    test_model = pfunc([x,y], classifier.errors(y))
-
-    # compute the gradient of cost with respect to theta = (W,b) 
-    g_theta = T.grad(cost, classifier.theta)
-    #g_b = T.grad(cost, classifier.b)
-
-    # specify how to update the parameters of the model as a dictionary
-    #updates = {classifier.W: classifier.W- numpy.asarray(learning_rate)*g_W,\
-    #           classifier.b: classifier.b- numpy.asarray(learning_rate)*g_b}
-
-    # compiling a theano function `train_model` that returns the cost, but in 
-    # the same time updates the parameter of the model based on the rules 
-    # defined in `updates`
-    train_model = pfunc([x, y], cost, updates = \
-     {classifier.theta:classifier.theta-numpy.asarray(learning_rate)*g_theta})
-      # updates =  updates)
-
-    best_valid_score = float('inf')
-
-    for i in xrange(n_iter):
-        # go through the training set and update the model parameters
-        for x,y in train_batches:
-            cost_ij = train_model(x, y)
-        
-
-        # test the model on the validation set ( measuring the average number
-        # of errors )
-        valid_score = 0.
-        for x,y in valid_batches:
-            # sum up the errors for each minibatch
-            valid_score += test_model(x,y)
-        # get the average by dividing with the number of minibatches
-        valid_score /= len(valid_batches)
-
-        print('epoch %i, validation error %f' % (i, valid_score))
 
 
-        # if we got the best validation score until now
-        if valid_score < best_valid_score:
-            best_valid_score = valid_score
-            # test it on the test set
-
-            test_score = 0.
-            for x,y in test_batches:
-                test_score += test_model(x,y)
-            test_score /= len(test_batches)
-            print('epoch %i, test error of best model %f' % (i, test_score))
-
-
-    print(('Optimization complete with best validation score of %f,'
-           'with test performance %f') %  (best_valid_score, test_score))
-
-
-
-
-
-
-
-def cg_optimization_mnist(learning_rate=0.01, n_iter=50):
+def cg_optimization_mnist( n_iter=50 ):
     """Demonstrate conjugate gradient optimization of a log-linear model 
 
     This is demonstrated on MNIST.
     
-    :param learning_rate: learning rate used (factor for the stochastic 
-    gradient
-
     :param n_iter: number of iterations ot run the optimizer 
 
     """
@@ -247,10 +151,10 @@ def cg_optimization_mnist(learning_rate=0.01, n_iter=50):
     train_batches, valid_batches, test_batches = cPickle.load(f)
     f.close()
 
-    ishape     = (28,28) #this is the size of MNIST images
-    batch_size = 10 # size of the minibatch 
-    n_in       = 28*28 # number of input units
-    n_out      = 10 # number of output units
+    ishape     = (28,28) # this is the size of MNIST images
+    batch_size = 5       # size of the minibatch 
+    n_in       = 28*28   # number of input units
+    n_out      = 10      # number of output units
     # allocate symbolic variables for the data
     x = T.fmatrix()  # the data is presented as rasterized images
     y = T.lvector()  # the labels are presented as 1D vector of 
@@ -275,7 +179,8 @@ def cg_optimization_mnist(learning_rate=0.01, n_iter=50):
     batch_cost = pfunc([x, y], cost)
 
     # creates a function that computes the average cost on the training set
-    def train_fn(w_b_value):
+    def train_fn(theta_value):
+        classifier.theta.value = theta_value
         cost = 0.
         for x,y in train_batches :
             cost += batch_cost(x,y)
@@ -283,27 +188,34 @@ def cg_optimization_mnist(learning_rate=0.01, n_iter=50):
 
     # creates a function that computes the average gradient of cost with 
     # respect to theta
-    def train_fn_grad(w_b_value):
+    def train_fn_grad(theta_value):
+        classifier.theta.value = theta_value
         grad = numpy.zeros(n_in * n_out + n_out)
         for x,y in train_batches:
             grad += batch_grad(x,y)
         return grad/ len(train_batches)
 
 
+
     validation_scores = [float('inf'), 0]
-
+ 
     # creates the validation function
-    def callback(w_b_value):
-        valid_score = 0.
-
+    def callback(theta_value):
+        classifier.theta.value = theta_value
+        #compute the validation loss
+        this_validation_loss = 0.
         for x,y in valid_batches:
-            valid_score += test_model(x,y)
+            this_validation_loss += test_model(x,y)
 
-        valid_score /= len(valid_batches)
-        print('validation error %f' % (valid_score,))
+        this_validation_loss /= len(valid_batches)
 
-        if valid_score < validation_scores[0]:
-            validation_scores[0] = valid_score
+        print('validation error %f %%' % (this_validation_loss*100.,))
+        
+        # check if it is better then best validation score got until now
+        if this_validation_loss < validation_scores[0]:
+            # if so, replace the old one, and compute the score on the 
+            # testing dataset
+            validation_scores[0] = this_validation_loss
             test_score = 0.
             for x,y in test_batches:
                 test_score += test_model(x,y)
@@ -312,6 +224,7 @@ def cg_optimization_mnist(learning_rate=0.01, n_iter=50):
     # using scipy conjugate gradient optimizer 
     import scipy.optimize
     print ("Optimizing using scipy.optimize.fmin_cg...")
+    start_time = time.clock()
     best_w_b = scipy.optimize.fmin_cg(
             f=train_fn, 
             x0=numpy.zeros((n_in+1)*n_out, dtype=x.dtype),
@@ -319,9 +232,12 @@ def cg_optimization_mnist(learning_rate=0.01, n_iter=50):
             callback=callback,
             disp=0,
             maxiter=n_iter)
+    end_time = time.clock()
+    print(('Optimization complete with best validation score of %f %%, with'
+          'test performance %f %%') % 
+               (best_validation_loss*100., test_score*100.))
 
-    print(('Optimization complete with best validation score of %f, with'
-          'test performance %f') % tuple(validation_scores))
+    print ('The code ran for %f minutes' % ((end_time-start_time)/60.))
 
 
 
@@ -330,6 +246,5 @@ def cg_optimization_mnist(learning_rate=0.01, n_iter=50):
 
 
 if __name__ == '__main__':
-    sgd_optimization_mnist()
-    #cg_optimization_mnist()
+    cg_optimization_mnist()
 

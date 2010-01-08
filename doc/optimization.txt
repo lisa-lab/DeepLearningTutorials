@@ -13,32 +13,72 @@ the minibatch stochastic gradient descent algorithm that is used to fine-tune
 many of the models in the Deep Learning Tutorials.
 
 
+.. _opt_learn_classifier:
+
 Learning a Classifier
 +++++++++++++++++++++
 
-The models presented in these deep learning tutorials are as classifiers.
-The objective in training a classifier is to minimize the number of errors (zero-one loss) on unseen examples.
+Zero-One Loss
+-------------
+
+The models presented in these deep learning tutorials are mostly used as
+for classification. The objective in training a classifier is to minimize the number
+of errors (zero-one loss) on unseen examples. If :math:`f: R^D \rightarrow
+\{0,...,L\}` is the prediction function, then this loss can be written as:
 
 .. math::
-    ***zero one loss ***
-
-But the zero-one loss is not differentiable, so optimizing it for large
-models (thousands or millions of parameters) is prohibitively computationally
-expensive.  Instead, we optimize the log-likelihood of our classifier given all the
-labels in a training set.
+    
+    \ell_{0,1} = \sum_{i=0}^{|\mathcal{D}|} I_{f(x^{(i)}) \neq y^{(i)}}
+    
+where :math:`\mathcal{D} \cap \mathcal{D}_{train} = \emptyset` and :math:`I` is the
+indicator function defined as:
 
 .. math::
-    *** log likelihood ***
 
-The likelihood of the right answers is not the same as the number of right
-predictions, but from the point of view of a randomly initialized classifier they
-are pretty similar.  Later in training you can see that the number of right
-predictions in a validation set often decreases a little even after the probability
-of the right answers starts to drop (indicating overfitting), but not much.
+    I_x = \left\{\begin{array}{ccc} 
+          1&\mbox{ if x is True} \\
+          0&\mbox{ otherwise}\end{array}\right.
 
-The log-likelihood of our classifier is a differentiable surrogate for the
-zero-one loss, and we use the gradient of this function over our training data
-as a supervised learning signal for deep learning.
+In this tutorial, :math:`f` is defined as:
+
+.. math::
+    
+    f(x) = argmax_k P(Y=k | x, \theta)
+
+
+Negative Log-Likelihood Loss
+----------------------------
+
+Since the zero-one loss is not differentiable, optimizing it for large models
+(thousands or millions of parameters) is prohibitively expensive
+(computationally). We thus maximize the log-likelihood of our classifier given
+all the labels in a training set.
+
+.. math::
+
+    \mathcal{L}(\theta, \mathcal{D}) = 
+        \sum_{i=0}^{|\mathcal{D}|} \log P(Y=y^{(i)} | x^{(i)}, \theta)
+
+The likelihood of the inputs for their respective class is not the same as the
+number of right predictions, but from the point of view of a randomly
+initialized classifier they are pretty similar.  Later in training you can see
+that the number of right predictions in a validation set often decreases a
+little even after the probability of the right answers starts to drop
+(indicating overfitting), but not much.
+
+Since we usually speak in terms of minimizing a loss function, learning will
+thus attempt to **minimize** the **negative** log-likelihood (NLL), defined
+as:
+
+.. math::
+
+    NLL(\theta, \mathcal{D}) = - \sum_{i=0}^{|\mathcal{D}|} \log P(Y=y^{(i)} | x^{(i)}, \theta)
+
+The NLL of our classifier is a differentiable surrogate for the zero-one loss,
+and we use the gradient of this function over our training data as a
+supervised learning signal for deep learning.
+
+.. _opt_SGD:
 
 Stochastic Gradient Descent
 +++++++++++++++++++++++++++
@@ -86,7 +126,7 @@ hierarchical memory organization in modern computers.
 
 .. code-block:: python
 
-    for (x_batch,y_batch) in training_set_batches(batchsize=B):  
+    for (x_batch,y_batch) in train_batches:  
                                 # imagine an infinite generator 
                                 # that may repeat examples
         loss = f(params, x_batch, y_batch)
@@ -113,19 +153,20 @@ is almost arbitrary (though harmless).
 
 .. code-block:: python
 
-  zero_one_loss = theano.sum(theano.neq(argmax(p_y_given_x), y)) ???
+  zero_one_loss = T.sum(T.neq(argmax(p_y_given_x), y)) ???
 
-  loss = theano.sum(theano.log(p_y_given_x)[y])  #option 1 (TODO: advanced indexing, optimization pattern)
+  loss = T.sum(T.log(p_y_given_x)[y])  #option 1 (TODO: advanced indexing, optimization pattern)
   
-  loss = theano.log(p_y_given_x[0,y[0]]) + theano.log(p_y_given_x[1, y[1]]) # option 2: simple indexing on each minibatch element
+  loss = T.log(p_y_given_x[0,y[0]]) + theano.log(p_y_given_x[1, y[1]]) # option 2: simple indexing on each minibatch element
 
-  loss = theano.sum(theano.log(p_y_given_x) * one_of_n(y))   # option 3 (TODO: one_of_n:: integer array, optimization pattern)
+  loss = T.sum(theano.log(p_y_given_x) * one_of_n(y))   # option 3 (TODO: one_of_n:: integer array, optimization pattern)
 
-  loss = theano.sum(theano.nnet.categorical_crossentropy(p_y_given_x, y)) # option 4: 
+  loss = T.sum(theano.nnet.categorical_crossentropy(p_y_given_x, y)) # option 4: 
 
-  gw, gb = theano.grad(L, [w,b])
+  gw, gb = T.grad(L, [w,b])
 
 
+.. _opt_early_stopping:
 
 Early Stopping
 ++++++++++++++
@@ -158,28 +199,46 @@ of a strategy based on a geometrically increasing amount of patience.
     # params refers to [initialized] parameters of our model
 
     # early-stopping parameters
-    patience = 2000               # look at this many training examples regardless
-    patience_increase = 2         # wait this much longer when a new best is found
-    improvement_threshold = 0.99  # a relative improvement of this much is considered significant
-    validation_frequency = 1000   # make this many SGD updates between validations
+    n_iter                = 100   # the maximal number of iterations of the 
+                                  # entire dataset considered
+    patience              = 5000  # look at this many training examples regardless
+    patience_increase     = 2     # wait this much longer when a new best is 
+                                  # found
+    improvement_threshold = 0.995 # a relative improvement of this much is 
+                                  # considered significant
+    validation_frequency  = 1000  # make this many SGD updates between validations
 
     # initialize cross-validation variables
     best_params = None
     best_validation_loss = float('inf')
 
-    for iter, (x_batch,y_batch) in enumerate(training_set_batches(batchsize=B)): 
+    for iter in xrange( n_iter * len(train_batches) ) :
+ 
+        # get epoch and minibatch index
+        epoch           = iter / len(train_batches)
+        minibatch_index =  iter % len(train_batches)
+
+        # get the minibatches corresponding to `iter` modulo
+        # `len(train_batches)`
+        x,y = train_batches[ minibatch_index ]
+
+
         d_loss_wrt_params = ... # compute gradient
         params -= learning_rate * d_loss_wrt_params # gradient descent
 
-        if iter % validation_frequency == 0:
+        # note that if we do `iter % validation_frequency` it will be
+        # true for iter = 0 which we do not want
+        if (iter+1) % validation_frequency == 0: 
 
             this_validation_loss = ... # compute zero-one loss on validation set
+
+            # improve patience
+            if this_validation_loss < best_validation_loss*improvement_threshold:
+                patience = iter * patience_increase
+ 
             if this_validation_loss < best_validation_loss:
                 best_params = copy.deepcopy(params)
                 best_validation_loss = this_validation_loss
-
-            if this_validation_loss < best_validation_loss*improvement_threshold:
-                patience = iter * patience_increase
 
         if patience <= iter:
             break
