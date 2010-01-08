@@ -23,6 +23,7 @@ MNIST Dataset
  .. |2| image:: images/mnist_5.png
  
  For convenience we pickled the dataset to make it easier to use in python.
+ It is available for download `here <http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz>`_.
  The pickled file represents a tuple of 3 lists : the training set, the 
  validation set and the testing set. Each element of any of the three lists 
  represents a minibatch of 10 examples. Such an elemnt is a tuple composed 
