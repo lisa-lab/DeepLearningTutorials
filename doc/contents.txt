@@ -14,7 +14,7 @@ Contents
    datasets
    optimization
    logreg
-   ann
+   mlp
    convolutional_mlp
    rbm
    dbn

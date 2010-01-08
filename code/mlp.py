@@ -1,7 +1,12 @@
 """
-This tutorial introduces the multi-layer perceptron using Theano.  
+This tutorial introduces the multilayer perceptron using Theano.  
 
- Multilayer perceptron 
+ A multilayer perceptron is a logistic regressor where
+instead of feeding the input to the logistic regression you insert a
+intermidiate layer, called the hidden layer, that has a nonlinear 
+activation function (usually tanh or sigmoid) . One can use many such 
+hidden layers making the architecture deep. The tutorial will also tackle 
+the problem of MNIST digit classification.
 
 
 ..math::
@@ -12,11 +17,6 @@ References:
 
     - textbooks: "Pattern Recognition and Machine Learning" - 
                  Christopher M. Bishop, section 5
-
-
- 99 epochs : 259.218667 mins
- validation score : 1.930000 % 
- test score 1.9200000 %
 
 TODO: recommended preprocessing, lr ranges, regularization ranges (explain 
       to do lr first, then add regularization)
@@ -38,7 +38,10 @@ import theano.tensor.nnet
 class MLP(object):
     """Multi-Layer Perceptron Class
 
-    shor description
+    A multilayer perceptron is a feedforward artificial neural network model 
+    that has one layer or more of hidden units and nonlinear activations. 
+    Intermidiate layers usually have as activation function thanh or the 
+    sigmoid function  while the top layer is a softamx layer. 
     """
 
 
@@ -177,7 +180,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
 
     # construct the logistic regression class
     classifier = MLP( input=x.reshape((batch_size,28*28)),\
-                      n_in=28*28, n_hidden = 1000, n_out=10)
+                      n_in=28*28, n_hidden = 100, n_out=10)
 
     # the cost we minimize during training is the negative log likelihood of 
     # the model plus the regularization terms (L1 and L2); cost is expressed

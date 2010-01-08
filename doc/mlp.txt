@@ -1,0 +1,172 @@
+Multilayer Perceptron
+=====================
+
+.. note::
+    This section assumes the reader is familiar with the following
+    Theano concepts: shared variables, basic arthmetic ops, T.grad
+    ((TODO: html links into theano documentation))
+
+The next architecture we are going to present using Theano is the
+multilayer perceptron. You can see it as a logistic regressor where
+instead of feeding the input to the logistic regression you insert a
+intermidiate layer, called the hidden layer, that has a nonlinear 
+activation function (usually tanh or sigmoid) . One can use many such 
+hidden layers making the architecture deep. The tutorial will also tackle 
+the problem of MNIST digit classification.
+
+The Model
++++++++++
+
+
+
+Going from logistic regression to MLP
++++++++++++++++++++++++++++++++++++++
+
+
+First thing to notice is that :math:`\theta` would contain a set of
+weights and biases for each layer. We will use only one hidden layer,
+therefore we will have only :math:`W^{(1)},b^{(1)}` for the hidden
+layer and :math:`W^{(2)},b^{(2)}` for the output layer. These parameters
+need to be declared as shared variables (as it was done for the
+logistic regression) :
+
+.. code-block:: python
+
+        # `W1` is initialized with `W1_values` which is uniformely sampled
+        # from -1/sqrt(n_in) and 1/sqrt(n_in)
+        # the output of uniform if converted using asarray to dtype 
+        # theano.config.floatX so that the code is runable on GPU
+        W1_values = numpy.asarray( numpy.random.uniform( \
+              low = -1/numpy.sqrt(n_in), high = +1/numpy.sqrt(n_in), \
+              size = (n_in, n_hidden)), dtype = theano.config.floatX)
+        # `W2` is initialized with `W2_values` which is uniformely sampled 
+        # from -1/sqrt(n_hidden) and 1/sqrt(n_hidden)
+        # the output of uniform if converted using asarray to dtype 
+        # theano.config.floatX so that the code is runable on GPU
+        W2_values = numpy.asarray( numpy.random.uniform( 
+              low = -1/numpy.sqrt(n_hidden), high= 1/numpy.sqrt(n_hidden),\
+              size= (n_hidden, n_out)), dtype = theano.config.floatX)
+
+        W1 = theano.shared( value = W1_values )
+        b1 = theano.shared( value = numpy.zeros((n_hidden,), 
+                                                dtype= theano.config.floatX))
+        W2 = theano.shared( value = W2_values )
+        b2 = theano.shared( value = numpy.zeros((n_out,), 
+                                                dtype= theano.config.floatX))
+
+
+
+
+The initial values for the weights of a layer :math:`i` should be uniformely
+sampled from the interval
+:math:`[\frac{-1}{\sqrt{fan_{in}}},\frac{1}{\sqrt{fan_{in}}}]`, where 
+:math:`fan_{in}` is the size of the lower layer :math:`i-1`. 
+
+Afterwards the hidden layer is computed, which represents the
+transformed input that will be feed to the logistic top layer. This is
+done symbolically by calling:
+
+.. code-block:: python
+
+        # symbolic expression computing the values of the hidden layer
+        hidden = T.tanh(T.dot(input, W1)+ b1)
+
+
+Note that we used as activation function of the hidden layer the 
+:math:`\tanh` function. The `hidden` is then feed to the logistic 
+top layer by calling:
+
+.. code-block:: python
+
+        # symbolic expression computing the values of the top layer 
+        p_y_given_x= T.nnet.softmax(T.dot(hidden, W2)+b2)
+
+        # compute prediction as class whose probability is maximal in 
+        # symbolic form
+        self.y_pred = T.argmax( p_y_given_x, axis =1)
+ 
+
+In this tutorial we will also use L1 and L2 regularization. For
+this we need to compute the L1 norm and the squared L2 norm of the weights
+:math:`W^{(1)}, W^{(2)}`.
+
+.. code-block:: python
+
+        # L1 norm ; one regularization option is to enforce L1 norm to 
+        # be small 
+        L1     = abs(W1).sum() + abs(W2).sum()
+
+        # square of L2 norm ; one regularization option is to enforce 
+        # square of L2 norm to be small
+        L2_sqr = (W1**2).sum() + (W2**2).sum()
+
+
+We will train this model of stochastic gradient descent as before, but 
+for which the cost will contain the regularization terms as well
+weighted by their factor. The code that computes the new cost is : 
+
+.. code-block:: python
+
+    # the cost we minimize during training is the negative log likelihood of 
+    # the model plus the regularization terms (L1 and L2); cost is expressed
+    # here symbolically
+    cost = T.sum(T.log(p_y_given_x)[y]) \
+         + L1_reg * L1 \
+         + L2_reg * L2_sqr 
+
+
+The parameters of the model are afterwards updated according to the
+gradient. This code is almost identical with the one for the logistic 
+regression only that the number of parameters differ : 
+
+.. code-block:: python
+
+    # compute the gradient of cost with respect to theta = (W1, b1, W2, b2) 
+    g_W1 = T.grad(cost, W1)
+    g_b1 = T.grad(cost, b1)
+    g_W2 = T.grad(cost, W2)
+    g_b2 = T.grad(cost, b2)
+
+    # specify how to update the parameters of the model as a dictionary
+    updates = \
+        { W1: W1 - numpy.asarray(learning_rate)*g_W1 \
+        , b1: b1 - numpy.asarray(learning_rate)*g_b1 \
+        , W2: W2 - numpy.asarray(learning_rate)*g_W2 \
+        , b2: b2 - numpy.asarray(learning_rate)*g_b2 }
+
+    # compiling a theano function `train_model` that returns the cost, but 
+    # in the same time updates the parameter of the model based on the rules 
+    # defined in `updates`
+    train_model = theano.function([x, y], cost, updates = updates )
+
+Putting it All Together
++++++++++++++++++++++++
+
+Having this few changes in mind, writing an MLP class becomes quite
+easy. The code below shows how this can be done in an analog mode to 
+the logistic regression : 
+
+.. literalinclude:: ../code/mlp.py
+
+The user can then run the code by calling :
+
+.. code-block:: bash
+
+    python code/mlp.py
+
+The output one should expect is of the form :
+
+.. code-block:: bash
+
+  epoch 0, validation error 9.650000 %
+       epoch 0, test error of best model 10.140000 %
+  ...
+  epoch 99, validation error 2.240000 %
+  Optimization complete with best validation score of 2.12%, with test performance 2.29%
+  The code ran for 27.115500 minutes
+
+On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
+approximately 16.433636363 sec/epoch and it took 99 epochs to reach a test
+error of 2.29%. 
+
+

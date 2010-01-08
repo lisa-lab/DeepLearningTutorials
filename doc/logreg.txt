@@ -3,7 +3,7 @@ Classifying MNIST digits using Logistic Regression
 
 .. note::
     This sections assumes the reader is familiar with the following Theano
-    concepts: shared variables, basic arithmetic ops, tensor.grad.
+    concepts: `shared variables <, basic arithmetic ops, T.grad.
     ((TODO: html links into theano documentation))
 
 
@@ -324,7 +324,7 @@ The output one should expect is of the form :
   Optimization complete with best validation score of 6.97%, with test performance 7.62%
   The code ran for 2.840833 minutes
 
-On a **what type of machine is simplet??** the code run with
+On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
 approximately 6.8179992 sec/epoch and it took 25 epochs to reach a test
 error of 7.62%. 
 
