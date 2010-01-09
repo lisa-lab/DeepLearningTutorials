@@ -271,7 +271,7 @@ Testing the model
 +++++++++++++++++
 
 As explained in :ref:`opt_learn_classifier`, when testing the model we are
-interested in the number of misclassified examples (and not in the likelihood).
+interested in the number of misclassified examples (and not only in the likelihood).
 The ``LogisticRegression`` class therefore has an extra instance method, which
 builds the symbolic graph for retrieving the number of misclassified examples in
 each minibatch.
@@ -308,7 +308,7 @@ The finished product is as follows.
 
 .. literalinclude:: ../code/logistic_sgd.py
 
-The user can classify MNIST digits to his heart's content, by typing, from
+The user can learn to classify MNIST digits with SGD logistic regression, by typing, from
 within the DeepLearningTutorials folder:
 
 .. code-block:: bash
