@@ -168,8 +168,17 @@ is almost arbitrary (though harmless).
 
 .. _opt_early_stopping:
 
-Early Stopping
+
+Regularization
 ++++++++++++++
+
+L1 and L2 regularization
+------------------------
+
+TODO
+
+Early-Stopping
+--------------
 
 [Un?]Fortunately, there is more to machine learning than optimization.  When we
 train our model from data we are trying to prepare it to do well on *new*
