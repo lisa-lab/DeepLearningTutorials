@@ -5,7 +5,7 @@ MNIST Dataset
 +++++++++++++
 
 
- `MNIST <http://yann.lecun.com/exdb/mnist>`_ dataset consists of handwritten 
+ The `MNIST <http://yann.lecun.com/exdb/mnist>`_ dataset consists of handwritten 
  digit images and it is divided in 60 000 examples for the training set and 
  10 000 examples for testing. All examples have been size-normalized and 
  centered in a fixed size image of 28 x 28 pixels. In the original dataset 
@@ -28,9 +28,9 @@ MNIST Dataset
  It is available for download `here <http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz>`_.
  The pickled file represents a tuple of 3 lists : the training set, the 
  validation set and the testing set. Each element of any of the three lists 
- represents a minibatch of 10 examples. Such an elemnt is a tuple composed 
+ represents a minibatch of 10 examples. Such an element is a tuple composed 
  of the list of 10 images and the list of class labels for each of the
- images. An image is represented as numpy array of 784 (28 x 28) float
+ images. An image is represented as numpy 1-dimensional array of 784 (28 x 28) float
  values between 0 and 1 ( 0 stands for black, 1 for white). The labels
  are numbers between 0 and 9 indicating which digit the image
  represents. Loading and accessing the dataset in the python can be done as 
