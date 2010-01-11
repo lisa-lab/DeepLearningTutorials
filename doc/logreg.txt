@@ -319,16 +319,16 @@ The output one should expect is of the form :
 
 .. code-block:: bash
 
-  epoch 0, validation error 12.210000 %
-       epoch 0, test error of best model 12.660000 %
+  epoch 0, validation error 12.320000 %
+       epoch 0, test error of best model 12.860000 %
   ...
-  epoch 25, validation error 7.090000 %
-  Optimization complete with best validation score of 6.97%, with test performance 7.62%
-  The code ran for 2.840833 minutes
+  epoch 99, validation error 7.010000 %
+  Optimization complete with best validation score of 6.98%, with test performance 7.61%
+  The code ran for 2.992000 minutes
 
 On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
-approximately 6.8179992 sec/epoch and it took 25 epochs to reach a test
-error of 7.62%. 
+approximately 1.8133333 sec/epoch and it took 99 epochs to reach a test
+error of 7.61%. 
 
 .. rubric:: Footnotes
 

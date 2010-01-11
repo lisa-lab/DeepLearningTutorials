@@ -28,8 +28,8 @@ MNIST Dataset
  It is available for download `here <http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz>`_.
  The pickled file represents a tuple of 3 lists : the training set, the 
  validation set and the testing set. Each element of any of the three lists 
- represents a minibatch of 10 examples. Such an element is a tuple composed 
- of the list of 10 images and the list of class labels for each of the
+ represents a minibatch of 20 examples. Such an element is a tuple composed 
+ of the list of 20 images and the list of class labels for each of the
  images. An image is represented as numpy 1-dimensional array of 784 (28 x 28) float
  values between 0 and 1 ( 0 stands for black, 1 for white). The labels
  are numbers between 0 and 9 indicating which digit the image
