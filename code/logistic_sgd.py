@@ -190,20 +190,20 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = 1000  # make this many SGD updates between 
+    validation_frequency  = 2500  # make this many SGD updates between 
                                   # validations
 
     best_params          = None
     best_validation_loss = float('inf')
     test_score           = 0.
-
+    n_minibatches        = len(train_batches) # number of minibatchers
     start_time = time.clock()
     # have a maximum of `n_iter` iterations through the entire dataset
-    for iter in xrange(n_iter* len(train_batches)):
+    for iter in xrange(n_iter* n_minibatches):
 
         # get epoch and minibatch index
-        epoch           = iter / len(train_batches)
-        minibatch_index =  iter % len(train_batches)
+        epoch           = iter / n_minibatches
+        minibatch_index =  iter % n_minibatches
 
         # get the minibatches corresponding to `iter` modulo
         # `len(train_batches)`
@@ -219,8 +219,9 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
             # get the average by dividing with the number of minibatches
             this_validation_loss /= len(valid_batches)
 
-            print('epoch %i, validation error %f %%' % 
-                                (epoch, this_validation_loss*100.))
+            print('epoch %i, minibatch %i/%i, validation error %f %%' % \
+                 (epoch, minibatch_index+1,n_minibatches, \
+                  this_validation_loss*100.))
 
             #improve patience 
             if this_validation_loss < best_validation_loss *  \
@@ -237,8 +238,9 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
                 for x,y in test_batches:
                     test_score += test_model(x,y)
                 test_score /= len(test_batches)
-                print('     epoch %i, test error of best model %f %%' % 
-                                    (epoch, test_score*100.))
+                print(('     epoch %i, minibatch %i/%i, test error of best ' 
+                       'model %f %%') % \
+                  (epoch, minibatch_index+1, n_minibatches,test_score*100.))
 
         if patience <= iter :
                 break
