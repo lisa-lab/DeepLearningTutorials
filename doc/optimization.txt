@@ -177,21 +177,65 @@ TODO: CHOOSE WHICH LOSS FORMULATION TO KEEP
 Regularization
 ++++++++++++++
 
-L1 and L2 regularization
-------------------------
-
-TODO
-
-Early-Stopping
---------------
-
 There is more to machine learning than optimization.  When we
 train our model from data we are trying to prepare it to do well on *new*
 examples, not the ones it has already seen.  The training loop above for MSGD
 does not take this into account, and may overfit the training examples.
 A way to combat overfitting is through regularization.
-There are several techniques for regularization, but the one we will explain here is
-early-stopping.
+There are several techniques for regularization; the ones we will explain here 
+are L1/L2 regularization and early-stopping.
+
+L1 and L2 regularization
+------------------------
+
+L1 and L2 regularization involve adding an extra term to the loss function,
+which penalizes certain parameter configurations. Formally, if our loss function is:
+
+.. math::
+
+    NLL(\theta, \mathcal{D}) = - \sum_{i=0}^{|\mathcal{D}|} \log P(Y=y^{(i)} | x^{(i)}, \theta) 
+
+then the regularized loss will be:
+
+.. math::
+
+	E(\theta, \mathcal{D}) =  NLL(\theta, \mathcal{D}) + \lambda R(\theta)\\
+
+or, in our case
+
+.. math::
+
+	E(\theta, \mathcal{D}) =  NLL(\theta, \mathcal{D}) + \lambda||\theta||_p
+
+with
+
+.. math::
+	
+	||\theta||_p = \left(\sum_{j=0}^{|\theta|}{|\theta_j|^p}\right)^{\frac{1}{p}}
+
+which is the :math:`L_p` norm of :math:`\theta`. :math:`\lambda` is a hyper-parameter which
+controls the relative importance of the regularization parameter. Commonly used values for p
+are 1 and 2, hence the L1/L2 nomenclature. If p=2, then the regularizer is
+also called "weight decay".
+
+In principle, adding a regularization term to the loss will encourage smooth
+network mappings in a neural network (by penalizing large values of the
+parameters, which decreases the amount of nonlinearity that the
+network models). More intuitively, the two terms (NLL and :math:`R(\theta)`)
+correspond to modelling the data well (NLL) and having "simple" or "smooth"
+solutions (:math:`R(\theta)`). Thus, minimizing the sum of both will, in
+theory, correspond to finding the right trade-off between the fit to the
+training data and the "generality" of the solution that is found. To follow
+Occam's razor principle, this minimization should find us the simplest
+solution (as measured by our simplicity criterion) that fits the training
+data. 
+
+Note that the fact that a solution is "simple" does not mean that it will
+generalize well. Empirically, it was found that performing such regularization
+in the context of neural networks helps with generalization.
+
+Early-Stopping
+--------------
 
 Early-stopping combats overfitting by monitoring the model's performance on a
 *validation set*.  A validation set is a set of examples that we never use for
