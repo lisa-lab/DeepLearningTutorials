@@ -126,7 +126,7 @@ The following Theano code defines the (symbolic) loss for a given minibatch:
 
 .. code-block:: python
 
-  loss = T.sum(T.log(p_y_given_x)[y])
+  loss = -T.sum(T.log(p_y_given_x)[y])
 
 .. note::
     In practice, we will use the mean (T.mean) instead of the sum. This
