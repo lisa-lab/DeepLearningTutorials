@@ -234,6 +234,8 @@ Note that the fact that a solution is "simple" does not mean that it will
 generalize well. Empirically, it was found that performing such regularization
 in the context of neural networks helps with generalization.
 
+TODO: code example
+
 Early-Stopping
 --------------
 
