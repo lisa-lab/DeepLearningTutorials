@@ -145,13 +145,13 @@ def cg_optimization_mnist( n_iter=50 ):
     #TODO: Tzanetakis
 
     # Load the dataset ; note that the dataset is already divided in
-    # minibatches of size 10; 
+    # minibatches of size 20; 
     f = gzip.open('mnist.pkl.gz','rb')
     train_batches, valid_batches, test_batches = cPickle.load(f)
     f.close()
 
     ishape     = (28,28) # this is the size of MNIST images
-    batch_size = 5       # size of the minibatch 
+    batch_size = 20       # size of the minibatch 
     n_in       = 28*28   # number of input units
     n_out      = 10      # number of output units
     # allocate symbolic variables for the data
