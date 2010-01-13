@@ -17,6 +17,12 @@ training them on a GPU.  Since this tutorial is about *using* theano, you
 should read over the `theano basic tutorial`_ first before launching into this
 one.
 
+.. TODO: Add links to the tutorial pages!
+
+.. TODO: Consider making all one chapter so that TOC (left) makes sense
+
+.. TODO: Move to notation ?
+
 Namespaces
 ++++++++++
 
