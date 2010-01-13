@@ -1,3 +1,5 @@
+.. _mlp:
+
 Multilayer Perceptron
 =====================
 

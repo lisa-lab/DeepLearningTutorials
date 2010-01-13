@@ -1,3 +1,5 @@
+.. _logreg:
+
 Classifying MNIST digits using Logistic Regression
 ==================================================
 
