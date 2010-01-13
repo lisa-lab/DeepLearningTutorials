@@ -1,5 +1,6 @@
-Introduction
-============
+=======================
+Deep Learning Tutorials
+=======================
 
 Welcome to the exciting world of Deep Learning (with theano)!
 
