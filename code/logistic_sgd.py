@@ -104,8 +104,7 @@ class LogisticRegression(object):
         :param y: corresponds to a vector that gives for each example the
         :correct label
         """
-        # TODO: inline NLL formula, refer to theano function
-        return T.nnet.categorical_crossentropy(self.p_y_given_x, y)
+        return -T.sum(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
 
 

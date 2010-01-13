@@ -126,9 +126,14 @@ The following Theano code defines the (symbolic) loss for a given minibatch:
 
 .. code-block:: python
 
-  loss = T.sum(T.log(p_y_given_x)[y])
+  loss = -T.sum(T.log(p_y_given_x)[T.arange(y.shape[0]), y])
+  # note on syntax: T.arange(y,shape[0]) is a vector of integers [0,1,2,...,len(y)].
+  # Indexing a matrix M by the two vectors [0,1,...,K], [a,b,...,k] returns the
+  # elements M[0,a], M[1,b], ..., M[K,k] as a vector.  Here, we use this
+  # syntax to retrieve the log-probability of the correct labels, y.
 
 .. note::
+
     In practice, we will use the mean (T.mean) instead of the sum. This
     allows for the learning rate to be independent of the minibatch size.
     
@@ -177,7 +182,7 @@ similar to what we have covered so far, and should be self explanatory.
             :correct label
             """
             # TODO: inline NLL formula, refer to theano function
-            return -theano.log(self.p_y_given_x)[y]
+            return -T.log(self.p_y_given_x)[T.arange(y.shape[0]),y]
 
 
 We instantiate this class as follows:
