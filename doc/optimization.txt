@@ -30,13 +30,16 @@ of errors (zero-one loss) on unseen examples. If :math:`f: R^D \rightarrow
     
     \ell_{0,1} = \sum_{i=0}^{|\mathcal{D}|} I_{f(x^{(i)}) \neq y^{(i)}}
     
-where :math:`\mathcal{D} \cap \mathcal{D}_{train} = \emptyset` and :math:`I` is the
+where either :math:`\mathcal{D}` is the training
+set (during training)
+or :math:`\mathcal{D} \cap \mathcal{D}_{train} = \emptyset` 
+(to avoid biasing the evaluation of validation or test error). :math:`I` is the
 indicator function defined as:
 
 .. math::
 
     I_x = \left\{\begin{array}{ccc} 
-          1&\mbox{ if x is True} \\
+          1&\mbox{ if $x$ is True} \\
           0&\mbox{ otherwise}\end{array}\right.
 
 In this tutorial, :math:`f` is defined as:
@@ -59,10 +62,11 @@ all the labels in a training set.
     \mathcal{L}(\theta, \mathcal{D}) = 
         \sum_{i=0}^{|\mathcal{D}|} \log P(Y=y^{(i)} | x^{(i)}, \theta)
 
-The likelihood of the inputs for their respective class is not the same as the
+The likelihood of the correct class is not the same as the
 number of right predictions, but from the point of view of a randomly
-initialized classifier they are pretty similar.  Later in training you can see
-that the number of right predictions in a validation set often decreases a
+initialized classifier they are pretty similar.  
+TODO: CLARIFY THIS SENTENCE BELOW: Later in training you can see
+that the number of right predictions in a validation set can decrease a
 little even after the probability of the right answers starts to drop
 (indicating overfitting), but not much.
 
@@ -83,16 +87,16 @@ supervised learning signal for deep learning.
 Stochastic Gradient Descent
 +++++++++++++++++++++++++++
 
-What is normal gradient descent?  Normal [steepest] gradient descent is a simple
+What is ordinary gradient descent?  it is a simple
 algorithm in which we repeatedly make small steps downward on an error surface
-defined by a loss function of some parameters.  In logistic regression the
-parameters are the :math:`W` and :math:`b`.  For the purpose of steepest
+defined by a loss function of some parameters.  
+For the purpose of ordinary
 gradient descent we consider that the training data is rolled into the loss
 function.
 
 .. code-block:: python
 
-    # STEEPEST DESCENT
+    # GRADIENT DESCENT
     while True:
         loss = f(params)
         d_loss_wrt_params = ... # compute gradient
@@ -101,7 +105,7 @@ function.
             return params
 
 Stochastic gradient descent (SGD) works according to the same principles as
-steepest descent, but proceeds more quickly by estimating the gradient from just
+ordinary gradient descent, but proceeds more quickly by estimating the gradient from just
 a few examples at a time instead of the entire training set.  In its purest
 form, we estimate the gradient from just a single example at a time.
 
@@ -110,7 +114,7 @@ form, we estimate the gradient from just a single example at a time.
     # STOCHASTIC GRADIENT DESCENT
     for (x_i,y_i) in training_set:  
                                 # imagine an infinite generator 
-                                # that may repeat examples
+                                # that may repeat examples (if there is only a finite training set)
         loss = f(params, x_i, y_i)
         d_loss_wrt_params = ... # compute gradient
         params -= learning_rate * d_loss_wrt_params
@@ -136,13 +140,13 @@ hierarchical memory organization in modern computers.
             return params
 
 
-There is a tradeoff in the choice of :math:`B` the minibatch size.  The
+There is a tradeoff in the choice of the minibatch size :math:`B`.  The
 reduction of variance and use of SIMD instructions helps most when increasing
 :math:`B` from 1 to 2, but the marginal improvement fades rapidly to nothing.
 With large :math:`B`, time is wasted in reducing the variance of the gradient
 estimator, that time would be better spent on additional gradient steps.
 An optimal :math:`B` is model-, dataset-, and hardware-dependent, and can be
-anywhere from 1 to maybe 64.  In the tutorial we set it to 5, but this choice
+anywhere from 1 to maybe several hundreds.  In the tutorial we set it to 10, but this choice
 is almost arbitrary (though harmless).
 
 
@@ -150,6 +154,7 @@ is almost arbitrary (though harmless).
     At this point, we can show how to allocate and apply a classifier with
     theano, load data, calculate: error rates, etc.
 
+TODO: CHOOSE WHICH LOSS FORMULATION TO KEEP
 
 .. code-block:: python
 
@@ -168,25 +173,80 @@ is almost arbitrary (though harmless).
 
 .. _opt_early_stopping:
 
-Early Stopping
+
+Regularization
 ++++++++++++++
 
-[Un?]Fortunately, there is more to machine learning than optimization.  When we
+There is more to machine learning than optimization.  When we
 train our model from data we are trying to prepare it to do well on *new*
 examples, not the ones it has already seen.  The training loop above for MSGD
-does not take this into account, and will overfit the training examples.
-The way to combat with overfitting is through regularization.
-There are several techniques for regularization***, but the one we will use is
-cross-validation.
+does not take this into account, and may overfit the training examples.
+A way to combat overfitting is through regularization.
+There are several techniques for regularization; the ones we will explain here 
+are L1/L2 regularization and early-stopping.
 
-Cross-validation combats overfitting by monitoring the model's performance on a
+L1 and L2 regularization
+------------------------
+
+L1 and L2 regularization involve adding an extra term to the loss function,
+which penalizes certain parameter configurations. Formally, if our loss function is:
+
+.. math::
+
+    NLL(\theta, \mathcal{D}) = - \sum_{i=0}^{|\mathcal{D}|} \log P(Y=y^{(i)} | x^{(i)}, \theta) 
+
+then the regularized loss will be:
+
+.. math::
+
+	E(\theta, \mathcal{D}) =  NLL(\theta, \mathcal{D}) + \lambda R(\theta)\\
+
+or, in our case
+
+.. math::
+
+	E(\theta, \mathcal{D}) =  NLL(\theta, \mathcal{D}) + \lambda||\theta||_p
+
+with
+
+.. math::
+	
+	||\theta||_p = \left(\sum_{j=0}^{|\theta|}{|\theta_j|^p}\right)^{\frac{1}{p}}
+
+which is the :math:`L_p` norm of :math:`\theta`. :math:`\lambda` is a hyper-parameter which
+controls the relative importance of the regularization parameter. Commonly used values for p
+are 1 and 2, hence the L1/L2 nomenclature. If p=2, then the regularizer is
+also called "weight decay".
+
+In principle, adding a regularization term to the loss will encourage smooth
+network mappings in a neural network (by penalizing large values of the
+parameters, which decreases the amount of nonlinearity that the
+network models). More intuitively, the two terms (NLL and :math:`R(\theta)`)
+correspond to modelling the data well (NLL) and having "simple" or "smooth"
+solutions (:math:`R(\theta)`). Thus, minimizing the sum of both will, in
+theory, correspond to finding the right trade-off between the fit to the
+training data and the "generality" of the solution that is found. To follow
+Occam's razor principle, this minimization should find us the simplest
+solution (as measured by our simplicity criterion) that fits the training
+data. 
+
+Note that the fact that a solution is "simple" does not mean that it will
+generalize well. Empirically, it was found that performing such regularization
+in the context of neural networks helps with generalization.
+
+TODO: code example
+
+Early-Stopping
+--------------
+
+Early-stopping combats overfitting by monitoring the model's performance on a
 *validation set*.  A validation set is a set of examples that we never use for
 gradient descent, but which is also not a part of the *test set*.  The
 validation examples are considered to be representative of future test examples.
 We can use them during training because they are not part of the test set.
-If the model's performance ceases to improve [sufficiently quickly] on the
-validation set, or even degrades with further optimization, then it is ok to
-give up on further optimization.  
+If the model's performance ceases to improve sufficiently on the
+validation set, or even degrades with further optimization, then the
+heuristic implemented here gives up on much further optimization.  
 
 
 The choice of when to stop is a
@@ -202,8 +262,8 @@ of a strategy based on a geometrically increasing amount of patience.
     n_iter                = 100   # the maximal number of iterations of the 
                                   # entire dataset considered
     patience              = 5000  # look at this many training examples regardless
-    patience_increase     = 2     # wait this much longer when a new best is 
-                                  # found
+    patience_increase     = 2     # wait this much longer when a new best 
+                                  # validation error is found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
     validation_frequency  = 1000  # make this many SGD updates between validations
@@ -247,12 +307,11 @@ of a strategy based on a geometrically increasing amount of patience.
     # best_params refers to the best out-of-sample parameters observed during the optimization
 
 If we run out of batches of training data before running out of patience, then
-we just go back to the beginning of the training set and repeat.  It is a good
-idea to reshuffle the training data between these iterations, but not necessary.
+we just go back to the beginning of the training set and repeat.  
 
 .. note::
 
-    This algorithm could be improved by using a test of statistical significance
+    This algorithm could possibly be improved by using a test of statistical significance
     rather than the simple comparison, when deciding whether to increase the
     patience.
 
@@ -276,7 +335,7 @@ Recap
 +++++
 
 That's it for the optimization section.
-The technique of cross-validation requires us to partition the set of examples into three sets 
+The technique of early-stopping requires us to partition the set of examples into three sets 
 (training :math:`\mathcal{D}_{train}`,
 validation :math:`\mathcal{D}_{valid}`,
 test :math:`\mathcal{D}_{test}`). 

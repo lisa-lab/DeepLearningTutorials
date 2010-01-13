@@ -5,7 +5,7 @@ MNIST Dataset
 +++++++++++++
 
 
- `MNIST <http://yann.lecun.com/exdb/mnist>`_ dataset consists of handwritten 
+ The `MNIST <http://yann.lecun.com/exdb/mnist>`_ dataset consists of handwritten 
  digit images and it is divided in 60 000 examples for the training set and 
  10 000 examples for testing. All examples have been size-normalized and 
  centered in a fixed size image of 28 x 28 pixels. In the original dataset 
@@ -13,21 +13,24 @@ MNIST Dataset
  0 is black, 255 is  white and anything in between is a different shade of grey. 
 
 
- Here are some examples of MNIST digits: |5|, |0|, |4|, |1|, |9|, |2|
+ Here are some examples of MNIST digits: 
 
- .. |5| image:: /images/mnist_0.png
- .. |0| image:: /images/mnist_1.png
- .. |4| image:: /images/mnist_2.png
- .. |1| image:: /images/mnist_3.png
- .. |9| image:: /images/mnist_4.png
- .. |2| image:: /images/mnist_5.png
+    |0| |1| |2| |3| |4| |5|
+
+ .. |0| image:: images/mnist_0.png
+ .. |1| image:: images/mnist_1.png
+ .. |2| image:: images/mnist_2.png
+ .. |3| image:: images/mnist_3.png
+ .. |4| image:: images/mnist_4.png
+ .. |5| image:: images/mnist_5.png
  
  For convenience we pickled the dataset to make it easier to use in python.
+ It is available for download `here <http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz>`_.
  The pickled file represents a tuple of 3 lists : the training set, the 
  validation set and the testing set. Each element of any of the three lists 
- represents a minibatch of 10 examples. Such an elemnt is a tuple composed 
- of the list of 10 images and the list of class labels for each of the
- images. An image is represented as numpy array of 784 (28 x 28) float
+ represents a minibatch of 20 examples. Such an element is a tuple composed 
+ of the list of 20 images and the list of class labels for each of the
+ images. An image is represented as numpy 1-dimensional array of 784 (28 x 28) float
  values between 0 and 1 ( 0 stands for black, 1 for white). The labels
  are numbers between 0 and 9 indicating which digit the image
  represents. Loading and accessing the dataset in the python can be done as 

@@ -3,7 +3,7 @@ Classifying MNIST digits using Logistic Regression
 
 .. note::
     This sections assumes the reader is familiar with the following Theano
-    concepts: shared variables, basic arithmetic ops, tensor.grad.
+    concepts: shared variables , basic arithmetic ops, T.grad.
     ((TODO: html links into theano documentation))
 
 
@@ -46,8 +46,8 @@ The code to do this in theano is the following:
   y = T.lvector()
 
   # allocate shared variables model params
-  b = theano.shared(numpy.random(10))
-  W = theano.shared(numpy.random(784,10))
+  b = theano.shared(numpy.zeros((10,)))
+  W = theano.shared(numpy.zeros((784,10)))
 
   # symbolic expression for computing the vector of 
   # class-membership probabilities 
@@ -67,7 +67,7 @@ The code to do this in theano is the following:
   y_pred = T.argmax(p_y_given_x)
 
   # compiled theano function that returns this value
-  classify = theano.function([x,y], y_pred)
+  classify = theano.function(x, y_pred)
 
 
 We first start by allocating symbolic variables for the inputs :math:`x,y`.
@@ -84,13 +84,13 @@ must create a function ``get_p_y_given_x``, which takes as input ``x`` and
 returns ``p_y_given_x``. We can then index its return value with the
 index :math:`i` to get the membership probability of the :math:`i` th class.
 
-Now let's finishing building the theano graph. To get the actual model
+Now let's finish building the theano graph. To get the actual model
 prediction, we can use the ``T.argmax`` operator, which will return the index at
 which ``p_y_given_x`` is maximal (i.e. the class with maximum probability).
 
 Again, to calculate the actual prediction for a given input, we construct a
-function ``classify``. This function takes as input x and y and outputs a
-vector, containing the predicted class for each example in x.
+function ``classify``. This function takes as argument a batch of inputs x (as a matrix),
+and outputs a vector containing the predicted class for each example (row) in x.
 
 Now of course, the model we have defined so far does not do anything useful yet,
 since its parameters are still in their initial random state. The following
@@ -106,7 +106,7 @@ Defining a Loss Function
 
 Learning optimal model parameters involves minimizing a loss function. In the
 case of multi-class logistic regression, it is very common to use the negative
-likelihood as the loss. This is equivalent to maximizing the likelihood of the
+log-likelihood as the loss. This is equivalent to maximizing the likelihood of the
 data set :math:`\cal{D}` under the model parameterized by :math:`\theta`. Let
 us first start by defining the likelihood :math:`\cal{L}` and loss
 :math:`\ell`:
@@ -120,7 +120,7 @@ us first start by defining the likelihood :math:`\cal{L}` and loss
 While entire books are dedicated to the topic of minimization, gradient
 descent is by far the simplest method for minimizing arbitrary non-linear
 functions. This tutorial will use the method of stochastic gradient method with
-mini-batches (MSGD). See :ref:`opt_SGD`) for more details.
+mini-batches (MSGD). See :ref:`opt_SGD` for more details.
 
 The following Theano code defines the (symbolic) loss for a given minibatch:
 
@@ -135,7 +135,7 @@ The following Theano code defines the (symbolic) loss for a given minibatch:
 .. note::
 
     In practice, we will use the mean (T.mean) instead of the sum. This
-    allows for the learning rate to be independent of the minibatch size.
+    allows for the learning rate choice to be less dependent of the minibatch size.
     
 
 Creating a LogisticRegression class
@@ -153,7 +153,7 @@ similar to what we have covered so far, and should be self explanatory.
         def __init__(self, input, n_in, n_out):
             """ Initialize the parameters of the logistic regression
             :param input: symbolic variable that describes the input of the 
-            architecture ( one minibatch)
+            architecture (e.g., one minibatch of input images)
             :param n_in: number of input units, the dimension of the space in 
             which the datapoint lies
             :param n_out: number of output units, the dimension of the space in 
@@ -161,10 +161,10 @@ similar to what we have covered so far, and should be self explanatory.
             """ 
 
             # initialize with 0 the weights W as a matrix of shape (n_in, n_out) 
-            self.W = shared( value=numpy.zeros((n_in,n_out),
+            self.W = theano.shared( value=numpy.zeros((n_in,n_out),
                                                 dtype = theano.config.floatX) )
             # initialize the baises b as a vector of n_out 0s
-            self.b = shared( value=numpy.zeros((n_out,), 
+            self.b = theano.shared( value=numpy.zeros((n_out,), 
                                                 dtype = theano.config.floatX) )
 
             # compute vector of class-membership probabilities in symbolic form
@@ -190,7 +190,7 @@ We instantiate this class as follows:
 .. code-block:: python
 
     # allocate symbolic variables for the data
-    x = T.fmatrix()  # the data is presented as rasterized images
+    x = T.fmatrix()  # the data is presented as rasterized images (each being a 1-D row vector in x)
     y = T.lvector()  # the labels are presented as 1D vector of [long int] labels
 
     # construct the logistic regression class
@@ -210,8 +210,9 @@ the instance method ``classifier.negative_log_likelihood``.
 
 Note that the return value of ``classifier.negative_log_likelihood`` is a vector
 containing the cost for each training example within the minibatch. Since we are
-using MSGD, the cost to minimize is the mean cost across the minibatch.
-
+using MSGD, the cost to minimize is the mean cost across the minibatch. 
+Note how x is an implicit symbolic input to the symbolic definition of cost,
+here, because classifier.__init__ has defined its symbolic variables in terms of x.
 
 Learning the Model
 ++++++++++++++++++
@@ -238,7 +239,7 @@ To get the gradients :math:`\partial{\ell}/\partial{W}` and
     g_b = T.grad(cost, classifier.b)
 
 ``g_W`` and ``g_b`` are again symbolic variables, which can be used as part of a
-computation graph. Performing one-step of gradient descent can then done as
+computation graph. Performing one-step of gradient descent can then be done as
 follows:
 
 .. code-block:: python
@@ -253,7 +254,7 @@ follows:
     # compiling a theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
-    train_model = pfunc([x, y], cost, updates = updates )
+    train_model = theano.function([x, y], cost, updates = updates )
 
 The ``updates`` dictionary contains, for each parameter, the
 stochastic gradient update operation. The function ``train_model`` is then
@@ -274,7 +275,7 @@ Testing the model
 +++++++++++++++++
 
 As explained in :ref:`opt_learn_classifier`, when testing the model we are
-interested in the number of misclassified examples (and not in the likelihood).
+interested in the number of misclassified examples (and not only in the likelihood).
 The ``LogisticRegression`` class therefore has an extra instance method, which
 builds the symbolic graph for retrieving the number of misclassified examples in
 each minibatch.
@@ -300,7 +301,7 @@ implementation (see :ref:`opt_early_stopping`).
 
 .. code-block:: python
 
-    test_model = pfunc([x,y], classifier.errors(y))
+    test_model = theano.function([x,y], classifier.errors(y))
 
 
 
@@ -311,7 +312,7 @@ The finished product is as follows.
 
 .. literalinclude:: ../code/logistic_sgd.py
 
-The user can classify MNIST digits to his heart's content, by typing, from
+The user can learn to classify MNIST digits with SGD logistic regression, by typing, from
 within the DeepLearningTutorials folder:
 
 .. code-block:: bash
@@ -322,16 +323,16 @@ The output one should expect is of the form :
 
 .. code-block:: bash
 
-  epoch 0, validation error 12.210000 %
-       epoch 0, test error of best model 12.660000 %
+  epoch 0, minibatch 2500/2500, validation error 10.720000 %
+       epoch 0, minibatch 2500/2500, test error of best model 11.050000 %
   ...
-  epoch 25, validation error 7.090000 %
-  Optimization complete with best validation score of 6.97%, with test performance 7.62%
-  The code ran for 2.840833 minutes
+  epoch 96, minibatch 2500/2500, validation error 7.010000 %
+  Optimization complete with best validation score of 7.01%, with test performance 7.61%
+  The code ran for 2.595667 minutes
 
-On a **what type of machine is simplet??** the code run with
-approximately 6.8179992 sec/epoch and it took 25 epochs to reach a test
-error of 7.62%. 
+On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
+approximately 1.62229185 sec/epoch and it took 99 epochs to reach a test
+error of 7.61%. 
 
 .. rubric:: Footnotes
 

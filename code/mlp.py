@@ -1,7 +1,12 @@
 """
-This tutorial introduces the multi-layer perceptron using Theano.  
+This tutorial introduces the multilayer perceptron using Theano.  
 
- Multilayer perceptron 
+ A multilayer perceptron is a logistic regressor where
+instead of feeding the input to the logistic regression you insert a
+intermidiate layer, called the hidden layer, that has a nonlinear 
+activation function (usually tanh or sigmoid) . One can use many such 
+hidden layers making the architecture deep. The tutorial will also tackle 
+the problem of MNIST digit classification.
 
 
 ..math::
@@ -12,11 +17,6 @@ References:
 
     - textbooks: "Pattern Recognition and Machine Learning" - 
                  Christopher M. Bishop, section 5
-
-
- 99 epochs : 259.218667 mins
- validation score : 1.930000 % 
- test score 1.9200000 %
 
 TODO: recommended preprocessing, lr ranges, regularization ranges (explain 
       to do lr first, then add regularization)
@@ -33,13 +33,15 @@ import theano.tensor as T
 
 import time 
 
-from theano.compile.sandbox import shared, pfunc
 import theano.tensor.nnet
 
 class MLP(object):
     """Multi-Layer Perceptron Class
 
-    shor description
+    A multilayer perceptron is a feedforward artificial neural network model 
+    that has one layer or more of hidden units and nonlinear activations. 
+    Intermidiate layers usually have as activation function thanh or the 
+    sigmoid function  while the top layer is a softamx layer. 
     """
 
 
@@ -84,11 +86,11 @@ class MLP(object):
               low = -1/numpy.sqrt(n_hidden), high= 1/numpy.sqrt(n_hidden),\
               size= (n_hidden, n_out)), dtype = theano.config.floatX)
 
-        self.W1 = shared( value = W1_values )
-        self.b1 = shared( value = numpy.zeros((n_hidden,), 
+        self.W1 = theano.shared( value = W1_values )
+        self.b1 = theano.shared( value = numpy.zeros((n_hidden,), 
                                                 dtype= theano.config.floatX))
-        self.W2 = shared( value = W2_values )
-        self.b2 = shared( value = numpy.zeros((n_out,), 
+        self.W2 = theano.shared( value = W2_values )
+        self.b2 = theano.shared( value = numpy.zeros((n_out,), 
                                                 dtype= theano.config.floatX))
 
         # symbolic expression computing the values of the hidden layer
@@ -169,7 +171,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
     f.close()
 
     ishape     = (28,28) # this is the size of MNIST images
-    batch_size = 5       # size of the minibatch 
+    batch_size = 20      # size of the minibatch 
 
     # allocate symbolic variables for the data
     x = T.fmatrix()  # the data is presented as rasterized images
@@ -178,7 +180,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
 
     # construct the logistic regression class
     classifier = MLP( input=x.reshape((batch_size,28*28)),\
-                      n_in=28*28, n_hidden = 1000, n_out=10)
+                      n_in=28*28, n_hidden = 100, n_out=10)
 
     # the cost we minimize during training is the negative log likelihood of 
     # the model plus the regularization terms (L1 and L2); cost is expressed
@@ -189,7 +191,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
 
     # compiling a theano function that computes the mistakes that are made by 
     # the model on a minibatch
-    test_model = pfunc([x,y], classifier.errors(y))
+    test_model = theano.function([x,y], classifier.errors(y))
 
     # compute the gradient of cost with respect to theta = (W1, b1, W2, b2) 
     g_W1 = T.grad(cost, classifier.W1)
@@ -207,7 +209,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
     # compiling a theano function `train_model` that returns the cost, but in 
     # the same time updates the parameter of the model based on the rules 
     # defined in `updates`
-    train_model = pfunc([x, y], cost, updates = updates )
+    train_model = theano.function([x, y], cost, updates = updates )
 
     # early-stopping parameters
     patience              = 10000 # look as this many examples regardless
@@ -215,20 +217,20 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = 3000  # make this many SGD updates between 
+    validation_frequency  = 2500  # make this many SGD updates between 
                                   # validations
 
     best_params          = None
     best_validation_loss = float('inf')
     test_score           = 0.
-    
+    n_minibatches        = len(train_batches) 
     start_time = time.clock()
     # have a maximum of `n_iter` iterations through the entire dataset
-    for iter in xrange(n_iter* len(train_batches)):
+    for iter in xrange(n_iter* n_minibatches):
 
         # get epoch and minibatch index
-        epoch           = iter / len(train_batches)
-        minibatch_index =  iter % len(train_batches)
+        epoch           = iter / n_minibatches
+        minibatch_index =  iter % n_minibatches
 
         # get the minibatches corresponding to `iter` modulo
         # `len(train_batches)`
@@ -244,8 +246,9 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
             # get the average by dividing with the number of minibatches
             this_validation_loss /= len(valid_batches)
 
-            print('epoch %i, validation error %f %%' % 
-                                (epoch, this_validation_loss*100.))
+            print('epoch %i, minibatch %i/%i, validation error %f %%' % \
+                   (epoch, minibatch_index+1, n_minibatches, \
+                    this_validation_loss*100.))
 
             #improve patience 
             if this_validation_loss < best_validation_loss *  \
@@ -262,8 +265,10 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
                 for x,y in test_batches:
                     test_score += test_model(x,y)
                 test_score /= len(test_batches)
-                print('     epoch %i, test error of best model %f %%' % 
-                                    (epoch, test_score*100.))
+                print(('     epoch %i, minibatch %i/%i, test error of best '
+                      'model %f %%') % 
+                             (epoch, minibatch_index+1, n_minibatches,
+                              test_score*100.))
 
         if patience <= iter :
                 break
