@@ -20,9 +20,12 @@ training them on a GPU.  Since this tutorial is about *using* theano, you
 should read over the `theano basic tutorial`_ first before launching into this
 one.
 
-.. TODO: Add links to the tutorial pages!
+.. TODO: Add list [of links] to the tutorial pages! A quick mention of the order
+of things, and how to treat the tutorials.
 
 .. TODO: Consider making all one chapter so that TOC (left) makes sense
+
+.. TODO: Move to notation ?
 
 .. TODO: Move to notation ?
 
