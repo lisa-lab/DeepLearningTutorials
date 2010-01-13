@@ -14,11 +14,11 @@ For more about deep learning algorithms:
  - The LISA `public wiki <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/WebHome>`_ has a `reading list <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/ReadingOnDeepNetworks>`_ and a `bibliography <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/DeepNetworksBibliography>`_
  - Geoff Hinton has `readings <http://www.cs.toronto.edu/~hinton/deeprefs.html>`_ from last year's `NIPS tutorial <http://videolectures.net/jul09_hinton_deeplearn/>`_
 
-This tutorial will introduce you to some of the most common deep learning
-algorithms and show you how to run them using theano_, a python library.  The
+This tutorial will introduce you to some of the most important deep learning
+algorithms and show you how to run them using Theano_, a python library.  The
 theano library makes writing deep learning models easy, and gives the option of
-training them on a GPU.  Since this tutorial is about *using* theano, you
-should read over the `theano basic tutorial`_ first before launching into this
+training them on a GPU.  Since this tutorial is about *using* Theano, you
+should read over the `Theano basic tutorial`_ first before launching into this
 one.
 
 .. TODO: Add list [of links] to the tutorial pages! A quick mention of the order
@@ -42,7 +42,7 @@ Tutorial code assumes the following namespace:
 
 
 
-.. _theano: http://www.pylearn.org/theano
+.. _Theano: http://www.pylearn.org/theano
 
-.. _theano basic tutorial: http://www.pylearn.org/theano/basic_tutorial
+.. _Theano basic tutorial: http://www.pylearn.org/theano/basic_tutorial
 
