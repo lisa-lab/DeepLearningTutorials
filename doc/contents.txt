@@ -15,7 +15,7 @@ Contents
    optimization
    logreg
    mlp
-   convolutional_mlp
+   lenet
    rbm
    dbn
    dae

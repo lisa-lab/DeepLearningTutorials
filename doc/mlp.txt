@@ -2,7 +2,7 @@ Multilayer Perceptron
 =====================
 
 .. note::
-    This section assumes the reader has already read through :doc:`logreg.txt`.
+    This section assumes the reader has already read through :doc:`logreg`.
     Additionally, it uses the following new Theano functions and concepts:
     T.tanh, abs, L1 and L2 regularization
 
