@@ -32,8 +32,6 @@ References:
     - textbooks: "Pattern Recognition and Machine Learning" - 
                  Christopher M. Bishop, section 4.3.2
 
-TODO: recommended preprocessing, lr ranges, regularization ranges (explain 
-      to do lr first, then add regularization)
 
 """
 __docformat__ = 'restructedtext en'
@@ -98,13 +96,17 @@ class LogisticRegression(object):
         """Return the negative log-likelihood of the prediction of this model
         under a given target distribution.  
 
-        TODO : add description of the categorical_crossentropy
+        .. math::
+
+            \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+            \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+                \ell (\theta=\{W,b\}, \mathcal{D}) 
+
 
         :param y: corresponds to a vector that gives for each example the
         :correct label
         """
-        # TODO: inline NLL formula, refer to theano function
-        return T.nnet.categorical_crossentropy(self.p_y_given_x, y)
+        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
 
 
@@ -112,7 +114,8 @@ class LogisticRegression(object):
 
     def errors(self, y):
         """Return a float representing the number of errors in the minibatch 
-        over the total number of examples of the minibatch 
+        over the total number of examples of the minibatch ; zero one
+        loss over the size of the minibatch
         """
 
         # check if y has same dimension of y_pred 
@@ -145,14 +148,46 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
 
     """
 
-    # Load the dataset ; note that the dataset is already divided in
-    # minibatches of size 10; 
+    # Load the dataset 
     f = gzip.open('mnist.pkl.gz','rb')
-    train_batches, valid_batches, test_batches = cPickle.load(f)
+    train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
+    # make minibatches of size 20 
+    batch_size = 20    # sized of the minibatch
+
+    # Dealing with the training set
+    # get the list of training images (x) and their labels (y)
+    (train_set_x, train_set_y) = train_set
+    # initialize the list of training minibatches with empty list
+    train_batches = []
+    for i in xrange(0, len(train_set_x), batch_size):
+        # add to the list of minibatches the minibatch starting at 
+        # position i, ending at position i+batch_size
+        # a minibatch is a pair ; the first element of the pair is a list 
+        # of datapoints, the second element is the list of corresponding 
+        # labels
+        train_batches = train_batches + \
+               [(train_set_x[i:i+batch_size], train_set_y[i:i+batch_size])]
+
+    # Dealing with the validation set
+    (valid_set_x, valid_set_y) = valid_set
+    # initialize the list of validation minibatches 
+    valid_batches = []
+    for i in xrange(0, len(valid_set_x), batch_size):
+        valid_batches = valid_batches + \
+               [(valid_set_x[i:i+batch_size], valid_set_y[i:i+batch_size])]
+
+    # Dealing with the testing set
+    (test_set_x, test_set_y) = test_set
+    # initialize the list of testing minibatches 
+    test_batches = []
+    for i in xrange(0, len(test_set_x), batch_size):
+        test_batches = test_batches + \
+              [(test_set_x[i:i+batch_size], test_set_y[i:i+batch_size])]
+
+
     ishape     = (28,28) # this is the size of MNIST images
-    batch_size =  20     # size of the minibatch 
 
     # allocate symbolic variables for the data
     x = T.fmatrix()  # the data is presented as rasterized images
@@ -165,9 +200,9 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
 
     # the cost we minimize during training is the negative log likelihood of 
     # the model in symbolic format
-    cost = classifier.negative_log_likelihood(y).mean() 
+    cost = classifier.negative_log_likelihood(y) 
 
-    # compiling a theano function that computes the mistakes that are made by 
+    # compiling a Theano function that computes the mistakes that are made by 
     # the model on a minibatch
     test_model = theano.function([x,y], classifier.errors(y))
 
@@ -179,24 +214,27 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
     updates ={classifier.W: classifier.W - numpy.asarray(learning_rate)*g_W,\
               classifier.b: classifier.b - numpy.asarray(learning_rate)*g_b}
 
-    # compiling a theano function `train_model` that returns the cost, but in 
+    # compiling a Theano function `train_model` that returns the cost, but in 
     # the same time updates the parameter of the model based on the rules 
     # defined in `updates`
     train_model = theano.function([x, y], cost, updates = updates )
 
+    n_minibatches        = len(train_batches) # number of minibatchers
+ 
     # early-stopping parameters
     patience              = 5000  # look as this many examples regardless
     patience_increase     = 2     # wait this much longer when a new best is 
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = 2500  # make this many SGD updates between 
-                                  # validations
+    validation_frequency  = n_minibatches  # go through this many 
+                                  # minibatche before checking the network 
+                                  # on the validation set; in this case we 
+                                  # check every epoch 
 
     best_params          = None
     best_validation_loss = float('inf')
     test_score           = 0.
-    n_minibatches        = len(train_batches) # number of minibatchers
     start_time = time.clock()
     # have a maximum of `n_iter` iterations through the entire dataset
     for iter in xrange(n_iter* n_minibatches):

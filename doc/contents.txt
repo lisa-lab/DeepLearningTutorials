@@ -10,9 +10,7 @@ Contents
 
    LICENSE
    intro
-   notation
-   datasets
-   optimization
+   gettingstarted
    logreg
    mlp
    lenet
