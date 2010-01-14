@@ -1,0 +1,23 @@
+Convolutional Neural Networks (LeNet)
+=====================================
+
+.. note::
+    This section assumes the reader has already read through :doc:`logreg` and
+    :doc:`mlp`. Additionally, it uses the following new Theano functions and
+    concepts: TODO
+
+The Model
++++++++++
+
+
+Convolutional MLPs are inspired from biology
+
+.. image:: images/mylenet.png
+    :align: center
+
+Going from MLP to convolutional MLP
++++++++++++++++++++++++++++++++++++
+
+
+Putting it All Together
++++++++++++++++++++++++

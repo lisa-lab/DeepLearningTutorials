@@ -10,7 +10,9 @@ Classifying MNIST digits using Logistic Regression
     This sections assumes the reader is familiar with the following Theano
     concepts: `shared variables`_ , `basic arithmetic ops`_ , `T.grad`_ .
 
-TODO : shared variables documentation not up !!
+TODO: shared variables documentation not up !!
+
+TODO: put shortcuts to the downloads right here (the download for the full source)
 
 
 .. _shared variables: http://www.pylearn.org/theano/basic_tutorial

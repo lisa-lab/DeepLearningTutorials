@@ -13,7 +13,7 @@ Contents
    gettingstarted
    logreg
    mlp
-   convolutional_mlp
+   lenet
    rbm
    dbn
    dae
