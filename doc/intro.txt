@@ -1,7 +1,6 @@
-Introduction
-============
-
-Welcome to the exciting world of Deep Learning (with theano)!
+=======================
+Deep Learning Tutorials
+=======================
 
 Deep Learning is about learning multiple levels of representation
 and abstraction that help to
@@ -13,26 +12,30 @@ For more about deep learning algorithms:
  - The LISA `public wiki <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/WebHome>`_ has a `reading list <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/ReadingOnDeepNetworks>`_ and a `bibliography <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/DeepNetworksBibliography>`_
  - Geoff Hinton has `readings <http://www.cs.toronto.edu/~hinton/deeprefs.html>`_ from last year's `NIPS tutorial <http://videolectures.net/jul09_hinton_deeplearn/>`_
 
-This tutorial will introduce you to some of the most common deep learning
-algorithms and show you how to run them using theano_, a python library.  The
-theano library makes writing deep learning models easy, and gives the option of
-training them on a GPU.  Since this tutorial is about *using* theano, you
-should read over the `theano basic tutorial`_ first before launching into this
-one.
+These tutorial will introduce you to some of the most important deep learning
+algorithms and will also show you how to run them using Theano_. Theano is a python library that makes writing deep learning models easy, and gives the option of
+training them on a GPU.
 
-Namespaces
-++++++++++
+The algorithm tutorials have some prerequisites.  You should know some python,
+and be familiar with numpy. Since this tutorial is about using Theano, you
+should read over the `Theano basic tutorial`_ first.  Once you've done that,
+read through our :ref:`gettingstarted` chapter -- it introduces the notation, and [downloadable] datasets used in the algorithm tutorials, and the way we do optimization by stochastic gradient descent.  
 
-Tutorial code assumes the following namespace:
+The purely supervised learning algorithms are meant to be read in order:
 
-.. code-block:: python
+  #. :ref:`Logistic Regression <logreg>` - using Theano for something simple
+  #. :ref:`Multilayer perceptron <mlp>` - introduction to layers
+  #. :ref:`Deep Convolutional Network` - a simplified version of LeNet5
 
-    import theano
-    import theano.tensor as T
+The unsupervised and semi-supervised learning algorithms are less co-dependent, they will make sense in any order.
+
+  * :ref:`Restricted Boltzmann Macines and Deep Belief Networks`
+  * :ref:`Auto Encoders and Stacked Auto Encoders`
+  * :ref:`Denoising Auto Encoders and Stacked Denoising Auto Encoders`
+  * :ref:`encoder_decoder`
 
 
+.. _Theano: http://www.pylearn.org/theano
 
-.. _theano: http://www.pylearn.org/theano
-
-.. _theano basic tutorial: http://www.pylearn.org/theano/basic_tutorial
+.. _Theano basic tutorial: http://www.pylearn.org/theano/basic_tutorial
 

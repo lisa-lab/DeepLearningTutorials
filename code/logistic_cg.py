@@ -32,8 +32,6 @@ References:
    - textbooks: "Pattern Recognition and Machine Learning" - 
                  Christopher M. Bishop, section 4.3.2
 
-TODO: recommended preprocessing, lr ranges, regularization ranges (explain 
-      to do lr first, then add regularization)
 
 """
 __docformat__ = 'restructedtext en'
@@ -99,13 +97,17 @@ class LogisticRegression(object):
         """Return the negative log-likelihood of the prediction of this model
         under a given target distribution.  
 
-        TODO : add description of the categorical_crossentropy
+        .. math::
+
+            \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+            \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+                \ell (\theta=\{W,b\}, \mathcal{D}) 
+
 
         :param y: corresponds to a vector that gives for each example the
         :correct label
         """
-        # TODO: inline NLL formula, refer to theano function
-        return T.nnet.categorical_crossentropy(self.p_y_given_x, y)
+        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
 
 
@@ -142,16 +144,47 @@ def cg_optimization_mnist( n_iter=50 ):
     :param n_iter: number of iterations ot run the optimizer 
 
     """
-    #TODO: Tzanetakis
 
-    # Load the dataset ; note that the dataset is already divided in
-    # minibatches of size 10; 
+    # Load the dataset 
     f = gzip.open('mnist.pkl.gz','rb')
-    train_batches, valid_batches, test_batches = cPickle.load(f)
+    train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
+    # make minibatches of size 20 
+    batch_size = 20    # sized of the minibatch
+
+    # Dealing with the training set
+    # get the list of training images (x) and their labels (y)
+    (train_set_x, train_set_y) = train_set
+    # initialize the list of training minibatches with empty list
+    train_batches = []
+    for i in xrange(0, len(train_set_x), batch_size):
+        # add to the list of minibatches the minibatch starting at 
+        # position i, ending at position i+batch_size
+        # a minibatch is a pair ; the first element of the pair is a list 
+        # of datapoints, the second element is the list of corresponding 
+        # labels
+        train_batches = train_batches + \
+               [(train_set_x[i:i+batch_size], train_set_y[i:i+batch_size])]
+
+    # Dealing with the validation set
+    (valid_set_x, valid_set_y) = valid_set
+    # initialize the list of validation minibatches 
+    valid_batches = []
+    for i in xrange(0, len(valid_set_x), batch_size):
+        valid_batches = valid_batches + \
+               [(valid_set_x[i:i+batch_size], valid_set_y[i:i+batch_size])]
+
+    # Dealing with the testing set
+    (test_set_x, test_set_y) = test_set
+    # initialize the list of testing minibatches 
+    test_batches = []
+    for i in xrange(0, len(test_set_x), batch_size):
+        test_batches = test_batches + \
+              [(test_set_x[i:i+batch_size], test_set_y[i:i+batch_size])]
+
+
     ishape     = (28,28) # this is the size of MNIST images
-    batch_size = 5       # size of the minibatch 
     n_in       = 28*28   # number of input units
     n_out      = 10      # number of output units
     # allocate symbolic variables for the data
