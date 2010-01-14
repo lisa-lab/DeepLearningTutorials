@@ -523,11 +523,12 @@ of a strategy based on a geometrically increasing amount of patience.
 
             this_validation_loss = ... # compute zero-one loss on validation set
 
-            # improve patience
-            if this_validation_loss < best_validation_loss*improvement_threshold:
-                patience = iter * patience_increase
- 
             if this_validation_loss < best_validation_loss:
+
+                # improve patience if loss improvement is good enough
+                if this_validation_loss < best_validation_loss*improvement_threshold:
+                   patience = iter * patience_increase
+ 
                 best_params = copy.deepcopy(params)
                 best_validation_loss = this_validation_loss
 
