@@ -1,18 +1,28 @@
 .. _logreg:
 
+.. index:: Logistic Regression
+
 Classifying MNIST digits using Logistic Regression
 ==================================================
 
 .. note::
     This sections assumes the reader is familiar with the following Theano
-    concepts: shared variables , basic arithmetic ops, T.grad.
-    ((TODO: html links into theano documentation))
+    concepts: `shared variables`_ , `basic arithmetic ops`_ , `T.grad`_ .
+
+TODO : shared variables documentation not up !!
+
+
+.. _shared variables: http://www.pylearn.org/theano/basic_tutorial
+
+.. _basic arthmetic ops: http://www.pylearn.org/theano/basic_tutorial/adding.html
+
+.. _T.grad: http://www.pylearn.org/theano/basic_tutorial/examples.html#computing-gradients
 
 
 In this section, we show how Theano can be used to implement the most basic
 classifier: the logistic regression. We start off with a quick primer of the
 model, which serves both as a refresher but also to anchor the notation and
-show how mathematical expressions are mapped onto theano graphs.
+show how mathematical expressions are mapped onto Theano graphs.
 
 In the deepest of machine learning traditions, this tutorial will tackle the exciting
 problem of MNIST digit classification.
@@ -38,7 +48,7 @@ The output of the model or prediction is then done by taking the argmax of the v
 
 
 
-The code to do this in theano is the following:
+The code to do this in Theano is the following:
 
 .. code-block:: python
 
@@ -55,7 +65,7 @@ The code to do this in theano is the following:
   # class-membership probabilities 
   p_y_given_x = T.softmax(T.dot(x,w)+b)
 
-  # compiled theano function that returns the vector of class-membership
+  # compiled Theano function that returns the vector of class-membership
   # probabilities
   get_p_y_given_x = theano.function( x, p_y_given_x)
 
@@ -75,18 +85,18 @@ The code to do this in theano is the following:
 We first start by allocating symbolic variables for the inputs :math:`x,y`.
 Since the parameters of the model must maintain a persistent state throughout
 training, we allocate shared variables for :math:`W,b`.
-This declares them both as being symbolic theano variables, but also
+This declares them both as being symbolic Theano variables, but also
 initializes their contents. The dot and softmax operators are then used to compute the vector
 :math:`P(Y|x, W,b)`. The resulting variable p_y_given_x is a symbolic variable
 of vector-type. 
 
-Up to this point, we have only defined the graph of computations which theano
+Up to this point, we have only defined the graph of computations which Theano
 should perform. To get the actual numerical value of :math:`P(Y|x, W,b)`, we
 must create a function ``get_p_y_given_x``, which takes as input ``x`` and
 returns ``p_y_given_x``. We can then index its return value with the
 index :math:`i` to get the membership probability of the :math:`i` th class.
 
-Now let's finish building the theano graph. To get the actual model
+Now let's finish building the Theano graph. To get the actual model
 prediction, we can use the ``T.argmax`` operator, which will return the index at
 which ``p_y_given_x`` is maximal (i.e. the class with maximum probability).
 
@@ -100,7 +110,7 @@ section will thus cover how to learn the optimal parameters.
 
 
 .. note::
-    For a complete list of Theano ops, see: TODO
+    For a complete list of Theano ops, see: `list of ops <http://www.pylearn.org/theano/indexes/oplist.html>`_
 
 
 Defining a Loss Function
@@ -178,13 +188,23 @@ similar to what we have covered so far, and should be self explanatory.
 
 
         def negative_log_likelihood(self, y):
-            """Return the negative log-likelihood of the prediction of this model
-            under a given target distribution.  
+            """Return the negative log-likelihood of the prediction of this 
+            model under a given target distribution.  
+
+            .. math::
+
+              \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+              \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+                  \ell (\theta=\{W,b\}, \mathcal{D}) 
+
+
             :param y: corresponds to a vector that gives for each example the
-            :correct label
+            correct label;
+
+            note: in practice we use mean instead of sum so that
+            learning rate is less dependent on the batch size
             """
-            # TODO: inline NLL formula, refer to theano function
-            return -T.log(self.p_y_given_x)[T.arange(y.shape[0]),y]
+            return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
 
 We instantiate this class as follows:
@@ -208,7 +228,7 @@ the instance method ``classifier.negative_log_likelihood``.
 
 .. code-block:: python
 
-    cost = classifier.negative_log_likelihood(y).mean() 
+    cost = classifier.negative_log_likelihood(y) 
 
 Note that the return value of ``classifier.negative_log_likelihood`` is a vector
 containing the cost for each training example within the minibatch. Since we are
@@ -253,7 +273,7 @@ follows:
     updates ={classifier.W: classifier.W - numpy.asarray(learning_rate)*g_W,\
               classifier.b: classifier.b - numpy.asarray(learning_rate)*g_b}
 
-    # compiling a theano function `train_model` that returns the cost, but in
+    # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
     train_model = theano.function([x, y], cost, updates = updates )
@@ -292,7 +312,8 @@ The code is as follows:
 
         def errors(self, y):
             """Return a float representing the number of errors in the minibatch 
-            over the total number of examples of the minibatch 
+            over the total number of examples of the minibatch ; zero
+            one loss over the size of the minibatch 
             """
             return T.mean(T.neq(self.y_pred, y))
 
@@ -330,17 +351,17 @@ The output one should expect is of the form :
   ...
   epoch 96, minibatch 2500/2500, validation error 7.010000 %
   Optimization complete with best validation score of 7.01%, with test performance 7.61%
-  The code ran for 2.595667 minutes
+  The code ran for 2.979333 minutes
 
 On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
-approximately 1.62229185 sec/epoch and it took 99 epochs to reach a test
+approximately 1.862083125 sec/epoch and it took 96 epochs to reach a test
 error of 7.61%. 
 
 .. rubric:: Footnotes
 
 .. [#f1] For smaller datasets and simpler models, more sophisticated descent
          algorithms can be more effective. The sample code logistic_cg.py
-         demonstrates how to use SciPy's conjugate gradient solver with theano 
+         demonstrates how to use SciPy's conjugate gradient solver with Theano 
          on the logistic regression task.
 
 

@@ -99,12 +99,17 @@ class LogisticRegression(object):
         """Return the negative log-likelihood of the prediction of this model
         under a given target distribution.  
 
-        TODO : add description of the categorical_crossentropy
+        .. math::
+
+            \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+            \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+                \ell (\theta=\{W,b\}, \mathcal{D}) 
+
 
         :param y: corresponds to a vector that gives for each example the
         :correct label
         """
-        return -T.sum(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
+        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
 
 

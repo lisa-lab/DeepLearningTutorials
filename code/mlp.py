@@ -8,10 +8,9 @@ activation function (usually tanh or sigmoid) . One can use many such
 hidden layers making the architecture deep. The tutorial will also tackle 
 the problem of MNIST digit classification.
 
+.. math::
 
-..math::
-    y_k(x,W) = \softmax( \sum_j w^{(2)}_{kj} *
-                \tanh( \sum_i w^{(1)}_{ji} x_i + b^{(1)}_j) + b^{(2)}_k)
+    f(x) = G( b^{(2)} + W^{(2)}( s( b^{(1)} + W^{(1)} x))),
 
 References:
 
@@ -112,17 +111,24 @@ class MLP(object):
         self.L2_sqr = (self.W1**2).sum() + (self.W2**2).sum()
 
 
+
     def negative_log_likelihood(self, y):
         """Return the negative log-likelihood of the prediction of this model
         under a given target distribution.  
 
-        TODO : add description of the categorical_crossentropy
+        .. math::
+
+            \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+            \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+                \ell (\theta=\{W,b\}, \mathcal{D}) 
+
 
         :param y: corresponds to a vector that gives for each example the
         :correct label
         """
-        # TODO: inline NLL formula, refer to theano function
-        return T.nnet.categorical_crossentropy(self.p_y_given_x, y)
+        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
+
+
 
    
     def errors(self, y):
@@ -185,7 +191,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
     # the cost we minimize during training is the negative log likelihood of 
     # the model plus the regularization terms (L1 and L2); cost is expressed
     # here symbolically
-    cost = classifier.negative_log_likelihood(y).mean() \
+    cost = classifier.negative_log_likelihood(y) \
          + L1_reg * classifier.L1 \
          + L2_reg * classifier.L2_sqr 
 
@@ -217,8 +223,11 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = 2500  # make this many SGD updates between 
-                                  # validations
+    validation_frequency  = n_minibatches  # go through this many 
+                                  # minibatche before checking the network 
+                                  # on the validation set; in this case we 
+                                  # check every epoch 
+
 
     best_params          = None
     best_validation_loss = float('inf')

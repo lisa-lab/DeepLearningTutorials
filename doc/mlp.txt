@@ -1,5 +1,7 @@
 .. _mlp:
 
+.. index:: Multilayer Perceptron
+
 Multilayer Perceptron
 =====================
 
@@ -119,11 +121,11 @@ The `hidden` layer is then fed to the logistic regression layer by calling:
 
         # compute prediction as class whose probability is maximal in 
         # symbolic form
-        self.y_pred = T.argmax( p_y_given_x, axis =1)
+        y_pred = T.argmax( p_y_given_x, axis =1)
  
 
 In this tutorial we will also use L1 and L2 regularization (see
-:doc:`optimization`). For this, we need to compute the L1 norm and the squared L2
+:ref:`L1_L2_regularization`). For this, we need to compute the L1 norm and the squared L2
 norm of the weights :math:`W^{(1)}, W^{(2)}`.
 
 .. code-block:: python
@@ -148,7 +150,7 @@ The code that computes the new cost is:
     # the cost we minimize during training is the negative log likelihood of 
     # the model plus the regularization terms (L1 and L2); cost is expressed
     # here symbolically
-    cost = T.sum(T.log(p_y_given_x)[y]) \
+    cost = classifier.negative_log_likelihood(y) \
          + L1_reg * L1 \
          + L2_reg * L2_sqr 
 

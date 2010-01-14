@@ -1,5 +1,6 @@
 .. _gettingstarted:
 
+  
 ===============
 Getting Started
 ===============
@@ -12,8 +13,12 @@ the up-coming tutorials.
 
 .. _datasets:
 
+.. index:: Datasets
+
 Datasets
 ========
+
+.. index:: MNIST Dataset
 
 MNIST Dataset
 +++++++++++++
@@ -65,12 +70,15 @@ MNIST Dataset
    label = training_set[j][1][i]
 
 
+.. index:: Notation
 
 Notation
 ========
 
-Data set notation
-+++++++++++++++++
+.. index:: Dataset notation
+
+Dataset notation
+++++++++++++++++
 
 We label data sets as :math:`\mathcal{D}`. When the distinction is important, we
 indicate train, validation, and test sets as: :math:`\mathcal{D}_{train}`,
@@ -88,6 +96,8 @@ use superscripts to distinguish training set examples. :math:`x^{(i)} \in
 :math:`y^{(i)}` that has other types (e.g. Gaussian for regression,
 or groups of multinomials for predicting multiple symbols).
 
+.. index:: Math Convetions
+
 Math Conventions
 ++++++++++++++++
 
@@ -97,6 +107,8 @@ Math Conventions
 * :math:`W_{\cdot j}`: vector, j-th column of matrix :math:`W`
 * :math:`b`: lower-case symbols refer to a vector unless specified otherwise
 * :math:`b_i`: i-th element of vector :math:`b`
+
+.. index:: List of Symbols and acronyms
 
 List of Symbols and acronyms
 ++++++++++++++++++++++++++++
@@ -111,6 +123,8 @@ List of Symbols and acronyms
   parameterized by :math:`\theta` on data set :math:`\cal{D}`.
 * NLL: negative log-likelihood
 * :math:`\theta`: set of all parameters for a given model
+
+.. index:: Python Namespaces
 
 Python Namespaces
 +++++++++++++++++
@@ -140,8 +154,11 @@ many of the models in the Deep Learning Tutorials.
 
 .. _opt_learn_classifier:
 
+
 Learning a Classifier
 +++++++++++++++++++++
+
+.. index:: Zero-One Loss
 
 Zero-One Loss
 -------------
@@ -173,6 +190,18 @@ In this tutorial, :math:`f` is defined as:
     
     f(x) = argmax_k P(Y=k | x, \theta)
 
+In python, using Theano this can be written as :
+
+.. code-block:: python
+  
+  # zero_one_loss is a Theano variable representing a symbolic
+  # expression of the zero one loss ; to get the actual value this
+  # symbolic expression has to be compiled into a Theano function (see
+  # the Theano tutorial for more details)
+  zero_one_loss = T.sum(T.neq(T.argmax(p_y_given_x),y))
+
+
+.. index:: Negative Log--Likelihood Loss
 
 Negative Log-Likelihood Loss
 ----------------------------
@@ -189,7 +218,7 @@ all the labels in a training set.
 
 The likelihood of the correct class is not the same as the
 number of right predictions, but from the point of view of a randomly
-initialized classifier they are pretty similar.  
+initialized classifier they are pretty similar. 
 TODO: CLARIFY THIS SENTENCE BELOW: Later in training you can see
 that the number of right predictions in a validation set can decrease a
 little even after the probability of the right answers starts to drop
@@ -207,21 +236,38 @@ The NLL of our classifier is a differentiable surrogate for the zero-one loss,
 and we use the gradient of this function over our training data as a
 supervised learning signal for deep learning.
 
+This can be computed using the following line of code : 
+
+.. code-block:: python
+ 
+  # NLL is a symbolic variable ; to get the actual value of NLL, this symbolic
+  # expression has to be compiled into a Theano function (see the Theano
+  # tutorial for more details)
+  NLL = -T.sum(T.log(p_y_given_x)[y.shape[0],y])
+  # note on syntax: T.arange(y,shape[0]) is a vector of integers [0,1,2,...,len(y)].
+  # Indexing a matrix M by the two vectors [0,1,...,K], [a,b,...,k] returns the
+  # elements M[0,a], M[1,b], ..., M[K,k] as a vector.  Here, we use this
+  # syntax to retrieve the log-probability of the correct labels, y.
+
+
 .. _opt_SGD:
+
+.. index:: Stochastic Gradient Descent
 
 Stochastic Gradient Descent
 +++++++++++++++++++++++++++
 
 What is ordinary gradient descent?  it is a simple
-algorithm in which we repeatedly make small steps downward on an error surface
-defined by a loss function of some parameters.  
-For the purpose of ordinary
-gradient descent we consider that the training data is rolled into the loss
-function.
+algorithm in which we repeatedly make small steps downward on an error 
+surface defined by a loss function of some parameters.  
+For the purpose of ordinary gradient descent we consider that the training 
+data is rolled into the loss function. Then the pseducode of this
+algorithm can be described as :
 
 .. code-block:: python
 
     # GRADIENT DESCENT
+
     while True:
         loss = f(params)
         d_loss_wrt_params = ... # compute gradient
@@ -247,8 +293,8 @@ form, we estimate the gradient from just a single example at a time.
             return params
 
 The variant that we recommend for deep learning is a further twist on
-stochastic gradient descent using so-called "minibatches" ***other terms for
-this?***.  Minibatch SGD works identically to SGD, except that we use more than
+stochastic gradient descent using so-called "minibatches".  
+Minibatch SGD works identically to SGD, except that we use more than
 one training example to make each estimate of the gradient.  This technique reduces
 variance in the estimate of the gradient, and often makes better use of the
 hierarchical memory organization in modern computers. 
@@ -259,7 +305,7 @@ hierarchical memory organization in modern computers.
                                 # imagine an infinite generator 
                                 # that may repeat examples
         loss = f(params, x_batch, y_batch)
-        d_loss_wrt_params = ... # compute gradient
+        d_loss_wrt_params = ... # compute gradient using theano
         params -= learning_rate * d_loss_wrt_params
         if <stopping condition is met>:
             return params
@@ -271,33 +317,34 @@ reduction of variance and use of SIMD instructions helps most when increasing
 With large :math:`B`, time is wasted in reducing the variance of the gradient
 estimator, that time would be better spent on additional gradient steps.
 An optimal :math:`B` is model-, dataset-, and hardware-dependent, and can be
-anywhere from 1 to maybe several hundreds.  In the tutorial we set it to 10, but this choice
-is almost arbitrary (though harmless).
-
-
-.. todo:: 
-    At this point, we can show how to allocate and apply a classifier with
-    theano, load data, calculate: error rates, etc.
-
-TODO: CHOOSE WHICH LOSS FORMULATION TO KEEP
+anywhere from 1 to maybe several hundreds.  In the tutorial we set it to 20, 
+but this choice is almost arbitrary (though harmless). All code-blocks
+above show psuedocode of how the algorithm looks like. Implementing such 
+algorithm in Theano can be done as follows : 
 
 .. code-block:: python
 
-  zero_one_loss = T.sum(T.neq(argmax(p_y_given_x), y)) ???
-
-  loss = T.sum(T.log(p_y_given_x)[y])  #option 1 (TODO: advanced indexing, optimization pattern)
+  # Minibatch Stochastic Gradient Descent
   
-  loss = T.log(p_y_given_x[0,y[0]]) + theano.log(p_y_given_x[1, y[1]]) # option 2: simple indexing on each minibatch element
+  # assume loss is a symbolic description of the loss function given
+  # the symbolic variables params (shared variable), x_batch, y_batch; 
 
-  loss = T.sum(theano.log(p_y_given_x) * one_of_n(y))   # option 3 (TODO: one_of_n:: integer array, optimization pattern)
+  # compute gradient of loss with respect to params
+  d_loss_wrt_params = T.grad(loss, params)
+  
+  # compile the MSGD step into a theano function
+  updates = { params: params - learning_rate * d_loss_wrt_params}
+  MSGD = theano.function([x_batch,y_batch], loss, updates = updates)
 
-  loss = T.sum(theano.nnet.categorical_crossentropy(p_y_given_x, y)) # option 4: 
+  for (x_batch, y_batch) in train_batches:
+    # here x_batch and y_batch are elements of train_batches and
+    # therefore numpy arrays; function MSGD also updates the params
+    print('Current loss is ', MSGD(x_batch, y_batch))
+    if <stopping condition is met>:
+      return params
 
-  gw, gb = T.grad(L, [w,b])
 
-
-.. _opt_early_stopping:
-
+.. index:: Regularization
 
 Regularization
 ++++++++++++++
@@ -307,8 +354,12 @@ train our model from data we are trying to prepare it to do well on *new*
 examples, not the ones it has already seen.  The training loop above for MSGD
 does not take this into account, and may overfit the training examples.
 A way to combat overfitting is through regularization.
-There are several techniques for regularization; the ones we will explain here 
-are L1/L2 regularization and early-stopping.
+There are several techniques for regularization; the ones we will explain 
+here are L1/L2 regularization and early-stopping.
+
+.. index:: L1 and L2 regularization
+
+.. _L1_L2_regularization :
 
 L1 and L2 regularization
 ------------------------
@@ -358,8 +409,27 @@ data.
 Note that the fact that a solution is "simple" does not mean that it will
 generalize well. Empirically, it was found that performing such regularization
 in the context of neural networks helps with generalization.
+The code block below shows how to compute the loss in python when it
+contains both a L1 regularization term weighted by :math:`\lambda_1` and
+L2 regularization term weighted by :math:`\lambda_2`
 
-TODO: code example
+.. code-block:: python
+ 
+  # symbolic Theano variable that represents the L1 regularization term
+  L1  = T.sum(abs(param))
+
+  # symbolic Theano variable that represents the squared L2 term 
+  L2_sqr = T.sum(param**2)
+
+  # the loss 
+  loss = NLL + lambda_1 * L1 + lambda_2 * L2
+
+
+
+.. index:: Early-Stopping
+
+.. _opt_early_stopping:
+
 
 Early-Stopping
 --------------
@@ -391,7 +461,7 @@ of a strategy based on a geometrically increasing amount of patience.
                                   # validation error is found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = 1000  # make this many SGD updates between validations
+    validation_frequency  = 2500  # make this many SGD updates between validations
 
     # initialize cross-validation variables
     best_params = None
@@ -442,6 +512,7 @@ we just go back to the beginning of the training set and repeat.
 
 
 
+.. index:: Testing
 
 Testing
 +++++++

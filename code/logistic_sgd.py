@@ -98,12 +98,17 @@ class LogisticRegression(object):
         """Return the negative log-likelihood of the prediction of this model
         under a given target distribution.  
 
-        TODO : add description of the categorical_crossentropy
+        .. math::
+
+            \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+            \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+                \ell (\theta=\{W,b\}, \mathcal{D}) 
+
 
         :param y: corresponds to a vector that gives for each example the
         :correct label
         """
-        return -T.sum(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
+        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
 
 
@@ -111,7 +116,8 @@ class LogisticRegression(object):
 
     def errors(self, y):
         """Return a float representing the number of errors in the minibatch 
-        over the total number of examples of the minibatch 
+        over the total number of examples of the minibatch ; zero one
+        loss over the size of the minibatch
         """
 
         # check if y has same dimension of y_pred 
@@ -164,9 +170,9 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
 
     # the cost we minimize during training is the negative log likelihood of 
     # the model in symbolic format
-    cost = classifier.negative_log_likelihood(y).mean() 
+    cost = classifier.negative_log_likelihood(y) 
 
-    # compiling a theano function that computes the mistakes that are made by 
+    # compiling a Theano function that computes the mistakes that are made by 
     # the model on a minibatch
     test_model = theano.function([x,y], classifier.errors(y))
 
@@ -178,24 +184,27 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
     updates ={classifier.W: classifier.W - numpy.asarray(learning_rate)*g_W,\
               classifier.b: classifier.b - numpy.asarray(learning_rate)*g_b}
 
-    # compiling a theano function `train_model` that returns the cost, but in 
+    # compiling a Theano function `train_model` that returns the cost, but in 
     # the same time updates the parameter of the model based on the rules 
     # defined in `updates`
     train_model = theano.function([x, y], cost, updates = updates )
 
+    n_minibatches        = len(train_batches) # number of minibatchers
+ 
     # early-stopping parameters
     patience              = 5000  # look as this many examples regardless
     patience_increase     = 2     # wait this much longer when a new best is 
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = 2500  # make this many SGD updates between 
-                                  # validations
+    validation_frequency  = n_minibatches  # go through this many 
+                                  # minibatche before checking the network 
+                                  # on the validation set; in this case we 
+                                  # check every epoch 
 
     best_params          = None
     best_validation_loss = float('inf')
     test_score           = 0.
-    n_minibatches        = len(train_batches) # number of minibatchers
     start_time = time.clock()
     # have a maximum of `n_iter` iterations through the entire dataset
     for iter in xrange(n_iter* n_minibatches):
