@@ -148,7 +148,8 @@ Math Conventions
 List of Symbols and acronyms
 ++++++++++++++++++++++++++++
 
-* D: number of input dimensions.
+* :math:`D`: number of input dimensions.
+* :math:`D_h^{(i)}`: number of hidden units in the :math:`i`-th layer.
 * :math:`f_{\theta}(x)`, :math:`f(x)`: prediction function of a model :math:`P(Y|x,\theta)`, defined as :math:`argmax_k P(Y=k|x,\theta)`.
   Note that we will often drop the :math:`\theta` subscript.
 * L: number of labels.

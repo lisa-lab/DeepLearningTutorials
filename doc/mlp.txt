@@ -296,8 +296,8 @@ This hyper-parameter is very much dataset-dependent. Vaguely speaking, the
 more complicated the input distribution is, the more capacity the network
 will require to model it, and so the larger the number of hidden units that
 will be needed (note that the number of weights in a layer, perhaps a more direct
-measure of capacity, is :math:`D\times H`, where :math:`D` is the number of
-inputs and :math:`H` is the number of hidden units).
+measure of capacity, is :math:`D\times D_h` (recall :math:`D` is the number of
+inputs and :math:`D_h` is the number of hidden units).
 
 Unless we employ some regularization scheme (early stopping or L1/L2
 penalties), a typical number of hidden  units vs. generalization performance graph will be U-shaped.
