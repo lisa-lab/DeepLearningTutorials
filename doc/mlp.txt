@@ -221,3 +221,92 @@ error of 2.41%.
 
 To put this into perspective, we refer the reader to the results section of `this
 <http://yann.lecun.com/exdb/mnist>`_  page.
+
+Tips and Tricks for training MLPs
++++++++++++++++++++++++++++++++++
+
+There are several hyper-parameters in the above code, which are not (and,
+generally speaking, cannot be) optimized by gradient descent. Strictly speaking,
+finding an optimal set of values for these
+hyper-parameters is not a feasible problem. First, we can't simply optimize
+each of them independently. Second, we cannot readily apply gradient
+techniques that we described previously (partly because some parameters are
+discrete values and others are real-valued). Third, the optimization problem
+is not convex and finding a (local) minimum would involve a non-trivial
+amount of work.
+
+The good news is that over the last 25 years, researchers have devised various
+rules of thumb for choosing hyper-parameters in a neural network. A very
+good overview of these tricks can be found in `Efficient
+BackProp <http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf>`_ by Yann LeCun,
+Leon Bottou, Genevieve Orr, and Klaus-Robert Mueller. In here, we summarize
+the same issues, with an emphasis on the parameters and techniques that we
+actually used in our code.
+
+Nonlinearity:
+--------------
+
+Two of the most common ones are the :math:`sigmoid` and the :math:`tanh` function. For
+reasons explained in `Section 4.4  <http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf>`_, nonlinearities that
+are symmetric around the origin are preferred because they tend to produce
+zero-mean inputs to the next layer (which is a desirable property).
+Empirically, we have observed that the :math:`tanh` has better convergence
+properties.
+
+Weight initialization
+---------------------
+
+The rationale for initializing the weights by sampling from 
+:math:`uniform[-\frac{1}{\sqrt{fan_{in}}},\frac{1}{\sqrt{fan_{in}}}]` is to
+make learning faster at the beginning on training. By initializing with
+small random values around the origin, we make sure that the sigmoid
+operates in its linear regime, where gradient updates are largest. 
+
+On their own, weights cannot assure that this holds true. As explained in
+explained in `Section 4.6 <http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf>`_, 
+this requires coordination between normalization of inputs (to zero-mean and
+standard deviation of 1) and a proper choice of the sigmoid.
+
+Learning rate
+--------------
+
+There is a great deal of literature on choosing a good learning rate. The
+simplest solution is to simply have a constant rate. Rule of thumb: try
+several log-spaced values (:math:`10^{-1},10^{-2},\ldots`) and narrow the
+(logarithmic) grid search to the region where you obtain the lowest
+validation error.
+
+Decreasing the learning rate over time is sometimes a good idea. One simple
+rule for doing that is :math:`\frac{\mu_0}{1 + d\times t}` where
+:math:`\mu_0` is the initial rate (chosen, perhaps, using the grid search
+technique explained above), :math:`d` is a so-called "decrease constant"
+which controls the rate at which the learning rate decreases (typically, a
+smaller positive number, :math:`10^{-3}` and smaller) and :math:`t` is the
+epoch/stage.
+
+`Section 4.7 <http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf>`_ details
+procedures for choosing a learning rate for each parameter (weight) in our
+network and for choosing them adaptively based on the error of the
+classifier.
+
+Number of hidden units
+-----------------------
+
+This hyper-parameter is very much dataset-dependent. Vaguely speaking, the
+more complicated the input distribution is, the more capacity the network
+will require to model it, and so the larger the number of hidden units that
+will be needed (note that the number of weights in a layer, perhaps a more direct
+measure of capacity, is :math:`D\times H`, where :math:`D` is the number of
+inputs and :math:`H` is the number of hidden units).
+
+Unless we employ some regularization scheme (early stopping or L1/L2
+penalties), a typical number of hidden  units vs. generalization performance graph will be U-shaped.
+
+Regularization parameter
+------------------------
+
+Typical values to try for the L1/L2 regularization parameter :math:`\lambda`
+are :math:`10^{-2},10^{-3},\ldots`. In the framework that we described so
+far, optimizing this parameter will not lead to significantly better
+solutions, but is worth exploring nonetheless.
+
