@@ -250,9 +250,10 @@ This can be computed using the following line of code :
   # syntax to retrieve the log-probability of the correct labels, y.
 
 
-.. _opt_SGD:
 
 .. index:: Stochastic Gradient Descent
+
+.. _opt_SGD:
 
 Stochastic Gradient Descent
 +++++++++++++++++++++++++++
