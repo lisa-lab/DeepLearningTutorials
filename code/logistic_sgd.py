@@ -32,8 +32,7 @@ References:
     - textbooks: "Pattern Recognition and Machine Learning" - 
                  Christopher M. Bishop, section 4.3.2
 
-TODO: recommended preprocessing, lr ranges, regularization ranges (explain 
-      to do lr first, then add regularization)
+TODO: recommended preprocessing, lr ranges
 
 """
 __docformat__ = 'restructedtext en'
