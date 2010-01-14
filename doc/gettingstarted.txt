@@ -76,12 +76,12 @@ We label data sets as :math:`\mathcal{D}`. When the distinction is important, we
 indicate train, validation, and test sets as: :math:`\mathcal{D}_{train}`,
 :math:`\mathcal{D}_{valid}` and :math:`\mathcal{D}_{test}`. The validation set
 is used to perform model selection and hyper-parameter selection, whereas
-the test set is used to evaluate final generalization error and
+the test set is used to evaluate the final generalization error and
 compare different algorithms in an unbiased way.
 
 The tutorials mostly deal with classification problems, where each data set
 :math:`\mathcal{D}` is an indexed set of pairs :math:`(x^{(i)},y^{(i)})`. We
-use superscripts to distinguish training set examples. :math:`x^{(i)} \in
+use superscripts to distinguish training set examples: :math:`x^{(i)} \in
 \mathcal{R}^D` is thus the i-th training example of dimensionality :math:`D`. Similarly,
 :math:`y^{(i)} \in \{0, ..., L\}` is the i-th label assigned to input
 :math:`x^{(i)}`. It is straightforward to extend these examples to
