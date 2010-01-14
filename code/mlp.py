@@ -239,10 +239,10 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
 
     # specify how to update the parameters of the model as a dictionary
     updates = \
-        { classifier.W1: classifier.W1 - numpy.asarray(learning_rate)*g_W1 \
-        , classifier.b1: classifier.b1 - numpy.asarray(learning_rate)*g_b1 \
-        , classifier.W2: classifier.W2 - numpy.asarray(learning_rate)*g_W2 \
-        , classifier.b2: classifier.b2 - numpy.asarray(learning_rate)*g_b2 }
+        { classifier.W1: classifier.W1 - learning_rate*g_W1 \
+        , classifier.b1: classifier.b1 - learning_rate*g_b1 \
+        , classifier.W2: classifier.W2 - learning_rate*g_W2 \
+        , classifier.b2: classifier.b2 - learning_rate*g_b2 }
 
     # compiling a theano function `train_model` that returns the cost, but in 
     # the same time updates the parameter of the model based on the rules 
