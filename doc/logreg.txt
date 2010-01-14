@@ -1,6 +1,7 @@
-.. _logreg:
-
 .. index:: Logistic Regression
+
+.. _logreg :
+
 
 Classifying MNIST digits using Logistic Regression
 ==================================================
@@ -14,7 +15,7 @@ TODO : shared variables documentation not up !!
 
 .. _shared variables: http://www.pylearn.org/theano/basic_tutorial
 
-.. _basic arthmetic ops: http://www.pylearn.org/theano/basic_tutorial/adding.html
+.. _basic arithmetic ops: http://www.pylearn.org/theano/basic_tutorial/adding.html
 
 .. _T.grad: http://www.pylearn.org/theano/basic_tutorial/examples.html#computing-gradients
 
