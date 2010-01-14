@@ -6,9 +6,19 @@ Multilayer Perceptron
 =====================
 
 .. note::
-    This section assumes the reader has already read through :doc:`logreg.txt`.
+    This section assumes the reader has already read through :ref:`logreg` .
     Additionally, it uses the following new Theano functions and concepts:
-    T.tanh, abs, L1 and L2 regularization
+    `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, 
+    :ref:`L1_L2_regularization`
+
+.. _T.tanh: http://www.pylearn.org/theano/basic_tutorial/examples.html?highlight=tanh#logistic-function
+
+.. _shared variables: http://www.pylearn.org/theano/basic_tutorial
+
+.. _basic arithmetic ops: http://www.pylearn.org/theano/basic_tutorial/adding.html
+
+.. _T.grad: http://www.pylearn.org/theano/basic_tutorial/examples.html#computing-gradients
+
 
 The next architecture we are going to present using Theano is the single-hidden
 layer Multi-Layer Perceptron (MLP). An MLP can be viewed as a logistic
