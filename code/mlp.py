@@ -75,14 +75,14 @@ class MLP(object):
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         W1_values = numpy.asarray( numpy.random.uniform( \
-              low = -1/numpy.sqrt(n_in), high = +1/numpy.sqrt(n_in), \
+              low = -numpy.sqrt(6./(n_in+n_hidden)), high = numpy.sqrt(6./(n_in+n_hidden)), \
               size = (n_in, n_hidden)), dtype = theano.config.floatX)
         # `W2` is initialized with `W2_values` which is uniformely sampled 
         # from -1/sqrt(n_hidden) and 1/sqrt(n_hidden)
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         W2_values = numpy.asarray( numpy.random.uniform( 
-              low = -1/numpy.sqrt(n_hidden), high= 1/numpy.sqrt(n_hidden),\
+              low = numpy.sqrt(6./(n_hidden+n_out)), high= numpy.sqrt(6./(n_hidden+n_out)),\
               size= (n_hidden, n_out)), dtype = theano.config.floatX)
 
         self.W1 = theano.shared( value = W1_values )
@@ -126,7 +126,7 @@ class MLP(object):
         :param y: corresponds to a vector that gives for each example the
         :correct label
         """
-        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
+        return -T.sum(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
 
 
