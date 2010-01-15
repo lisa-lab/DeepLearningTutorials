@@ -9,7 +9,7 @@ Multilayer Perceptron
     This section assumes the reader has already read through :doc:`logreg`.
     Additionally, it uses the following new Theano functions and concepts:
     `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, 
-    :ref:`L1_L2_regularization`
+    :ref:`L1_L2_regularization`.
 
 .. _T.tanh: http://www.pylearn.org/theano/basic_tutorial/examples.html?highlight=tanh#logistic-function
 
@@ -27,7 +27,7 @@ transformation :math:`\Phi`. The purpose of this transformation is to project th
 input data into a space where it becomes linearly separable. This intermediate
 layer is referred to as a **hidden layer**.  A single hidden layer is
 sufficient to make MLPs a **universal approximator**. However we will see later
-on, that there are many benefits to using many such hidden layers, i.e. the
+on that there are substantial benefits to using many such hidden layers, i.e. the
 very premise of **deep learning**.
 
 This tutorial will again tackle the problem of MNIST digit classification.
@@ -41,24 +41,33 @@ follows:
 .. figure:: images/mlp.png
     :align: center
 
-Formally, a one-hidden layer MLP constitutes a function :math:`f: R^D \rightarrow R^L`, such that:
+Formally, a one-hidden layer MLP constitutes a function :math:`f: R^D \rightarrow R^L`, 
+where :math:`D` is the size of input vector :math:`x`
+and :math:`L` is the size of the output vector :math:`f(x)`, such that,
+in matrix notation:
 
 .. math::
 
     f(x) = G( b^{(2)} + W^{(2)}( s( b^{(1)} + W^{(1)} x))),
 
 with bias vectors :math:`b^{(1)}`, :math:`b^{(2)}`; weight matrices
-:math:`W^{(1)}`, :math:`W^{(2)}` and activation functions G and s.
+:math:`W^{(1)}`, :math:`W^{(2)}` and activation functions :math:`G` and :math:`s`.
 
-:math:`h(x) = \Phi(x) = s(b^{(1)} + W^{(1)} x)` constitutes the hidden layer.
-:math:`W^{(1)} \in R^{D \times D_h}` is the weight matrix connecting the input
+The vector :math:`h(x) = \Phi(x) = s(b^{(1)} + W^{(1)} x)` constitutes the hidden layer.
+:math:`W^{(1)} \in R^{D \times D_h}` is the weight matrix connecting the input vector
 to the hidden layer.  Each column :math:`W^{(1)}_{\cdot i}` represents the weights
-from the i-th hidden unit to the input units. Typical choices for :math:`s`
-include :math:`tanh` or the logistic :math:`sigmoid` function. We will be using
-:math:`tanh` in this tutorial.
+from the input units to the i-th hidden unit. Typical choices for :math:`s`
+include :math:`tanh`, with :math:`tanh(a)=(e^a-e^{-a})/(e^a+e^{-a})`,
+or the logistic :math:`sigmoid` function, with :math:`sigmoid(a)=1/(1+e^{-a})`. We will be using
+:math:`tanh` in this tutorial because it typically yields to faster training
+(and sometimes also to better local minima). Both the :math:`tanh`
+and :math:`sigmoid` are scalar-to-scalar functions but their natural
+extension to vectors and tensors consists in applying them element-wise
+(e.g. separately on each element of the vector, yielding a same-size vector).
 
-The output layer is then obtained as: :math:`o(x) = G(b^{(2)} + W^{(2)} h(x))`.
-The reader should recognize the equation for logistic regression. As before,
+The output vector is then obtained as: :math:`o(x) = G(b^{(2)} + W^{(2)} h(x))`.
+The reader should recognize the form we already used for 
+:doc:`logreg`. As before,
 class-membership probabilities can be obtained by choosing :math:`G` as the
 :math:`softmax` function (in the case of multi-class classification).
 
