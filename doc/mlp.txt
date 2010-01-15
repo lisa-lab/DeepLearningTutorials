@@ -71,8 +71,9 @@ The reader should recognize the form we already used for
 class-membership probabilities can be obtained by choosing :math:`G` as the
 :math:`softmax` function (in the case of multi-class classification).
 
-To train an MLP, we learn **all** parameters of the model using gradient
-descent. The set of parameters to learn is the set :math:`\theta =
+To train an MLP, we learn **all** parameters of the model, and here we use
+ref:`opt_SGD` with minibatches.
+The set of parameters to learn is the set :math:`\theta =
 \{W^{(2)},b^{(2)},W^{(1)},b^{(1)}\}`.  Obtaining the gradients
 :math:`\partial{\ell}/\partial{\theta}` can be achieved through the
 **backpropagation algorithm** (a special case of the chain-rule of derivation).
@@ -90,19 +91,25 @@ declared as shared variables (as it was done for the logistic regression) :
 
 .. code-block:: python
 
-        # `W1` is initialized with `W1_values` which is uniformly sampled
-        # from -1/sqrt(n_in) and 1/sqrt(n_in)
-        # the output of uniform if converted using asarray to dtype 
-        # theano.config.floatX so that the code is runable on GPU
+        # n_in is the dimension of an input vector.
+        # n_hidden is the hidden layer dimension.
+        # n_out is the number of outputs, which is also the number of classes here.
+        # `W1` is initialized with `W1_values` which is uniformly sampled in the
+        # interval from -sqrt(6/(n_in+n_hidden)) and sqrt(6/(n_in+n_hidden))
+        # (those values are chosen so that when the input is roughly uniform in [-1,1],
+        # magnitudes are preserved for activations going upward and for gradients
+        # going downward).
+        # The output of the uniform random number generator is converted using asarray 
+        # to dtype theano.config.floatX so that the code is runable on GPU.
         W1_values = numpy.asarray( numpy.random.uniform( \
-              low = -1/numpy.sqrt(n_in), high = +1/numpy.sqrt(n_in), \
+              low = -numpy.sqrt(6/(n_in+n_hidden)), high = numpy.sqrt(6/(n_in+n_hidden)), \
               size = (n_in, n_hidden)), dtype = theano.config.floatX)
-        # `W2` is initialized with `W2_values` which is uniformely sampled 
-        # from -1/sqrt(n_hidden) and 1/sqrt(n_hidden)
-        # the output of uniform if converted using asarray to dtype 
+        # `W2` is initialized with `W2_values` which are similarly sampled from the
+        # interval between -sqrt(6/(n_hidden+n_out)) and sqrt(6/(n_hidden+n_out)).
+        # The output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         W2_values = numpy.asarray( numpy.random.uniform( 
-              low = -1/numpy.sqrt(n_hidden), high= 1/numpy.sqrt(n_hidden),\
+              low = numpy.sqrt(6/(n_hidden+n_out)), high= numpy.sqrt(6/(n_hidden+n_out)),\
               size= (n_hidden, n_out)), dtype = theano.config.floatX)
 
         W1 = theano.shared( value = W1_values )
