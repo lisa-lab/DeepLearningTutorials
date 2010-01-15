@@ -258,10 +258,9 @@ all the labels in a training set.
 The likelihood of the correct class is not the same as the
 number of right predictions, but from the point of view of a randomly
 initialized classifier they are pretty similar. 
-TODO: CLARIFY THIS SENTENCE BELOW: Later in training you can see
-that the number of right predictions in a validation set can decrease a
-little even after the probability of the right answers starts to drop
-(indicating overfitting), but not much.
+Remember that likelihood and zero-one loss are different objectives;
+you should see that they are corralated on the validation set but
+sometimes one will rise while the other falls, or vice-versa.
 
 Since we usually speak in terms of minimizing a loss function, learning will
 thus attempt to **minimize** the **negative** log-likelihood (NLL), defined
