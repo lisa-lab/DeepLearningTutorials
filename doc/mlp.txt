@@ -35,7 +35,8 @@ This tutorial will again tackle the problem of MNIST digit classification.
 The Model
 +++++++++
 
-An MLP (or Artificial Neural Network - ANN) can be represented graphically as
+An MLP (or Artificial Neural Network - ANN) with a single hidden layer
+can be represented graphically as
 follows:
 
 .. figure:: images/mlp.png
@@ -100,7 +101,7 @@ declared as shared variables (as it was done for the logistic regression) :
         # magnitudes are preserved for activations going upward and for gradients
         # going downward).
         # The output of the uniform random number generator is converted using asarray 
-        # to dtype theano.config.floatX so that the code is runable on GPU.
+        # to dtype theano.config.floatX so that the code is runnable on GPU.
         W1_values = numpy.asarray( numpy.random.uniform( \
               low = -numpy.sqrt(6/(n_in+n_hidden)), high = numpy.sqrt(6/(n_in+n_hidden)), \
               size = (n_in, n_hidden)), dtype = theano.config.floatX)
@@ -124,10 +125,13 @@ declared as shared variables (as it was done for the logistic regression) :
 
 The initial values for the weights of a layer :math:`i` should be uniformly
 sampled from the interval
-:math:`[\frac{-1}{\sqrt{fan_{in}}},\frac{1}{\sqrt{fan_{in}}}]`, where 
-:math:`fan_{in}` is the number of units in the :math:`(i-1)`-th layer. This
-initialization ensures that, early in training, each neuron operates in the
-linear regime of its activation function.
+:math:`[-\sqrt{\frac{6}{fan_{in}+fan_{out}}},\sqrt{\frac{6}{fan_{in}+fan_{out}}}]`, where 
+:math:`fan_{in}` is the number of units in the :math:`(i-1)`-th layer,
+and :math:`fan_{out}` is the number of units in the :math:`i`-th layer. This
+initialization ensures that, early in training, each neuron operates in a 
+regime of its activation function where information can easily be propagated
+both upward (activations flowing from inputs to outputs) and backward
+(gradients flowing from outputs to inputs).
 
 Afterwards, we define (symbolically) the hidden layer as follows:
 
