@@ -243,7 +243,7 @@ Leon Bottou, Genevieve Orr, and Klaus-Robert Mueller. In here, we summarize
 the same issues, with an emphasis on the parameters and techniques that we
 actually used in our code.
 
-Nonlinearity:
+Nonlinearity
 --------------
 
 Two of the most common ones are the :math:`sigmoid` and the :math:`tanh` function. For
