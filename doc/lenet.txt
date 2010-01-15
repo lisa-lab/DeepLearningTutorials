@@ -60,26 +60,55 @@ convolution of a single filter with the input image.
 .. Note:: 
     Recall the following definition of convolution for a 1D signal.
     :math:`o[n] = f[n]*g[n] = \sum_{u=-\infty}^{\infty} f[u] g[u-n] = \sum_{u=-\infty}^{\infty} f[n-u] g[u]`.
+
     This can be extended to 2D as follows:
     :math:`o[m,n] = f[m,n]*g[m,n] = \sum_{u=-\infty}^{\infty} \sum_{v=-\infty}^{\infty} f[u,v] g[u-m,v-n]`.
 
 In terms of notation, each feature map is denoted as :math:`h^K` , where
 :math:`K` is the index of the feature map (**Important**: not to be confused
 with the notation :math:`h^{(k)}`, referring to the k-th hidden layer). Each
-feature map :math:`h^K` has a weight matrix :math:`W^K` and bias :math:`b_K`.
-Note that the matrix :math:`W^K` is different in nature than the weight matrix
-of traditional MLPs. For MLPs, :math:`W` is a matrix whose entries
-:math:`W_{ij}` refer to the weight connecting unit :math:`h_i` to :math:`x_i`. For
-CNNs, :math:`W^K` is a matrix of weights :math:`W_{ij}^K` from the K-th feature
-map to the input pixel with coordinates (i,j). A CNN layer is thus fully
-determined by the set of all such matrices, :math:`W = \{W^K, \forall K\}` and
-the bias vector :math:`b`.
+feature map :math:`h^K` has a weight tensor :math:`W^K` and bias :math:`b_K`.
 
-The k-th feature map is determined as follows:
+The input to the first hidden layer will typically be a 2D image. Convolving
+this input with multiple 2D filters will create a set of feature maps
+:math:`\{h^K, K=0..k\}`. These can be modeled as a 3D tensor: the leading
+dimension indexes the feature map, while the two trailing dimensions refer to
+the pixel position within each feature map.
+
+Sadly, things get even more complicated at the second hidden layer ! This time
+around, the input is already 3 dimensional. Generating the feature maps at the
+second layer therefore requires 3D filters (one 2D filter for each input feature
+map) ! The set of all filters required to compute the second layer is thus a 4D
+tensor !!
+
+The entries of the 4D tensor :math:`W` are denoted :math:`W^{KL}_{ij}`.
+:math:`W^{KL}_{ij}` represents the weight connecting each pixel in the K-th
+feature map at layer m, with pixel (i,j) in the L-th feature map of
+layer (m-1).
+
+Hopefully, the following figure will help clarify things.
+
+.. figure:: images/cnn_explained.png
+    :align: center
+
+    **Figure 1**: The above figure shows two layers of a CNN, containing 4
+    feature maps at layer (m-1) and 2 feature maps at layer m. The small
+    rectangles at layer m indicate individual pixels with their receptive fields
+    shown as colored rectangles. Note that the receptive fields spread across
+    all 4 input feature maps. :math:`W^K` denotes the weights connecting a pixel
+    with all units in its receptive fields.
+
+Mathematically, the k-th feature map is determined as follows:
 
 .. math::
     h^K_{ij} = \sigma ( (W^K * x)_{ij} + b_K ).
 
+
+MaxPooling
+----------
+
+LeNet
+-----
 
 .. image:: images/mylenet.png
     :align: center
