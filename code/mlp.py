@@ -239,10 +239,10 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
 
     # specify how to update the parameters of the model as a dictionary
     updates = \
-        { classifier.W1: classifier.W1 - numpy.asarray(learning_rate)*g_W1 \
-        , classifier.b1: classifier.b1 - numpy.asarray(learning_rate)*g_b1 \
-        , classifier.W2: classifier.W2 - numpy.asarray(learning_rate)*g_W2 \
-        , classifier.b2: classifier.b2 - numpy.asarray(learning_rate)*g_b2 }
+        { classifier.W1: classifier.W1 - learning_rate*g_W1 \
+        , classifier.b1: classifier.b1 - learning_rate*g_b1 \
+        , classifier.W2: classifier.W2 - learning_rate*g_W2 \
+        , classifier.b2: classifier.b2 - learning_rate*g_b2 }
 
     # compiling a theano function `train_model` that returns the cost, but in 
     # the same time updates the parameter of the model based on the rules 
@@ -291,14 +291,15 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
                    (epoch, minibatch_index+1, n_minibatches, \
                     this_validation_loss*100.))
 
-            #improve patience 
-            if this_validation_loss < best_validation_loss *  \
-                                      improvement_threshold :
-                patience = max(patience, iter * patience_increase)
-
 
             # if we got the best validation score until now
             if this_validation_loss < best_validation_loss:
+
+                #improve patience if loss improvement is good enough
+                if this_validation_loss < best_validation_loss *  \
+                       improvement_threshold :
+                    patience = max(patience, iter * patience_increase)
+
                 best_validation_loss = this_validation_loss
                 # test it on the test set
             
