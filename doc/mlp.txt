@@ -73,7 +73,7 @@ class-membership probabilities can be obtained by choosing :math:`G` as the
 :math:`softmax` function (in the case of multi-class classification).
 
 To train an MLP, we learn **all** parameters of the model, and here we use
-ref:`opt_SGD` with minibatches.
+:ref:`opt_SGD` with minibatches.
 The set of parameters to learn is the set :math:`\theta =
 \{W^{(2)},b^{(2)},W^{(1)},b^{(1)}\}`.  Obtaining the gradients
 :math:`\partial{\ell}/\partial{\theta}` can be achieved through the
