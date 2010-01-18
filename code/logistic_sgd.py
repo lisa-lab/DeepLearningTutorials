@@ -93,20 +93,23 @@ class LogisticRegression(object):
 
 
     def negative_log_likelihood(self, y):
-        """Return the negative log-likelihood of the prediction of this model
-        under a given target distribution.  
+        """Return the mean of the negative log-likelihood of the prediction
+        of this model under a given target distribution.
 
         .. math::
 
-            \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
-            \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
-                \ell (\theta=\{W,b\}, \mathcal{D}) 
+            \frac{1}{|\mathcal{D}|} \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) =
+            \frac{1}{|\mathcal{D}|} \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+                \ell (\theta=\{W,b\}, \mathcal{D})
 
 
         :param y: corresponds to a vector that gives for each example the
         :correct label
+
+        Note: we use the mean instead of the sum so that
+        the learning rate is less dependent on the batch size
         """
-        return -T.sum(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
+        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
 
 
@@ -271,7 +274,7 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
 
                 best_validation_loss = this_validation_loss
                 # test it on the test set
-            
+
                 test_score = 0.
                 for x,y in test_batches:
                     test_score += test_model(x,y)

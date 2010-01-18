@@ -113,24 +113,24 @@ class MLP(object):
 
 
     def negative_log_likelihood(self, y):
-        """Return the negative log-likelihood of the prediction of this model
-        under a given target distribution.  
+        """Return the mean of the negative log-likelihood of the prediction
+        of this model under a given target distribution.
 
         .. math::
 
-            \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
-            \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+            \frac{1}{|\mathcal{D}|}\mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+            \frac{1}{|\mathcal{D}|}\sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
                 \ell (\theta=\{W,b\}, \mathcal{D}) 
 
 
         :param y: corresponds to a vector that gives for each example the
         :correct label
         """
-        return -T.sum(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
+        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
 
 
-   
+
     def errors(self, y):
         """Return a float representing the number of errors in the minibatch 
         over the total number of examples of the minibatch 
@@ -157,7 +157,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
     perceptron
 
     This is demonstrated on MNIST.
-    
+
     :param learning_rate: learning rate used (factor for the stochastic 
     gradient
 

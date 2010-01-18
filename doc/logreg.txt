@@ -141,7 +141,7 @@ The following Theano code defines the (symbolic) loss for a given minibatch:
 
 .. code-block:: python
 
-  loss = -T.sum(T.log(p_y_given_x)[T.arange(y.shape[0]), y])
+  loss = -T.mean(T.log(p_y_given_x)[T.arange(y.shape[0]), y])
   # note on syntax: T.arange(y,shape[0]) is a vector of integers [0,1,2,...,len(y)].
   # Indexing a matrix M by the two vectors [0,1,...,K], [a,b,...,k] returns the
   # elements M[0,a], M[1,b], ..., M[K,k] as a vector.  Here, we use this
@@ -149,9 +149,11 @@ The following Theano code defines the (symbolic) loss for a given minibatch:
 
 .. note::
 
-    In practice, we will use the mean (T.mean) instead of the sum. This
-    allows for the learning rate choice to be less dependent of the minibatch size.
-    
+    Even though the loss is formally defined as the *sum*, over the data set,
+    of individual error terms, in practice, we use the *mean* (``T.mean``)
+    in the code. This allows for the learning rate choice to be less dependent
+    of the minibatch size.
+
 
 Creating a LogisticRegression class
 +++++++++++++++++++++++++++++++++++
@@ -191,21 +193,21 @@ similar to what we have covered so far, and should be self explanatory.
 
 
         def negative_log_likelihood(self, y):
-            """Return the negative log-likelihood of the prediction of this 
-            model under a given target distribution.  
+            """Return the mean of the negative log-likelihood of the prediction
+            of this model under a given target distribution.
 
             .. math::
 
-              \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
-              \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+              \frac{1}{|\mathcal{D}|} \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+              \frac{1}{|\mathcal{D}|} \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
                   \ell (\theta=\{W,b\}, \mathcal{D}) 
 
 
             :param y: corresponds to a vector that gives for each example the
             correct label;
 
-            note: in practice we use mean instead of sum so that
-            learning rate is less dependent on the batch size
+            Note: we use the mean instead of the sum so that
+            the learning rate is less dependent on the batch size
             """
             return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
@@ -231,11 +233,8 @@ the instance method ``classifier.negative_log_likelihood``.
 
 .. code-block:: python
 
-    cost = classifier.negative_log_likelihood(y) 
+    cost = classifier.negative_log_likelihood(y)
 
-Note that the return value of ``classifier.negative_log_likelihood`` is a vector
-containing the cost for each training example within the minibatch. Since we are
-using MSGD, the cost to minimize is the mean cost across the minibatch. 
 Note how x is an implicit symbolic input to the symbolic definition of cost,
 here, because classifier.__init__ has defined its symbolic variables in terms of x.
 
