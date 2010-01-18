@@ -26,7 +26,7 @@ stimulus.
 The visual cortex being the most powerful "vision" system in existence, it
 seems natural to emulate its behavior. Many such neurally inspired models can be
 found in the litterature. To name a few: the NeoCognitron [Fukushima]_, HMAX
-[Serre]_ and LeNet-5 [LeCun]_. LeNet-5 will be the topic of this tutorial.
+[Serre]_ and LeNet-5 [LeCun]_, which will be the focus of this tutorial.
 
 
 The Model
@@ -36,16 +36,20 @@ Sparse Connectivity
 -------------------
 
 CNNs exploit local correlation by enforcing a local connectivity pattern between
-neurons of adjacent layers. The input hidden units in the i-th layer are
-connected to a local subset of units in the (i-1)-th layer, which are spatially
+neurons of adjacent layers. The input hidden units in the m-th layer are
+connected to a local subset of units in the (m-1)-th layer, which are spatially
 contiguous. We can illustrate this graphically as follows:
 
-TODO FIGURE
+.. figure:: images/sparse_1D_nn.png
+    :align: center
 
-This architecture thus confines the learnt filters to be local.  Stacking many
-such layers leads to filters which become increasingly "global" (i.e spanning a
-larger region of pixel space) and abstract (as in any MLP).
-
+In the above, units have receptive fields of width 3 and are thus only
+connected to 3 adjacent neurons in the layer below. The architecture thus
+confines the learnt filters to be local. As shown above, stacking many such
+layers leads to filters which become increasingly "global" however (i.e
+spanning a larger region of pixel space). For example, the unit in hidden
+layer (m+1) can encode a non-linear feature of width 5 (in terms of pixel
+space).
 
 Shared Weights
 --------------
@@ -53,9 +57,24 @@ Shared Weights
 In CNNs, each sparse filter :math:`h_i` is additionally replicated across the
 entire visual field. These "replicated" units form a **feature map**, which
 share the same parametrization, i.e. the same weight vector and the same bias.
+
+.. figure:: images/conv_1D_nn.png
+    :align: center
+
+In the above figure, we show 3 hidden units belonging to the same feature map.
+Weights of the same color are shared. Learning these weights involves a new
+spin on the chain rule of derivation: we simply sum over the gradients
+emanating from the same feature map.
+
 Replicating units in this way allows for features to be detected regardless of
-their position in the visual field. Each feature map can thus be modeled as the
-convolution of a single filter with the input image.
+their position in the visual field. Conceptually, a feature map is obtained by
+convolving the input image with a linear filter, applying a bias term, followed by
+a non-linearity. We denote the K-th feature map at a given layer as
+:math:`h^k`, whose filters are determined by the weights :math:`W^k` and bias
+:math:`b_k`, a feature map is obtained as follows:
+
+.. math::
+    h^k_{ij} = \sigma ( (W^k * x)_{ij} + b_k ).
 
 .. Note:: 
     Recall the following definition of convolution for a 1D signal.
@@ -64,44 +83,22 @@ convolution of a single filter with the input image.
     This can be extended to 2D as follows:
     :math:`o[m,n] = f[m,n]*g[m,n] = \sum_{u=-\infty}^{\infty} \sum_{v=-\infty}^{\infty} f[u,v] g[u-m,v-n]`.
 
-In terms of notation, each feature map is denoted as :math:`h^K` , where
-:math:`K` is the index of the feature map (**Important**: not to be confused
-with the notation :math:`h^{(k)}`, referring to the k-th hidden layer). Each
-feature map :math:`h^K` has a weight tensor :math:`W^K` and bias :math:`b_K`.
-
-The input to the first hidden layer will typically be a 2D image. Convolving
-this input with multiple 2D filters will create a set of feature maps
-:math:`\{h^K, K=0..k\}`. These can be modeled as a 3D tensor: the leading
-dimension indexes the feature map, while the two trailing dimensions refer to
-the pixel position within each feature map.
-
-Sadly, things get even more complicated at the second hidden layer ! This time
-around, the input is already 3 dimensional. Generating the feature maps at the
-second layer therefore requires 3D filters (one 2D filter for each input feature
-map) ! The set of all filters required to compute the second layer is thus a 4D
-tensor !!
-
-The entries of the 4D tensor :math:`W` are denoted :math:`W^{KL}_{ij}`.
-:math:`W^{KL}_{ij}` represents the weight connecting each pixel in the K-th
-feature map at layer m, with pixel (i,j) in the L-th feature map of
-layer (m-1).
-
-Hopefully, the following figure will help clarify things.
+The set of all feature maps, :math:`\{h^(k), k=0..K\}`, forms a hidden layer. 
+The weights :math:`W` of this layer, are parametrized as a 4D tensor and the
+biases :math:`b` as a vector. This is best illustrated as follows:
 
 .. figure:: images/cnn_explained.png
     :align: center
 
-    **Figure 1**: The above figure shows two layers of a CNN, containing 4
-    feature maps at layer (m-1) and 2 feature maps at layer m. The small
-    rectangles at layer m indicate individual pixels with their receptive fields
-    shown as colored rectangles. Note that the receptive fields spread across
-    all 4 input feature maps. :math:`W^K` denotes the weights connecting a pixel
-    with all units in its receptive fields.
-
-Mathematically, the k-th feature map is determined as follows:
-
-.. math::
-    h^K_{ij} = \sigma ( (W^K * x)_{ij} + b_K ).
+In the above figure, we show two layers of a CNN, containing 4 feature maps at
+layer (m-1) and 2 feature maps at layer m: :math:`h^0` and :math:`h^1`. Pixels
+in :math:`h^0` and :math:`h^1` (outlined as blue and red squares) are computed from
+pixels of layer (m-1) which fall within their 2x2 receptive field (shown as
+colored rectangles). Notice how the receptive field spans all four feature
+maps. 
+Each weight, :math:`W^{kl}_{ij}` thus denotes the weight connecting each pixel
+of the k-th feature map at layer m, with the pixel at coordinates (i,j) of the
+l-th feature map of layer (m-1). 
 
 
 MaxPooling
