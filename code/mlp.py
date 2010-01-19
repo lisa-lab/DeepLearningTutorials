@@ -150,8 +150,8 @@ class MLP(object):
 
 
 
-def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
-                            L2_reg = 0.0, n_iter=100):
+def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
+                            L2_reg = 0.0001, n_iter=100):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer 
     perceptron
@@ -218,7 +218,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
 
     # construct the logistic regression class
     classifier = MLP( input=x.reshape((batch_size,28*28)),\
-                      n_in=28*28, n_hidden = 100, n_out=10)
+                      n_in=28*28, n_hidden = 500, n_out=10)
 
     # the cost we minimize during training is the negative log likelihood of 
     # the model plus the regularization terms (L1 and L2); cost is expressed

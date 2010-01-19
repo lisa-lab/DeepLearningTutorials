@@ -228,16 +228,16 @@ The output one should expect is of the form :
 
 .. code-block:: bash
 
-  epoch 0, minibatch 2500/2500, validation error 9.850000 %
+  epoch 0, minibatch 2500/2500, validation error 9.820000 %
        epoch 0, minibatch 2500/2500 test error of best model 10.200000 %
   ...
-  epoch 99, minibatch 2500/2500, validation error 2.360000 %
-  Optimization complete with best validation score of 2.34%, with test performance 2.41%
-  The code ran for 13.088667 minutes
+  epoch 99, minibatch 2500/2500, validation error 2.170000 %
+  Optimization complete with best validation score of 2.17%, with test performance 2.14%
+  The code ran for 71.037 minutes
 
 On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
-approximately 7.932525 sec/epoch and it took 99 epochs to reach a test
-error of 2.41%. 
+approximately 43.05 sec/epoch and it took 99 epochs to reach a test
+error of 2.14%. 
 
 To put this into perspective, we refer the reader to the results section of `this
 <http://yann.lecun.com/exdb/mnist>`_  page.
