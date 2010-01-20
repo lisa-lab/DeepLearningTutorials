@@ -361,7 +361,8 @@ error of 7.61%.
 .. rubric:: Footnotes
 
 .. [#f1] For smaller datasets and simpler models, more sophisticated descent
-         algorithms can be more effective. The sample code logistic_cg.py
+         algorithms can be more effective. The sample code
+         `logistic_cg.py <http://www.iro.umontreal.ca/~lisa/deep/tutorial/code/logistic_cg.py>`_
          demonstrates how to use SciPy's conjugate gradient solver with Theano 
          on the logistic regression task.
 
