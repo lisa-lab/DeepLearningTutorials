@@ -352,10 +352,10 @@ The output one should expect is of the form :
   ...
   epoch 96, minibatch 2500/2500, validation error 7.010000 %
   Optimization complete with best validation score of 7.01%, with test performance 7.61%
-  The code ran for 2.979333 minutes
+  The code ran for 2.716667 minutes
 
 On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
-approximately 1.862083125 sec/epoch and it took 96 epochs to reach a test
+approximately 1.69 sec/epoch and it took 96 epochs to reach a test
 error of 7.61%. 
 
 .. rubric:: Footnotes
