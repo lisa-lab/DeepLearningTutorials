@@ -71,18 +71,20 @@ class MLP(object):
         # other tutorials
         
         # `W1` is initialized with `W1_values` which is uniformely sampled
-        # from -1/sqrt(n_in) and 1/sqrt(n_in)
+        # from -6./sqrt(n_in+n_hidden) and 6./sqrt(n_in+n_hidden)
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         W1_values = numpy.asarray( numpy.random.uniform( \
-              low = -numpy.sqrt(6./(n_in+n_hidden)), high = numpy.sqrt(6./(n_in+n_hidden)), \
+              low = -numpy.sqrt(6./(n_in+n_hidden)), \
+              high = numpy.sqrt(6./(n_in+n_hidden)), \
               size = (n_in, n_hidden)), dtype = theano.config.floatX)
         # `W2` is initialized with `W2_values` which is uniformely sampled 
-        # from -1/sqrt(n_hidden) and 1/sqrt(n_hidden)
+        # from -6./sqrt(n_hidden+n_out) and 6./sqrt(n_hidden+n_out)
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         W2_values = numpy.asarray( numpy.random.uniform( 
-              low = numpy.sqrt(6./(n_hidden+n_out)), high= numpy.sqrt(6./(n_hidden+n_out)),\
+              low = numpy.sqrt(6./(n_hidden+n_out)), \
+              high= numpy.sqrt(6./(n_hidden+n_out)),\
               size= (n_hidden, n_out)), dtype = theano.config.floatX)
 
         self.W1 = theano.shared( value = W1_values )
@@ -161,14 +163,15 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
     :param learning_rate: learning rate used (factor for the stochastic 
     gradient
 
-    :param n_iter: number of iterations ot run the optimizer 
-
     :param L1_reg: L1-norm's weight when added to the cost (see 
     regularization)
 
     :param L2_reg: L2-norm's weight when added to the cost (see 
     regularization)
-    """
+ 
+    :param n_iter: maximal number of iterations ot run the optimizer 
+
+   """
 
     # Load the dataset 
     f = gzip.open('mnist.pkl.gz','rb')

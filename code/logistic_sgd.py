@@ -147,7 +147,7 @@ def sgd_optimization_mnist( learning_rate=0.01, n_iter=100):
     :param learning_rate: learning rate used (factor for the stochastic 
     gradient
 
-    :param n_iter: number of iterations ot run the optimizer 
+    :param n_iter: maximal number of iterations ot run the optimizer 
 
     """
 
