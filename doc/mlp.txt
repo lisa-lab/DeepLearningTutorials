@@ -11,13 +11,18 @@ Multilayer Perceptron
     `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, 
     :ref:`L1_L2_regularization`.
 
-.. _T.tanh: http://www.pylearn.org/theano/basic_tutorial/examples.html?highlight=tanh#logistic-function
+.. note::
+    The code for this section is available for download `here`_.
 
-.. _shared variables: http://www.pylearn.org/theano/basic_tutorial
+.. _here: http://www.iro.umontreal.ca/~lisa/deep/tutorial/code/mlp.py
 
-.. _basic arithmetic ops: http://www.pylearn.org/theano/basic_tutorial/adding.html
+.. _T.tanh: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/examples.html?highlight=tanh
 
-.. _T.grad: http://www.pylearn.org/theano/basic_tutorial/examples.html#computing-gradients
+.. _shared variables: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/examples.html#using-shared-variables
+
+.. _basic arithmetic ops: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/adding.html#adding-two-scalars
+
+.. _T.grad: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/examples.html#computing-gradients
 
 
 The next architecture we are going to present using Theano is the single-hidden
