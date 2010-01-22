@@ -29,6 +29,7 @@ try:
     from sphinx.ext import pngmath
     extensions.append('sphinx.ext.pngmath')
 except ImportError:
+    print >>sys.stderr, 'Warning: could not import sphinx.ext.pngmath'
     pass
 
 

@@ -99,8 +99,8 @@ class LogisticRegression(object):
 
         .. math::
 
-            \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
-            \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+            \frac{1}{|\mathcal{D}|}\mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+            \frac{1}{|\mathcal{D}|}\sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
                 \ell (\theta=\{W,b\}, \mathcal{D}) 
 
 
@@ -265,9 +265,9 @@ def cg_optimization_mnist( n_iter=50 ):
             disp=0,
             maxiter=n_iter)
     end_time = time.clock()
-    print(('Optimization complete with best validation score of %f %%, with'
+    print(('Optimization complete with best validation score of %f %%, with '
           'test performance %f %%') % 
-               (best_validation_loss*100., test_score*100.))
+               (validation_scores[0]*100., validation_scores[1]*100.))
 
     print ('The code ran for %f minutes' % ((end_time-start_time)/60.))
 

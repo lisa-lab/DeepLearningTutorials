@@ -71,18 +71,20 @@ class MLP(object):
         # other tutorials
         
         # `W1` is initialized with `W1_values` which is uniformely sampled
-        # from -1/sqrt(n_in) and 1/sqrt(n_in)
+        # from -6./sqrt(n_in+n_hidden) and 6./sqrt(n_in+n_hidden)
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         W1_values = numpy.asarray( numpy.random.uniform( \
-              low = -1/numpy.sqrt(n_in), high = +1/numpy.sqrt(n_in), \
+              low = -numpy.sqrt(6./(n_in+n_hidden)), \
+              high = numpy.sqrt(6./(n_in+n_hidden)), \
               size = (n_in, n_hidden)), dtype = theano.config.floatX)
         # `W2` is initialized with `W2_values` which is uniformely sampled 
-        # from -1/sqrt(n_hidden) and 1/sqrt(n_hidden)
+        # from -6./sqrt(n_hidden+n_out) and 6./sqrt(n_hidden+n_out)
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         W2_values = numpy.asarray( numpy.random.uniform( 
-              low = -1/numpy.sqrt(n_hidden), high= 1/numpy.sqrt(n_hidden),\
+              low = numpy.sqrt(6./(n_hidden+n_out)), \
+              high= numpy.sqrt(6./(n_hidden+n_out)),\
               size= (n_hidden, n_out)), dtype = theano.config.floatX)
 
         self.W1 = theano.shared( value = W1_values )
@@ -113,13 +115,13 @@ class MLP(object):
 
 
     def negative_log_likelihood(self, y):
-        """Return the negative log-likelihood of the prediction of this model
-        under a given target distribution.  
+        """Return the mean of the negative log-likelihood of the prediction
+        of this model under a given target distribution.
 
         .. math::
 
-            \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
-            \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+            \frac{1}{|\mathcal{D}|}\mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+            \frac{1}{|\mathcal{D}|}\sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
                 \ell (\theta=\{W,b\}, \mathcal{D}) 
 
 
@@ -130,7 +132,7 @@ class MLP(object):
 
 
 
-   
+
     def errors(self, y):
         """Return a float representing the number of errors in the minibatch 
         over the total number of examples of the minibatch 
@@ -150,25 +152,26 @@ class MLP(object):
 
 
 
-def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
-                            L2_reg = 0.0, n_iter=100):
+def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
+                            L2_reg = 0.0001, n_iter=100):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer 
     perceptron
 
     This is demonstrated on MNIST.
-    
+
     :param learning_rate: learning rate used (factor for the stochastic 
     gradient
-
-    :param n_iter: number of iterations ot run the optimizer 
 
     :param L1_reg: L1-norm's weight when added to the cost (see 
     regularization)
 
     :param L2_reg: L2-norm's weight when added to the cost (see 
     regularization)
-    """
+ 
+    :param n_iter: maximal number of iterations ot run the optimizer 
+
+   """
 
     # Load the dataset 
     f = gzip.open('mnist.pkl.gz','rb')
@@ -218,7 +221,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.0, \
 
     # construct the logistic regression class
     classifier = MLP( input=x.reshape((batch_size,28*28)),\
-                      n_in=28*28, n_hidden = 100, n_out=10)
+                      n_in=28*28, n_hidden = 500, n_out=10)
 
     # the cost we minimize during training is the negative log likelihood of 
     # the model plus the regularization terms (L1 and L2); cost is expressed

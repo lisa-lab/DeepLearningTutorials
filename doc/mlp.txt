@@ -9,15 +9,20 @@ Multilayer Perceptron
     This section assumes the reader has already read through :doc:`logreg`.
     Additionally, it uses the following new Theano functions and concepts:
     `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, 
-    :ref:`L1_L2_regularization`
+    :ref:`L1_L2_regularization`.
 
-.. _T.tanh: http://www.pylearn.org/theano/basic_tutorial/examples.html?highlight=tanh#logistic-function
+.. note::
+    The code for this section is available for download `here`_.
 
-.. _shared variables: http://www.pylearn.org/theano/basic_tutorial
+.. _here: http://www.iro.umontreal.ca/~lisa/deep/tutorial/code/mlp.py
 
-.. _basic arithmetic ops: http://www.pylearn.org/theano/basic_tutorial/adding.html
+.. _T.tanh: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/examples.html?highlight=tanh
 
-.. _T.grad: http://www.pylearn.org/theano/basic_tutorial/examples.html#computing-gradients
+.. _shared variables: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/examples.html#using-shared-variables
+
+.. _basic arithmetic ops: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/adding.html#adding-two-scalars
+
+.. _T.grad: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/examples.html#computing-gradients
 
 
 The next architecture we are going to present using Theano is the single-hidden
@@ -27,7 +32,7 @@ transformation :math:`\Phi`. The purpose of this transformation is to project th
 input data into a space where it becomes linearly separable. This intermediate
 layer is referred to as a **hidden layer**.  A single hidden layer is
 sufficient to make MLPs a **universal approximator**. However we will see later
-on, that there are many benefits to using many such hidden layers, i.e. the
+on that there are substantial benefits to using many such hidden layers, i.e. the
 very premise of **deep learning**.
 
 This tutorial will again tackle the problem of MNIST digit classification.
@@ -35,35 +40,46 @@ This tutorial will again tackle the problem of MNIST digit classification.
 The Model
 +++++++++
 
-An MLP (or Artificial Neural Network - ANN) can be represented graphically as
+An MLP (or Artificial Neural Network - ANN) with a single hidden layer
+can be represented graphically as
 follows:
 
 .. figure:: images/mlp.png
     :align: center
 
-Formally, a one-hidden layer MLP constitutes a function :math:`f: R^D \rightarrow R^L`, such that:
+Formally, a one-hidden layer MLP constitutes a function :math:`f: R^D \rightarrow R^L`, 
+where :math:`D` is the size of input vector :math:`x`
+and :math:`L` is the size of the output vector :math:`f(x)`, such that,
+in matrix notation:
 
 .. math::
 
     f(x) = G( b^{(2)} + W^{(2)}( s( b^{(1)} + W^{(1)} x))),
 
 with bias vectors :math:`b^{(1)}`, :math:`b^{(2)}`; weight matrices
-:math:`W^{(1)}`, :math:`W^{(2)}` and activation functions G and s.
+:math:`W^{(1)}`, :math:`W^{(2)}` and activation functions :math:`G` and :math:`s`.
 
-:math:`h(x) = \Phi(x) = s(b^{(1)} + W^{(1)} x)` constitutes the hidden layer.
-:math:`W^{(1)} \in R^{D \times D_h}` is the weight matrix connecting the input
+The vector :math:`h(x) = \Phi(x) = s(b^{(1)} + W^{(1)} x)` constitutes the hidden layer.
+:math:`W^{(1)} \in R^{D \times D_h}` is the weight matrix connecting the input vector
 to the hidden layer.  Each column :math:`W^{(1)}_{\cdot i}` represents the weights
-from the i-th hidden unit to the input units. Typical choices for :math:`s`
-include :math:`tanh` or the logistic :math:`sigmoid` function. We will be using
-:math:`tanh` in this tutorial.
+from the input units to the i-th hidden unit. Typical choices for :math:`s`
+include :math:`tanh`, with :math:`tanh(a)=(e^a-e^{-a})/(e^a+e^{-a})`,
+or the logistic :math:`sigmoid` function, with :math:`sigmoid(a)=1/(1+e^{-a})`. We will be using
+:math:`tanh` in this tutorial because it typically yields to faster training
+(and sometimes also to better local minima). Both the :math:`tanh`
+and :math:`sigmoid` are scalar-to-scalar functions but their natural
+extension to vectors and tensors consists in applying them element-wise
+(e.g. separately on each element of the vector, yielding a same-size vector).
 
-The output layer is then obtained as: :math:`o(x) = G(b^{(2)} + W^{(2)} h(x))`.
-The reader should recognize the equation for logistic regression. As before,
+The output vector is then obtained as: :math:`o(x) = G(b^{(2)} + W^{(2)} h(x))`.
+The reader should recognize the form we already used for 
+:doc:`logreg`. As before,
 class-membership probabilities can be obtained by choosing :math:`G` as the
 :math:`softmax` function (in the case of multi-class classification).
 
-To train an MLP, we learn **all** parameters of the model using gradient
-descent. The set of parameters to learn is the set :math:`\theta =
+To train an MLP, we learn **all** parameters of the model, and here we use
+:ref:`opt_SGD` with minibatches.
+The set of parameters to learn is the set :math:`\theta =
 \{W^{(2)},b^{(2)},W^{(1)},b^{(1)}\}`.  Obtaining the gradients
 :math:`\partial{\ell}/\partial{\theta}` can be achieved through the
 **backpropagation algorithm** (a special case of the chain-rule of derivation).
@@ -81,19 +97,25 @@ declared as shared variables (as it was done for the logistic regression) :
 
 .. code-block:: python
 
-        # `W1` is initialized with `W1_values` which is uniformly sampled
-        # from -1/sqrt(n_in) and 1/sqrt(n_in)
-        # the output of uniform if converted using asarray to dtype 
-        # theano.config.floatX so that the code is runable on GPU
+        # n_in is the dimension of an input vector.
+        # n_hidden is the hidden layer dimension.
+        # n_out is the number of outputs, which is also the number of classes here.
+        # `W1` is initialized with `W1_values` which is uniformly sampled in the
+        # interval from -sqrt(6/(n_in+n_hidden)) and sqrt(6/(n_in+n_hidden))
+        # (those values are chosen so that when the input is roughly uniform in [-1,1],
+        # magnitudes are preserved for activations going upward and for gradients
+        # going downward).
+        # The output of the uniform random number generator is converted using asarray 
+        # to dtype theano.config.floatX so that the code is runnable on GPU.
         W1_values = numpy.asarray( numpy.random.uniform( \
-              low = -1/numpy.sqrt(n_in), high = +1/numpy.sqrt(n_in), \
+              low = -numpy.sqrt(6/(n_in+n_hidden)), high = numpy.sqrt(6/(n_in+n_hidden)), \
               size = (n_in, n_hidden)), dtype = theano.config.floatX)
-        # `W2` is initialized with `W2_values` which is uniformely sampled 
-        # from -1/sqrt(n_hidden) and 1/sqrt(n_hidden)
-        # the output of uniform if converted using asarray to dtype 
+        # `W2` is initialized with `W2_values` which are similarly sampled from the
+        # interval between -sqrt(6/(n_hidden+n_out)) and sqrt(6/(n_hidden+n_out)).
+        # The output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         W2_values = numpy.asarray( numpy.random.uniform( 
-              low = -1/numpy.sqrt(n_hidden), high= 1/numpy.sqrt(n_hidden),\
+              low = numpy.sqrt(6/(n_hidden+n_out)), high= numpy.sqrt(6/(n_hidden+n_out)),\
               size= (n_hidden, n_out)), dtype = theano.config.floatX)
 
         W1 = theano.shared( value = W1_values )
@@ -108,10 +130,13 @@ declared as shared variables (as it was done for the logistic regression) :
 
 The initial values for the weights of a layer :math:`i` should be uniformly
 sampled from the interval
-:math:`[\frac{-1}{\sqrt{fan_{in}}},\frac{1}{\sqrt{fan_{in}}}]`, where 
-:math:`fan_{in}` is the number of units in the :math:`(i-1)`-th layer. This
-initialization ensures that, early in training, each neuron operates in the
-linear regime of its activation function.
+:math:`[-\sqrt{\frac{6}{fan_{in}+fan_{out}}},\sqrt{\frac{6}{fan_{in}+fan_{out}}}]`, where 
+:math:`fan_{in}` is the number of units in the :math:`(i-1)`-th layer,
+and :math:`fan_{out}` is the number of units in the :math:`i`-th layer. This
+initialization ensures that, early in training, each neuron operates in a 
+regime of its activation function where information can easily be propagated
+both upward (activations flowing from inputs to outputs) and backward
+(gradients flowing from outputs to inputs).
 
 Afterwards, we define (symbolically) the hidden layer as follows:
 
@@ -208,16 +233,16 @@ The output one should expect is of the form :
 
 .. code-block:: bash
 
-  epoch 0, minibatch 2500/2500, validation error 9.850000 %
+  epoch 0, minibatch 2500/2500, validation error 9.820000 %
        epoch 0, minibatch 2500/2500 test error of best model 10.200000 %
   ...
-  epoch 99, minibatch 2500/2500, validation error 2.360000 %
-  Optimization complete with best validation score of 2.34%, with test performance 2.41%
-  The code ran for 13.088667 minutes
+  epoch 99, minibatch 2500/2500, validation error 2.170000 %
+  Optimization complete with best validation score of 2.17%, with test performance 2.14%
+  The code ran for 71.037 minutes
 
 On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
-approximately 7.932525 sec/epoch and it took 99 epochs to reach a test
-error of 2.41%. 
+approximately 43.05 sec/epoch and it took 99 epochs to reach a test
+error of 2.14%. 
 
 To put this into perspective, we refer the reader to the results section of `this
 <http://yann.lecun.com/exdb/mnist>`_  page.
@@ -243,7 +268,7 @@ Leon Bottou, Genevieve Orr, and Klaus-Robert Mueller. In here, we summarize
 the same issues, with an emphasis on the parameters and techniques that we
 actually used in our code.
 
-Nonlinearity:
+Nonlinearity
 --------------
 
 Two of the most common ones are the :math:`sigmoid` and the :math:`tanh` function. For

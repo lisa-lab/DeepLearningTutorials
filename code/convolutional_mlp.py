@@ -27,22 +27,13 @@ References:
 
 
 """
-import numpy
-from theano.compile.sandbox import shared, pfunc
-from theano import tensor
-from pylearn.shared.layers import LogisticRegression, SigmoidalLayer
+import numpy, theano, cPickle, gzip, time
+import theano.tensor as T
 import theano.sandbox.softsign
 import pylearn.datasets.MNIST
+from theano.sandbox import conv, downsample
 
-
-try:
-    # this tells theano to use the GPU if possible
-    from theano.sandbox.cuda import use
-    use()
-except Exception, e:
-    print('Warning: Attempt to use GPU resulted in error "%s"' % str(e))
-
-class LeNetConvPool(object):
+class LeNetConvPoolLayer(object):
     """WRITEME 
 
     Math of what the layer does, and what symbolic variables are created by the class (w, b,
@@ -55,20 +46,16 @@ class LeNetConvPool(object):
     #    - one bias & scale per downsample feature location (a 2d bias)
     #    - more?
 
-    def __init__(self, rng, input, n_examples, n_imgs, img_shape, n_filters, filter_shape=(5,5),
+    def __init__(self, rng, input, n_imgs, n_filters, filter_shape=(5,5),
             poolsize=(2,2)):
         """
-        Allocate a LeNetConvPool layer with shared variable internal parameters.
+        Allocate a LeNetConvPoolLayer with shared variable internal parameters.
 
         :param rng: a random number generator used to initialize weights
         
-        :param input: symbolic images.  Shape: (n_examples, n_imgs, img_shape[0], img_shape[1])
-
-        :param n_examples: input's shape[0] at runtime
+        :param input: symbolic images.  Shape: (<mini-batch size>, n_imgs, <img height>, <img width>)
 
         :param n_imgs: input's shape[1] at runtime
-
-        :param img_shape: input's shape[2:4] at runtime
 
         :param n_filters: the number of filters to apply to the image.
 
@@ -79,41 +66,34 @@ class LeNetConvPool(object):
         :type poolsize: pair (rows, cols)
         """
 
-        #TODO: make a simpler convolution constructor!!
-        #    - make dx and dy optional
-        #    - why do we have to pass shapes? (Can we make them optional at least?)
-        conv_op = ConvOp((n_imgs,)+img_shape, filter_shape, n_filters, n_examples,
-                dx=1, dy=1, output_mode='valid')
-
-        # - why is poolsize an op parameter here?
-        # - can we just have a maxpool function that creates this Op internally?
-        ds_op = DownsampleFactorMax(poolsize, ignore_border=True)
-
         # the filter tensor that we will apply is a 4D tensor
         w_shp = (n_filters, n_imgs) + filter_shape
+        w_bound =  numpy.sqrt(filter_shape[0] * filter_shape[1] * n_imgs)
+        self.w = theano.shared( numpy.asarray(
+                    rng.uniform(
+                        low=-1.0 / w_bound, 
+                        high=1.0 / w_bound,
+                        size=w_shp), 
+                    dtype=input.dtype))
 
         # the bias we add is a 1D tensor
         b_shp = (n_filters,)
-
-        self.w = shared(
-                numpy.asarray(
-                    rng.uniform(
-                        low=-1.0 / numpy.sqrt(filter_shape[0] * filter_shape[1] * n_imgs), 
-                        high=1.0 / numpy.sqrt(filter_shape[0] * filter_shape[1] * n_imgs),
-                        size=w_shp), 
-                    dtype=input.dtype))
-        self.b = shared(
-                numpy.asarray(
+        self.b = theano.shared( numpy.asarray(
                     rng.uniform(low=-.0, high=0., size=(n_filters,)),
                     dtype=input.dtype))
 
         self.input = input
-        conv_out = conv_op(input, self.w)
-        self.output = tensor.tanh(ds_op(conv_out) + b.dimshuffle('x', 0, 'x', 'x'))
+        conv_out = conv.conv2d(input, self.w)
+
+        # - why is poolsize an op parameter here?
+        # - can we just have a maxpool function that creates this Op internally?
+        ds_op = downsample.DownsampleFactorMax(poolsize, ignore_border=True)
+        self.output = T.tanh(ds_op(conv_out) + self.b.dimshuffle('x', 0, 'x', 'x'))
         self.params = [self.w, self.b]
 
+
 class SigmoidalLayer(object):
-    def __init__(self, input, n_in, n_out):
+    def __init__(self, rng, input, n_in, n_out):
         """
         :param input: a symbolic tensor of shape (n_examples, n_in)
         :param w: a symbolic weight matrix of shape (n_in, n_out)
@@ -121,24 +101,24 @@ class SigmoidalLayer(object):
         :param squash: an squashing function
         """
         self.input = input
-        self.w = shared(
+        self.w = theano.shared(
                 numpy.asarray(
                     rng.uniform(low=-2/numpy.sqrt(n_in), high=2/numpy.sqrt(n_in),
                     size=(n_in, n_out)), dtype=input.dtype))
-        self.b = shared(numpy.asarray(numpy.zeros(n_out), dtype=input.dtype))
-        self.output = tensor.tanh(tensor.dot(input, self.w) + self.b)
+        self.b = theano.shared(numpy.asarray(numpy.zeros(n_out), dtype=input.dtype))
+        self.output = T.tanh(T.dot(input, self.w) + self.b)
         self.params = [self.w, self.b]
 
 class LogisticRegression(object):
     """WRITEME"""
 
     def __init__(self, input, n_in, n_out):
-        self.w = shared(numpy.zeros((n_in, n_out), dtype=input.dtype))
-        self.b = shared(numpy.zeros((n_out,), dtype=input.dtype))
-        self.l1=abs(self.w).sum()
+        self.w = theano.shared(numpy.zeros((n_in, n_out), dtype=input.dtype))
+        self.b = theano.shared(numpy.zeros((n_out,), dtype=input.dtype))
+        self.l1 = abs(self.w).sum()
         self.l2_sqr = (self.w**2).sum()
-        self.output=nnet.softmax(theano.dot(input, self.w)+self.b)
-        self.argmax=theano.tensor.argmax(self.output, axis=1)
+        self.output = T.nnet.softmax(theano.dot(input, self.w)+self.b)
+        self.argmax = T.argmax(self.output, axis=1)
         self.params = [self.w, self.b]
 
     def nll(self, target):
@@ -146,7 +126,7 @@ class LogisticRegression(object):
         target distribution.  Passing symbolic integers here means 1-hot.
         WRITEME
         """
-        return nnet.categorical_crossentropy(self.output, target)
+        return T.nnet.categorical_crossentropy(self.output, target)
 
     def errors(self, target):
         """Return a vector of 0s and 1s, with 1s on every line that was mis-classified.
@@ -155,75 +135,179 @@ class LogisticRegression(object):
             raise TypeError('target should have the same shape as self.argmax', ('target', target.type,
                 'argmax', self.argmax.type))
         if target.dtype.startswith('int'):
-            return theano.tensor.neq(self.argmax, target)
+            return T.neq(self.argmax, target)
         else:
             raise NotImplementedError()
 
-def evaluate_lenet5(batch_size=30, n_iter=1000):
+def load_dataset():
+
+    # Load the dataset 
+    f = gzip.open('mnist.pkl.gz','rb')
+    train_set, valid_set, test_set = cPickle.load(f)
+    f.close()
+
+    # make minibatches of size 20 
+    batch_size = 20    # sized of the minibatch
+
+    # Dealing with the training set
+    # get the list of training images (x) and their labels (y)
+    (train_set_x, train_set_y) = train_set
+    # initialize the list of training minibatches with empty list
+    train_batches = []
+    for i in xrange(0, len(train_set_x), batch_size):
+        # add to the list of minibatches the minibatch starting at 
+        # position i, ending at position i+batch_size
+        # a minibatch is a pair ; the first element of the pair is a list 
+        # of datapoints, the second element is the list of corresponding 
+        # labels
+        train_batches = train_batches + \
+               [(train_set_x[i:i+batch_size], train_set_y[i:i+batch_size])]
+
+    # Dealing with the validation set
+    (valid_set_x, valid_set_y) = valid_set
+    # initialize the list of validation minibatches 
+    valid_batches = []
+    for i in xrange(0, len(valid_set_x), batch_size):
+        valid_batches = valid_batches + \
+               [(valid_set_x[i:i+batch_size], valid_set_y[i:i+batch_size])]
+
+    # Dealing with the testing set
+    (test_set_x, test_set_y) = test_set
+    # initialize the list of testing minibatches 
+    test_batches = []
+    for i in xrange(0, len(test_set_x), batch_size):
+        test_batches = test_batches + \
+              [(test_set_x[i:i+batch_size], test_set_y[i:i+batch_size])]
+
+    return train_batches, valid_batches, test_batches
+
+
+def evaluate_lenet5(learning_rate=0.01, n_iter=1000):
+
     rng = numpy.random.RandomState(23455)
 
-    mnist = pylearn.datasets.MNIST.train_valid_test()
+    train_batches, valid_batches, test_batches = load_dataset()
 
-    ishape=(28,28) #this is the size of MNIST images
+    ishape = (28,28)     # this is the size of MNIST images
+    batch_size = 20    # sized of the minibatch
 
     # allocate symbolic variables for the data
-    x = tensor.fmatrix()  # the data is presented as rasterized images
-    y = tensor.lvector()  # the labels are presented as 1D vector of [long int] labels
+    x = T.fmatrix()  # the data is presented as rasterized images
+    y = T.lvector()  # the labels are presented as 1D vector of [long int] labels
+
+
+    ######################
+    # BUILD ACTUAL MODEL #
+    ######################
 
     # construct the first convolutional pooling layer
-    layer0 = LeNetConvPool.new(rng, input=x.reshape((batch_size,1,28,28)), n_examples=batch_size, 
-            n_imgs=1, img_shape=ishape, 
-            n_filters=6, filter_shape=(5,5), 
-            poolsize=(2,2))
+    layer0 = LeNetConvPoolLayer(rng, input=x.reshape((batch_size,1,28,28)),
+            n_imgs=1, n_filters=6, filter_shape=(5,5), poolsize=(2,2))
 
     # construct the second convolutional pooling layer
-    layer1 = LeNetConvPool.new(rng, input=layer0.output, n_examples=batch_size, 
-            n_imgs=6, img_shape=(12,12),
-            n_filters=16, filter_shape=(5,5),
-            poolsize=(2,2))
+    layer1 = LeNetConvPoolLayer(rng, input=layer0.output,
+            n_imgs=6, n_filters=16, filter_shape=(5,5), poolsize=(2,2))
 
     # construct a fully-connected sigmoidal layer
-    layer2 = SigmoidalLayer.new(rng, input=layer1.output.flatten(2), n_in=16*16, n_out=128) # 128 ?
+    layer2 = SigmoidalLayer(rng, input=layer1.output.flatten(2), n_in=16*4*4, n_out=128) # 128 ?
 
     # classify the values of the fully-connected sigmoidal layer
-    layer3 = LogisticRegression.new(input=layer2.output, n_in=128, n_out=10)
+    layer3 = LogisticRegression(input=layer2.output, n_in=128, n_out=10)
 
     # the cost we minimize during training is the NLL of the model
     cost = layer3.nll(y).mean()
 
     # create a function to compute the mistakes that are made by the model
-    test_model = pfunc([x,y], layer3.errors(y))
+    test_model = theano.function([x,y], layer3.errors(y))
 
     # create a list of all model parameters to be fit by gradient descent
     params = layer3.params+ layer2.params+ layer1.params + layer0.params
-    learning_rate = numpy.asarray(0.01, dtype='float32')
+    learning_rate = numpy.asarray(learning_rate, dtype='float32')
 
     # train_model is a function that updates the model parameters by SGD
-    train_model = pfunc([x, y], cost, 
-            updates=[(p, p - learning_rate*gp) for p,gp in zip(params, tensor.grad(cost, params))])
+    train_model = theano.function([x, y], cost, 
+            updates=[(p, p - learning_rate*gp) for p,gp in zip(params, T.grad(cost, params))])
 
-    # IS IT MORE SIMPLE TO USE A MINIMIZER OR THE DIRECT CODE?
 
-    best_valid_score = float('inf')
-    for i in xrange(n_iter):
-        for j in xrange(len(mnist.train.x)/batch_size):
-            cost_ij = train_model(
-                    mnist.train.x[j*batch_size:(j+1)*batch_size],
-                    mnist.train.y[j*batch_size:(j+1)*batch_size])
-            #if 0 == j % 100:
-                #print('epoch %i:%i, training error %f' % (i, j*batch_size, cost_ij))
-        valid_score = numpy.mean([test_model(
-                    mnist.valid.x[j*batch_size:(j+1)*batch_size],
-                    mnist.valid.y[j*batch_size:(j+1)*batch_size])
-                for j in xrange(len(mnist.valid.x)/batch_size)])
-        print('epoch %i, validation error %f' % (i, valid_score))
-        if valid_score < best_valid_score:
-            best_valid_score = valid_score
-            test_score = numpy.mean([test_model(
-                        mnist.test.x[j*batch_size:(j+1)*batch_size],
-                        mnist.test.y[j*batch_size:(j+1)*batch_size])
-                    for j in xrange(len(mnist.test.x)/batch_size)])
-            print('epoch %i, test error of best model %f' % (i, test_score))
+    ###############
+    # TRAIN MODEL #
+    ###############
+
+    n_minibatches        = len(train_batches) 
+
+    # early-stopping parameters
+    patience              = 10000 # look as this many examples regardless
+    patience_increase     = 2     # wait this much longer when a new best is 
+                                  # found
+    improvement_threshold = 0.995 # a relative improvement of this much is 
+                                  # considered significant
+    validation_frequency  = n_minibatches  # go through this many 
+                                  # minibatche before checking the network 
+                                  # on the validation set; in this case we 
+                                  # check every epoch 
+
+    best_params          = None
+    best_validation_loss = float('inf')
+    test_score           = 0.
+    start_time = time.clock()
+
+    # have a maximum of `n_iter` iterations through the entire dataset
+    for iter in xrange(n_iter * n_minibatches):
+
+        # get epoch and minibatch index
+        epoch           = iter / n_minibatches
+        minibatch_index =  iter % n_minibatches
+
+        # get the minibatches corresponding to `iter` modulo
+        # `len(train_batches)`
+        x,y = train_batches[ minibatch_index ]
+
+        print 'training @ iter = ', iter
+        cost_ij = train_model(x,y)
+
+        if (iter+1) % validation_frequency == 0: 
+            # compute zero-one loss on validation set 
+            this_validation_loss = 0.
+            for x,y in valid_batches:
+                # sum up the errors for each minibatch
+                this_validation_loss += test_model(x,y)
+            # get the average by dividing with the number of minibatches
+            this_validation_loss /= len(valid_batches)
+
+            print('epoch %i, minibatch %i/%i, validation error %f %%' % \
+                   (epoch, minibatch_index+1, n_minibatches, \
+                    this_validation_loss*100.))
+
+
+            # if we got the best validation score until now
+            if this_validation_loss < best_validation_loss:
+
+                #improve patience if loss improvement is good enough
+                if this_validation_loss < best_validation_loss *  \
+                       improvement_threshold :
+                    patience = max(patience, iter * patience_increase)
+
+                best_validation_loss = this_validation_loss
+                # test it on the test set
+            
+                test_score = 0.
+                for x,y in test_batches:
+                    test_score += test_model(x,y)
+                test_score /= len(test_batches)
+                print(('     epoch %i, minibatch %i/%i, test error of best '
+                      'model %f %%') % 
+                             (epoch, minibatch_index+1, n_minibatches,
+                              test_score*100.))
+
+        if patience <= iter :
+                break
+
+    end_time = time.clock()
+    print(('Optimization complete with best validation score of %f %%,'
+           'with test performance %f %%') %  
+                 (best_validation_loss * 100., test_score*100.))
+    print ('The code ran for %f minutes' % ((end_time-start_time)/60.))
+
 
 if __name__ == '__main__':
     evaluate_lenet5()
