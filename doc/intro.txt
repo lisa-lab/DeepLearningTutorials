@@ -29,7 +29,7 @@ The purely supervised learning algorithms are meant to be read in order:
 
 The unsupervised and semi-supervised learning algorithms are less co-dependent, they will make sense in any order.
 
-  * :ref:`Restricted Boltzmann Macines and Deep Belief Networks`
+  * :ref:`Restricted Boltzmann Machines and Deep Belief Networks`
   * :ref:`Auto Encoders and Stacked Auto Encoders`
   * :ref:`Denoising Auto Encoders and Stacked Denoising Auto Encoders`
   * :ref:`encoder_decoder`
