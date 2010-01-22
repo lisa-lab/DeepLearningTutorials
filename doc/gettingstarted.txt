@@ -587,5 +587,68 @@ and return the best parameters found, for evaluation on the test set.
 
 
 
+Theano/Python Tips
+===================
+
+Loading and Saving Models
+-------------------------
+
+When you're doing experiments, it can take hours (sometimes days!) for
+gradient-descent to find the best parameters.  You will want to save those
+weights once you find them.  You may also want to save your current-best
+estimates as the search progresses.
+
+**Pickle the numpy ndarrays from your shared variables**
+
+The best way to save/archive your model's parameters is to use pickle or
+deepcopy the ndarray objects.  So for example, if your parameters are in
+shared variables ``w, v, u``, then your save command should look something
+like:
+>>> import cPickle
+>>> save_file = open('path', 'w')  # this will overwrite current contents
+>>> cPickle.dump(w.value, save_file, -1) # the -1 is for HIGHEST_PROTOCOL
+>>> cPickle.dump(v.value, save_file, -1) # .. and it triggers much more efficient
+>>> cPickle.dump(u.value, save_file, -1) # .. storage than numpy's default
+>>> save_file.close()
+
+Then later, you can load your data back like this:
+
+>>> save_file = open('path')
+>>> w.value = cPickle.load(save_file) 
+>>> v.value = cPickle.load(save_file)
+>>> u.value = cPickle.load(save_file)
+
+This technique is a bit verbose, but it is tried and true.  You will be able
+to load your data and render it in matplotlib without trouble, years after
+saving it.
+
+**Do not pickle your training or test functions for long-term storage**
+
+Theano functions are compatible with Python's deepcopy and pickle mechanisms,
+but you should not necessarily pickle a Theano function.  If you update your
+Theano folder and one of the internal changes, then you may not be able to
+un-pickle your model.  Theano is still in active development, and the internal
+APIs are subject to change.  So to be on the safe side -- do not pickle your
+entire training or testing functions for long-term storage.  The pickle
+mechanism is aimed at for short-term storage, such as a temp file, or a copy to
+another machine in a distributed job.
+
+
+
+Plotting Intermediate Results
+-----------------------------
+
+Visualizations can be very powerful tools for understanding what your model or
+training algorithm is doing.  You might be tempted to insert ``matplotlib``
+plotting commands, or ``PIL`` image-rendering commands into your model-training
+script.  However, later you will observe something interesting in one of those
+pre-rendered images and want to investigate something that isn't clear from
+the pictures.  You'll wished you had saved the original model.
+
+**If you have enough disk space, your training script should save intermediate models and  a visualization
+script should process those saved models.**
+
+You already have a model-saving function right?  Just use it again to save
+these intermediate models.
 
 
