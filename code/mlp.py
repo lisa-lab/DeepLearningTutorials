@@ -267,6 +267,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
 
     best_params          = None
     best_validation_loss = float('inf')
+    best_iter            = 0
     test_score           = 0.
     start_time = time.clock()
     # have a maximum of `n_iter` iterations through the entire dataset
@@ -303,9 +304,11 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
                        improvement_threshold :
                     patience = max(patience, iter * patience_increase)
 
+                # save best validation score and iteration number
                 best_validation_loss = this_validation_loss
+                best_iter = iter
+
                 # test it on the test set
-            
                 test_score = 0.
                 for x,y in test_batches:
                     test_score += test_model(x,y)
@@ -316,17 +319,13 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
                               test_score*100.))
 
         if patience <= iter :
-                break
+            break
 
     end_time = time.clock()
-    print(('Optimization complete with best validation score of %f %%,'
-           'with test performance %f %%') %  
-                 (best_validation_loss * 100., test_score*100.))
+    print(('Optimization complete. Best validation score of %f %% '
+           'obtained at iteration %i, with test performance %f %%') %  
+                 (best_validation_loss * 100., best_iter, test_score*100.))
     print ('The code ran for %f minutes' % ((end_time-start_time)/60.))
-
-
-
-
 
 
 if __name__ == '__main__':
