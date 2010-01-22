@@ -606,7 +606,7 @@ deepcopy the ndarray objects.  So for example, if your parameters are in
 shared variables ``w, v, u``, then your save command should look something
 like:
 >>> import cPickle
->>> save_file = open('path', 'w')  # this will overwrite current contents
+>>> save_file = open('path', 'wb')  # this will overwrite current contents
 >>> cPickle.dump(w.value, save_file, -1) # the -1 is for HIGHEST_PROTOCOL
 >>> cPickle.dump(v.value, save_file, -1) # .. and it triggers much more efficient
 >>> cPickle.dump(u.value, save_file, -1) # .. storage than numpy's default
@@ -634,7 +634,10 @@ entire training or testing functions for long-term storage.  The pickle
 mechanism is aimed at for short-term storage, such as a temp file, or a copy to
 another machine in a distributed job.
 
+Read more about `serialization in Theano`_, or Python's `pickling`_.
 
+.. _pickling: http://docs.python.org/library/pickle.html
+.. _serialization in Theano: http://www.pylearn.org/theano/basic_tutorial/loading_and_saving.html
 
 Plotting Intermediate Results
 -----------------------------
@@ -652,4 +655,8 @@ script should process those saved models.**
 You already have a model-saving function right?  Just use it again to save
 these intermediate models.
 
+Libraries you'll want to know about: Python Image Library (`PIL`_), `matplotlib`_.
+
+.. _PIL: http://www.pythonware.com/products/pil
+.. _matplotlib: http://matplotlib.sourceforge.net
 
