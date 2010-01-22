@@ -592,7 +592,7 @@ Theano/Python Tips
 ===================
 
 Loading and Saving Models
--------------------------
+++++++++++++++++++++++++++
 
 When you're doing experiments, it can take hours (sometimes days!) for
 gradient-descent to find the best parameters.  You will want to save those
@@ -605,19 +605,24 @@ The best way to save/archive your model's parameters is to use pickle or
 deepcopy the ndarray objects.  So for example, if your parameters are in
 shared variables ``w, v, u``, then your save command should look something
 like:
->>> import cPickle
->>> save_file = open('path', 'wb')  # this will overwrite current contents
->>> cPickle.dump(w.value, save_file, -1) # the -1 is for HIGHEST_PROTOCOL
->>> cPickle.dump(v.value, save_file, -1) # .. and it triggers much more efficient
->>> cPickle.dump(u.value, save_file, -1) # .. storage than numpy's default
->>> save_file.close()
+
+.. code-block:: python
+
+    >>> import cPickle
+    >>> save_file = open('path', 'wb')  # this will overwrite current contents
+    >>> cPickle.dump(w.value, save_file, -1) # the -1 is for HIGHEST_PROTOCOL
+    >>> cPickle.dump(v.value, save_file, -1) # .. and it triggers much more efficient
+    >>> cPickle.dump(u.value, save_file, -1) # .. storage than numpy's default
+    >>> save_file.close()
 
 Then later, you can load your data back like this:
 
->>> save_file = open('path')
->>> w.value = cPickle.load(save_file) 
->>> v.value = cPickle.load(save_file)
->>> u.value = cPickle.load(save_file)
+.. code-block:: python
+
+    >>> save_file = open('path')
+    >>> w.value = cPickle.load(save_file) 
+    >>> v.value = cPickle.load(save_file)
+    >>> u.value = cPickle.load(save_file)
 
 This technique is a bit verbose, but it is tried and true.  You will be able
 to load your data and render it in matplotlib without trouble, years after
@@ -640,7 +645,7 @@ Read more about `serialization in Theano`_, or Python's `pickling`_.
 .. _serialization in Theano: http://www.pylearn.org/theano/basic_tutorial/loading_and_saving.html
 
 Plotting Intermediate Results
------------------------------
+++++++++++++++++++++++++++++++
 
 Visualizations can be very powerful tools for understanding what your model or
 training algorithm is doing.  You might be tempted to insert ``matplotlib``
