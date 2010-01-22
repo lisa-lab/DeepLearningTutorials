@@ -177,10 +177,10 @@ class LogisticRegression(object):
             raise NotImplementedError()
 
 
-def load_dataset():
+def load_dataset(fname):
 
     # Load the dataset 
-    f = gzip.open('mnist.pkl.gz','rb')
+    f = gzip.open(fname,'rb')
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
@@ -220,11 +220,11 @@ def load_dataset():
     return train_batches, valid_batches, test_batches
 
 
-def evaluate_lenet5(learning_rate=0.0001, n_iter=1000):
-
+def evaluate_lenet5(learning_rate=0.0001, n_iter=1000, dataset='mnist.pkl.gz'):
+    print 'learning_rate = ', learning_rate
     rng = numpy.random.RandomState(23455)
 
-    train_batches, valid_batches, test_batches = load_dataset()
+    train_batches, valid_batches, test_batches = load_dataset(dataset)
 
     ishape = (28,28)     # this is the size of MNIST images
     batch_size = 20    # sized of the minibatch
@@ -297,7 +297,7 @@ def evaluate_lenet5(learning_rate=0.0001, n_iter=1000):
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = 2 #n_minibatches  # go through this many 
+    validation_frequency  = n_minibatches  # go through this many 
                                   # minibatche before checking the network 
                                   # on the validation set; in this case we 
                                   # check every epoch 
@@ -309,8 +309,8 @@ def evaluate_lenet5(learning_rate=0.0001, n_iter=1000):
     start_time = time.clock()
 
     # have a maximum of `n_iter` iterations through the entire dataset
-    #for iter in xrange(n_iter * n_minibatches):
-    for iter in xrange(10):
+    for iter in xrange(n_iter * n_minibatches):
+    #for iter in xrange(2 * n_minibatches):
 
         # get epoch and minibatch index
         epoch           = iter / n_minibatches
@@ -374,4 +374,4 @@ if __name__ == '__main__':
     evaluate_lenet5()
 
 def experiment(state, channel):
-    evaluate_lenet5(state.learning_rate)
+    evaluate_lenet5(state.learning_rate, dataset=state.dataset)

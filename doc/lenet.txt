@@ -214,27 +214,312 @@ size of the receptive fields.
 
 
 MaxPooling
-----------
+++++++++++
 
-LeNet
------
+Another important concept of CNNs is that of max-pooling, which is a form of
+non-linear down-sampling. Max-pooling partitions the input image into
+a set of non-overlapping rectangles and, for each such sub-region, outputs the
+maximum value.
+
+Max-pooling is useful in vision for two reasons: (1) it reduces the
+computational complexity for upper layers and (2) it provides a form of
+translation invariance. To understand the invariance argument, imagine
+cascading a max-pooling layer with a convolutional layer. There are 8
+directions in which one can translate the input image by a single pixel. If
+max-pooling is done over a 2x2 region, 3 out of these 8 possible
+configurations will produce exactly the same output at the convolutional
+layer. For max-pooling over a 3x3 window, this jumps to 5/8.
+
+Since it provides additional robustness to position, max-pooling is thus a
+"smart" way of reducing the dimensionality of intermediate representations.
+
+Max-pooling is done in Theano by way of theano.sandbox.downsample.max_pool2D.
+This function takes as input an N dimensional tensor (with N >= 2), a
+downscaling factor and performs max-pooling over the 2 trailing dimensions of
+the tensor.
+
+An example is worth a thousand words:
+
+.. code-block::python
+
+    from theano.sandbox import downsample
+
+    input = T.dtensor4('input')
+    maxpool_shape = (2,2)
+    pool_out = downsample.max_pool2D(input, maxpool_shape, ignore_border=True)
+    f = theano.function([input],pool_out)
+
+    invals = numpy.random.RandomState(1).rand(3,2,5,5)
+    print 'With ignore_border set to True:'
+    print 'invals[0,0,:,:] =\n', invals[0,0,:,:]
+    print 'output[0,0,:,:] =\n', f(invals)[0,0,:,:]
+
+    pool_out = downsample.max_pool2D(input, maxpool_shape, ignore_border=False)
+    f = theano.function([input],pool_out)
+    print 'With ignore_border set to False:'
+    print 'invals[1,0,:,:] =\n ', invals[1,0,:,:]
+    print 'output[1,0,:,:] =\n ', f(invals)[1,0,:,:]
+
+This should generate the following output:
+
+.. code-block:: bash
+
+    With ignore_border set to True:
+        invals[0,0,:,:] =
+        [[  4.17022005e-01   7.20324493e-01   1.14374817e-04   3.02332573e-01 1.46755891e-01]
+         [  9.23385948e-02   1.86260211e-01   3.45560727e-01   3.96767474e-01 5.38816734e-01]
+         [  4.19194514e-01   6.85219500e-01   2.04452250e-01   8.78117436e-01 2.73875932e-02]
+         [  6.70467510e-01   4.17304802e-01   5.58689828e-01   1.40386939e-01 1.98101489e-01]
+         [  8.00744569e-01   9.68261576e-01   3.13424178e-01   6.92322616e-01 8.76389152e-01]]
+        output[0,0,:,:] =
+        [[ 0.72032449  0.39676747  0.53881673]
+         [ 0.6852195   0.87811744  0.19810149]
+         [ 0.96826158  0.69232262  0.87638915]]
+
+    With ignore_border set to False:
+        invals[1,0,:,:] =
+          [[ 0.01936696  0.67883553  0.21162812  0.26554666  0.49157316]
+         [ 0.05336255  0.57411761  0.14672857  0.58930554  0.69975836]
+         [ 0.10233443  0.41405599  0.69440016  0.41417927  0.04995346]
+         [ 0.53589641  0.66379465  0.51488911  0.94459476  0.58655504]
+         [ 0.90340192  0.1374747   0.13927635  0.80739129  0.39767684]]
+        output[1,0,:,:] =
+          [[ 0.67883553  0.58930554  0.69975836]
+         [ 0.66379465  0.94459476  0.58655504]
+         [ 0.90340192  0.80739129  0.39767684]]
+
+Note that contrary to most Theano code, the max_pool2D operation is a little
+*special*. It requires the downscaling factor ds (tuple of length 2 containing
+downscaling factors for image width and height) to be known at graph build
+time. This may change in the near future.
+
+.. Warning::
+    The *ignore_border* parameter of max_pool2D is clearly broken !
+
+
+The Full Model: LeNet
++++++++++++++++++++++
+
+Sparse, convolutional layers and max-pooling are at the heart of the LeNet
+family of models. While the exact details of the model will vary greatly,
+the figure below shows a graphical depiction of a LeNet model.
 
 .. image:: images/mylenet.png
     :align: center
 
+The lower-layers are composed to alternating convolution and max-pooling
+layers. The upper-layers however are fully-connected and correspond to a
+traditional MLP (sigmoidal layer + logistic regression). The input to the
+first fully-connected layer is the set of all features maps at the layer
+below. 
 
-Going from MLP to convolutional MLP
-+++++++++++++++++++++++++++++++++++
+From an implementation point of view, this means lower-layers operate on 4D
+tensors. These are then flattened to a 2D matrix of rasterized feature maps,
+to be compatible map to our previous MLP implementation.
 
 
 Putting it All Together
 +++++++++++++++++++++++
 
+We now have all we need to implement a LeNet model in Theano. We start with the
+LeNetConvPoolLayer class, which implements a {convolution + max-pooling}
+layer.
 
-.. Note:: TODO introduce API for sparse filters
+.. code-block:: python
+
+    class LeNetConvPoolLayer(object):
+
+        def __init__(self, rng, input, filter_shape, image_shape, poolsize=(2,2)):
+            """
+            Allocate a LeNetConvPoolLayer with shared variable internal parameters.
+            :type rng: numpy.random.RandomState
+            :param rng: a random number generator used to initialize weights
+            :type input: theano.tensor.dtensor4
+            :param input: symbolic image tensor, of shape image_shape
+            :type filter_shape: tuple or list of length 4
+            :param filter_shape: (number of filters, num input feature maps,
+                                  filter height,filter width)
+            :type image_shape: tuple or list of length 4
+            :param image_shape: (batch size, num input feature maps,
+                                 image height, image width)
+            :type poolsize: tuple or list of length 2
+            :param poolsize: the downsampling (pooling) factor (#rows,#cols)
+            """
+            assert image_shape[1]==filter_shape[1]
+            self.input = input
+
+            # initialize weight values: the fan-in of each hidden neuron is
+            # restricted by the size of the receptive fields.
+            fan_in =  numpy.prod(filter_shape[1:])
+            W_values = numpy.asarray( rng.uniform( \
+                  low = -numpy.sqrt(3./fan_in), \
+                  high = numpy.sqrt(3./fan_in), \
+                  size = filter_shape), dtype = theano.config.floatX)
+            self.W = theano.shared(value = W_values)
+
+            # the bias is a 1D tensor -- one bias per output feature map
+            b_values = numpy.zeros((filter_shape[0],), dtype= theano.config.floatX)
+            self.b = theano.shared(value= b_values)
+
+            # convolve input feature maps with filters
+            conv_out = conv.conv2d(input, self.W,
+                    filter_shape=filter_shape, image_shape=image_shape)
+
+            # downsample each feature map individually, using maxpooling
+            pooled_out = downsample.max_pool2D(conv_out, poolsize, ignore_border=True)
+
+            # add the bias term. Since the bias is a vector (1D array), we first
+            # reshape it to a tensor of shape (1,n_filters,1,1). Each bias will thus
+            # be broadcasted across mini-batches and feature map width & height
+            self.output = pooled_out + self.b.dimshuffle('x', 0, 'x', 'x')
+
+            # store parameters of this layer
+            self.params = [self.W, self.b]
+
+
+Notice that when initializing the weight values, the fan-in is determined by
+the size of the receptive fields and the number of input feature maps.
+
+Below, the SigmoidalLayer class emulates the behavior of a typical hidden
+layer in an MLP. The user should be familiar with this code by now.
+
+.. code-block:: python
+
+    class SigmoidalLayer(object):
+        def __init__(self, rng, input, n_in, n_out):
+            """
+            Typical hidden layer of a MLP: units are fully-connected and have
+            sigmoidal activation function. Weight matrix W is of shape (n_in,n_out)
+            and the bias vector b is of shape (n_out,).
+
+            Hidden unit activation is given by: sigmoid(dot(input,W) + b)
+
+            :type rng: numpy.random.RandomState
+            :param rng: a random number generator used to initialize weights
+            :type input: theano.tensor.dmatrix
+            :param input: a symbolic tensor of shape (n_examples, n_in)
+            :type n_in: int
+            :param n_in: dimensionality of input
+            :type n_out: int
+            :param n_out: number of hidden units
+            """
+            self.input = input
+
+            W_values = numpy.asarray( rng.uniform( \
+                  low = -numpy.sqrt(6./(n_in+n_out)), \
+                  high = numpy.sqrt(6./(n_in+n_out)), \
+                  size = (n_in, n_out)), dtype = theano.config.floatX)
+            self.W = theano.shared(value = W_values)
+
+            b_values = numpy.zeros((n_out,), dtype= theano.config.floatX)
+            self.b = theano.shared(value= b_values)
+
+            self.output = T.tanh(T.dot(input, self.W) + self.b)
+            self.params = [self.W, self.b]
+
+
+Finally, using the LogisticRegression class defined in :doc:`logreg`, we can
+instantiate the network as follows.
+
+.. code-block:: python
+
+    learning_rate = 0.001
+    rng = numpy.random.RandomState(23455)
+
+    train_batches, valid_batches, test_batches = load_dataset(dataset)
+
+    ishape = (28,28)     # this is the size of MNIST images
+    batch_size = 20    # sized of the minibatch
+
+    # allocate symbolic variables for the data
+    x = theano.floatX.xmatrix(theano.config.floatX)  # rasterized images
+    y = T.lvector()  # the labels are presented as 1D vector of [long int] labels
+
+    ##############################
+    # BEGIN BUILDING ACTUAL MODE
+    ##############################
+
+    # Reshape matrix of rasterized images of shape (batch_size,28*28)
+    # to a 4D tensor, compatible with our LeNetConvPoolLayer
+    layer0_input = x.reshape((batch_size,1,28,28))
+
+    # Construct the first convolutional pooling layer:
+    # filtering reduces the image size to (28-5+1,28-5+1)=(24,24)
+    # maxpooling reduces this further to (24/2,24/2) = (12,12)
+    # 4D output tensor is thus of shape (20,6,12,12)
+    layer0 = LeNetConvPoolLayer(rng, input=layer0_input,
+            image_shape=(batch_size,1,28,28),
+            filter_shape=(6,1,5,5), poolsize=(2,2))
+
+    # Construct the second convolutional pooling layer
+    # filtering reduces the image size to (12-5+1,12-5+1)=(8,8)
+    # maxpooling reduces this further to (8/2,8/2) = (4,4)
+    # 4D output tensor is thus of shape (20,32,4,4)
+    layer1 = LeNetConvPoolLayer(rng, input=layer0.output,
+            image_shape=(batch_size,6,12,12),
+            filter_shape=(32,6,5,5), poolsize=(2,2))
+
+    # the SigmoidalLayer being fully-connected, it operates on 2D matrices of
+    # shape (batch_size,num_pixels) (i.e matrix of rasterized images).
+    # This will generate a matrix of shape (20,32*4*4) = (20,512)
+    layer2_input = layer1.output.flatten(2)
+
+    # construct a fully-connected sigmoidal layer
+    layer2 = SigmoidalLayer(rng, input=layer2_input,
+                            n_in=32*4*4, n_out=500)
+
+    # classify the values of the fully-connected sigmoidal layer
+    layer3 = LogisticRegression(input=layer2.output, n_in=500, n_out=10)
+
+    # the cost we minimize during training is the NLL of the model
+    cost = layer3.negative_log_likelihood(y)
+
+    # create a function to compute the mistakes that are made by the model
+    test_model = theano.function([x,y], layer3.errors(y))
+
+    # create a list of all model parameters to be fit by gradient descent
+    params = layer3.params+ layer2.params+ layer1.params + layer0.params
+    learning_rate = numpy.asarray(learning_rate, dtype=theano.config.floatX)
+
+    # train_model is a function that updates the model parameters by SGD
+    train_model = theano.function([x, y], cost,
+            updates=[(p, p - learning_rate*gp) for p,gp in zip(params, T.grad(cost, params))])
+
+
+We leave out the code, which performs the actual training and early-stopping,
+since it is exactly the same as with an MLP. The interested reader can
+nevertheless access the code in the 'code' folder of DeepLearningTutorials.
+
+Running the Code
+++++++++++++++++
+
+The user can then run the code by calling:
+
+.. code-block:: bash
+    
+    python code/convolutional_mlp.py
+
+The following output was obtained with a learning rate of 0.1:
+
+.. code-block:: bash
+
+   Best validation score of 1.080000 % obtained at iteration 27499,with test
+   performance 1.090000 %
+   The code ran for 62.096667 minutes
+
+
+Tips and Tricks
++++++++++++++++
+
+Choosing Hyperparameters
+------------------------
+
+Running on the GPU
+------------------
+
 
 References
-+++++++++++++++++++++++
+++++++++++
 
 .. [Hubel] Hubel, D. and Wiesel, T. (1968). Receptive fields and functional architecture of monkey striate cortex. Journal of Physiology (London), 195, 215–243.
 
