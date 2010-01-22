@@ -105,11 +105,6 @@ class dA():
               high = numpy.sqrt(6./(n_visible+n_hidden)), \
               size = (n_visible, n_hidden)), dtype = theano.config.floatX)
     initial_b       = numpy.zeros(n_hidden)
-
-    # W' is initialized with `initial_W_prime` which is uniformely sampled
-    # from -6./sqrt(n_visible+n_hidden) and 6./sqrt(n_hidden+n_visible)
-    # the output of uniform if converted using asarray to dtype 
-    # theano.config.floatX so that the code is runable on GPU
     initial_b_prime= numpy.zeros(n_visible)
      
     
@@ -167,8 +162,7 @@ class SdA():
     the dAs are only used to initialize the weights.
     """
 
-    def __init__(self, input, n_ins, n_hiddens_layer1, n_hiddens_layer2,\
-                 n_hiddens_layer3, n_outs):
+    def __init__(self, input, n_ins, hidden_layers_sizes, n_outs):
         """ This class is costum made for a three layer SdA, and therefore
         is created by specifying the sizes of the hidden layers of the 
         3 dAs used to generate the network. 
@@ -177,42 +171,45 @@ class SdA():
 
         :param n_ins: dimension of the input to the sdA
 
-        :param n_hiddens_layer1: number of hidden units of the first layer 
-
-        :param n_hiddens_layer2: number of hidden units of the second layer 
-
-        :param n_hiddens_layer3: number of hidden units of the third layer 
+        :param n_layers_sizes: intermidiate layers size, must contain 
+        at least one value
 
         :param n_outs: dimension of the output of the network
         """
+        
+        self.layers =[]
 
-        #### Layer 1 :
-        # Gets as input the `input` parameter (the input of the SdA)
-        self.layer1 = dA(n_ins, n_hiddens_layer1, input = input)
+        if len(hidden_layers_sizes) < 1 :
+            raiseException (' You must have at least one hidden layer ')
 
-        #### Layer 2:
-        # Gets as input the hidden units of layer 1
-        self.layer2 = dA(n_hiddens_layer1, n_hiddens_layer2, \
-                                              input = self.layer1.y)
+        # add first layer:
+        layer = dA(n_ins, hidden_layers_sizes[0], input = input)
+        self.layers += [layer]
+        # add all intermidiate layers
+        for i in xrange( 1, len(hidden_layers_sizes) ):
+            # input size is that of the previous layer
+            # input is the output of the last layer inserted in our list 
+            # of layers `self.layers`
+            layer = dA( hidden_layers_sizes[i-1], \
+                        hidden_layers_sizes[i],   \
+                        input = self.layers[-1].y )
+            self.layers += [layer]
+        
 
-        #### Layer 3:
-        # Gets as input the hidden units of layer 2 
-        self.layer3 = dA(n_hiddens_layer2, n_hiddens_layer3, 
-                                             input = self.layer2.y)
-
+        self.n_layers = len(self.layers)
         # now we need to use same weights and biases to define an MLP
-        # We can not simply use the hidden layer of the last dA because
-        # in computing its value the dA distorts the input; once the 
-        # pretraining is done we do not want to add this noise to the 
-        # input anymore
-        self.layer1_hidden = T.nnet.sigmoid( \
-                T.dot(input, self.layer1.W) + self.layer1.b )
-
-        self.layer2_hidden = T.nnet.sigmoid( \
-                T.dot(self.layer1_hidden, self.layer2.W) + self.layer2.b )
-
-        self.layer3_hidden = T.nnet.sigmoid( \
-                T.dot(self.layer2_hidden, self.layer3.W) + self.layer3.b )
+        # We can not simply use the variable that outputs the hidden layer 
+        # of the last dA because in computing its value the dA distorts the
+        # input; once the pretraining is done we do not want to add this 
+        # noise to the input anymore
+        
+        layer_input = input
+        # go through all layers until the top
+        for i in xrange ( self.n_layers):
+            layer_output = T.nnet.sigmoid( \
+                T.dot(layer_input, self.layers[i].W) + self.layers[i].b )
+            # make next layer input the output of this one
+            layer_input = layer_output
 
         # add a logistic regression top layer 
         # W is initialized with `initial_W` which is uniformely sampled
@@ -220,17 +217,17 @@ class SdA():
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         initial_W = numpy.asarray( numpy.random.uniform( \
-              low = -numpy.sqrt(6./(n_hiddens_layer3+n_outs)), \
-              high = numpy.sqrt(6./(n_hiddens_layer3+n_outs)), \
-              size = (n_hiddens_layer3, n_outs)), \
+              low = -numpy.sqrt(6./(hidden_layers_sizes[-1]+n_outs)), \
+              high = numpy.sqrt(6./(hidden_layers_sizes[-1]+n_outs)), \
+              size = (hidden_layers_sizes[-1], n_outs)), \
                       dtype = theano.config.floatX)
     
         # theano shared variables for logistic layer weights and biases
         self.log_W  = theano.shared(value = initial_W,           name = "W")
         self.log_b  = theano.shared(value = numpy.zeros(n_outs), name = 'b')
         self.p_y_given_x = T.nnet.softmax( \
-            T.dot(self.layer3_hidden, self.log_W) + self.log_b)
- 
+            T.dot(layer_input, self.log_W) + self.log_b)
+        
         # compute prediction as class whose probability is maximal in 
         # symbolic form
         self.y_pred = T.argmax( self.p_y_given_x, axis = 1)
@@ -337,85 +334,30 @@ def sgd_optimization_mnist( learning_rate=0.01, pretraining_epochs = 2, \
 
     # construct the logistic regression class
     classifier = SdA( input=x.reshape((batch_size,28*28)),\
-                      n_ins=28*28, n_hiddens_layer1 = 500, 
-                      n_hiddens_layer2 = 500, n_hiddens_layer3 = 500,\
+                      n_ins=28*28, hidden_layers_sizes = [500, 500],\
                       n_outs=10)
-    ## Pre-train layer-wise 
-
-    # pretrain layer #1
     
-    # compute gradients of the layer parameters
-    gW       = T.grad(classifier.layer1.cost, classifier.layer1.W)
-    gb       = T.grad(classifier.layer1.cost, classifier.layer1.b)
-    gb_prime = T.grad(classifier.layer1.cost, classifier.layer1.b_prime)
-    # compute the updated value of the parameters after one step
-    updated_W       = classifier.layer1.W       - gW       * pretraining_lr
-    updated_b       = classifier.layer1.b       - gb       * pretraining_lr
-    updated_b_prime = classifier.layer1.b_prime - gb_prime * pretraining_lr
-
-    # defining the function that evaluate the symbolic description of 
-    # one update step 
-    layer1_update = theano.function([x], classifier.layer1.cost, updates=\
-                    { classifier.layer1.W       : updated_W, \
-                      classifier.layer1.b       : updated_b, \
-                      classifier.layer1.b_prime : updated_b_prime } )
-    # go through the pretraining epochs for layer 1
-    for epoch in xrange(pretraining_epochs):
-        # go through the training set
-        for x_value,y_value in train_batches:
-             layer1_update(x_value)
-        print 'Pre-training layer 1, epoch %d'%epoch
-
-    # pretrain layer #2
-
-    # compute gradients of the layer parameters
-    gW       = T.grad(classifier.layer2.cost, classifier.layer2.W)
-    gb       = T.grad(classifier.layer2.cost, classifier.layer2.b)
-    gb_prime = T.grad(classifier.layer2.cost, classifier.layer2.b_prime)
-    # compute the updated value of the parameters after one step
-    updated_W       = classifier.layer2.W       - gW       * pretraining_lr
-    updated_b       = classifier.layer2.b       - gb       * pretraining_lr
-    updated_b_prime = classifier.layer2.b_prime - gb_prime * pretraining_lr
-
-    # defining the function that evaluate the symbolic description of 
-    # one update step 
-    layer2_update = theano.function([x], classifier.layer2.cost, updates = \
-                    { classifier.layer2.W       : updated_W, \
-                      classifier.layer2.b       : updated_b, \
-                      classifier.layer2.b_prime : updated_b_prime } )
- 
-    # go through the pretraining epochs for layer 2
-    for epoch in xrange(pretraining_epochs):
-        # go through the training set
-        for x_value,y_value in train_batches:
-            layer2_update(x_value)
-        print 'Pre-training layer 2, epoch %d'%epoch
-
-
-    # pretrain layer #3
-
-    # compute gradients of the layer parameters
-    gW       = T.grad(classifier.layer3.cost, classifier.layer3.W)
-    gb       = T.grad(classifier.layer3.cost, classifier.layer3.b)
-    gb_prime = T.grad(classifier.layer3.cost, classifier.layer3.b_prime)
-    # compute the updated value of the parameters after one step
-    updated_W       = classifier.layer3.W       - gW       * pretraining_lr
-    updated_b       = classifier.layer3.b       - gb       * pretraining_lr
-    updated_b_prime = classifier.layer3.b_prime - gb_prime * pretraining_lr
-
-    # defining the function that evaluate the symbolic description of 
-    # one update step 
-    layer3_update = theano.function([x], classifier.layer3.cost, updates = \
-                    { classifier.layer3.W       : updated_W, \
-                      classifier.layer3.b       : updated_b, \
-                      classifier.layer3.b_prime : updated_b_prime } )
- 
-    # go through the pretraining epochs for layer 3
-    for epoch in xrange(pretraining_epochs):
-        # go through the training set
-        for x_value,y_value in train_batches:
-            layer3_update(x_value)
-        print 'Pre-training layer 3, epoch %d'%epoch
+    ## Pre-train layer-wise 
+    for i in xrange(classifier.n_layers):
+        # compute gradients of layer parameters
+        gW       = T.grad(classifier.layers[i].cost, classifier.layers[i].W)
+        gb       = T.grad(classifier.layers[i].cost, classifier.layers[i].b)
+        gb_prime = T.grad(classifier.layers[i].cost, \
+                                               classifier.layers[i].b_prime)
+        # updated value of parameters after each step
+        new_W       = classifier.layers[i].W      - gW      * pretraining_lr
+        new_b       = classifier.layers[i].b      - gb      * pretraining_lr
+        new_b_prime = classifier.layers[i].b_prime- gb_prime* pretraining_lr
+        layer_update = theano.function([x],classifier.layers[i].cost, \
+              updates = { classifier.layers[i].W       : new_W \
+                        , classifier.layers[i].b       : new_b \
+                        , classifier.layers[i].b_prime : new_b_prime } )
+        # go through pretraining epochs 
+        for epoch in xrange(pretraining_epochs):
+            # go through the training set
+            for x_value,y_value in train_batches:
+                layer_update(x_value)
+            print 'Pre-training layer %i, epoch %d'%(i,epoch)
 
 
 
@@ -428,32 +370,26 @@ def sgd_optimization_mnist( learning_rate=0.01, pretraining_epochs = 2, \
     # by the model on a minibatch
     test_model = theano.function([x,y], classifier.errors(y))
 
-    # compute the gradient of cost with respect to theta  
-    g_l1_W = T.grad(cost, classifier.layer1.W)
-    g_l1_b = T.grad(cost, classifier.layer1.b)
-    g_l2_W = T.grad(cost, classifier.layer2.W)
-    g_l2_b = T.grad(cost, classifier.layer2.b)
-    g_l3_W = T.grad(cost, classifier.layer3.W)
-    g_l3_b = T.grad(cost, classifier.layer3.b)
+    # compute the gradient of cost with respect to theta and add them to the 
+    # updates list
+    updates = []
+    for i in xrange(classifier.n_layers):        
+        g_W   = T.grad(cost, classifier.layers[i].W)
+        g_b   = T.grad(cost, classifier.layers[i].b)
+        new_W = classifier.layers[i].W - learning_rate * g_W
+        new_b = classifier.layers[i].b - learning_rate * g_b
+        updates += [ (classifier.layers[i].W, new_W) \
+                   , (classifier.layers[i].b, new_b) ]
     # add the gradients of the logistic layer
     g_log_W   = T.grad(cost, classifier.log_W)
     g_log_b   = T.grad(cost, classifier.log_b)
     new_log_W = classifier.log_W - learning_rate * g_log_W
     new_log_b = classifier.log_b - learning_rate * g_log_b
- 
-    # specify how to update the parameters of the model as a dictionary
-    updates = \
-        { classifier.layer1.W: classifier.layer1.W - learning_rate*g_l1_W \
-        , classifier.layer1.b: classifier.layer1.b - learning_rate*g_l1_b \
-        , classifier.layer2.W: classifier.layer2.W - learning_rate*g_l2_W \
-        , classifier.layer2.b: classifier.layer2.b - learning_rate*g_l2_b \
-        , classifier.layer3.W: classifier.layer3.W - learning_rate*g_l3_W \
-        , classifier.layer3.b: classifier.layer3.b - learning_rate*g_l3_b \
-        , classifier.log_W   : classifier.log_W    - learning_rate*g_log_W \
-        , classifier.log_b   : classifier.log_b    - learning_rate*g_log_b }
+    updates += [ (classifier.log_W, new_log_W) \
+               , (classifier.log_b, new_log_b) ]
 
-    # compiling a theano function `train_model` that returns the cost, but in 
-    # the same time updates the parameter of the model based on the rules 
+    # compiling a theano function `train_model` that returns the cost, but  
+    # in the same time updates the parameter of the model based on the rules 
     # defined in `updates`
     train_model = theano.function([x, y], cost, updates = updates )
     n_minibatches        = len(train_batches) 
