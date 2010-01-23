@@ -25,7 +25,7 @@ The purely supervised learning algorithms are meant to be read in order:
 
   #. :ref:`Logistic Regression <logreg>` - using Theano for something simple
   #. :ref:`Multilayer perceptron <mlp>` - introduction to layers
-  #. :ref:`Deep Convolutional Network` - a simplified version of LeNet5
+  #. :ref:`Deep Convolutional Network <lenet>` - a simplified version of LeNet5
 
 The unsupervised and semi-supervised learning algorithms are less co-dependent, they will make sense in any order.
 

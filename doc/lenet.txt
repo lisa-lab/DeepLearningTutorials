@@ -1,3 +1,5 @@
+.. _lenet:
+
 Convolutional Neural Networks (LeNet)
 =====================================
 
