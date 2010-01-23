@@ -46,7 +46,7 @@ Mathematically, this can be written as:
 The output of the model or prediction is then done by taking the argmax of the vector whose i'th element is P(Y=i|x).
 
 .. math::
-  y_{pred} = argmax_i P(Y=i|x,W,b)
+  y_{pred} = {\rm argmax}_i P(Y=i|x,W,b)
 
 
 
