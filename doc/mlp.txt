@@ -33,7 +33,8 @@ input data into a space where it becomes linearly separable. This intermediate
 layer is referred to as a **hidden layer**.  A single hidden layer is
 sufficient to make MLPs a **universal approximator**. However we will see later
 on that there are substantial benefits to using many such hidden layers, i.e. the
-very premise of **deep learning**.
+very premise of **deep learning**. See these course notes for an `introduction
+to MLPs, the back-propagation algorithm, and how to train MLPs <http://www.iro.umontreal.ca/~pift6266/H10/notes/mlp.html>`_.
 
 This tutorial will again tackle the problem of MNIST digit classification.
 

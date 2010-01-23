@@ -153,7 +153,7 @@ List of Symbols and acronyms
 
 * :math:`D`: number of input dimensions.
 * :math:`D_h^{(i)}`: number of hidden units in the :math:`i`-th layer.
-* :math:`f_{\theta}(x)`, :math:`f(x)`: classification function associated with a model :math:`P(Y|x,\theta)`, defined as :math:`argmax_k P(Y=k|x,\theta)`.
+* :math:`f_{\theta}(x)`, :math:`f(x)`: classification function associated with a model :math:`P(Y|x,\theta)`, defined as :math:`{\rm argmax}_k P(Y=k|x,\theta)`.
   Note that we will often drop the :math:`\theta` subscript.
 * L: number of labels.
 * :math:`\mathcal{L}(\theta, \cal{D})`: log-likelihood :math:`\cal{D}`
@@ -189,7 +189,9 @@ utility of unsupervised *pre-training* is often evaluated on the basis of what
 performance can be achieved after supervised *fine-tuning*.  This chapter
 reviews the basics of supervised learning for classification models, and covers
 the minibatch stochastic gradient descent algorithm that is used to fine-tune
-many of the models in the Deep Learning Tutorials.
+many of the models in the Deep Learning Tutorials. Have a look at these
+`introductory course notes on gradient-based learning <http://www.iro.umontreal.ca/~pift6266/H10/notes/gradient.html>`_
+for more basics on the notion of optimizing a training criterion using the gradient.
 
 
 .. _opt_learn_classifier:
@@ -228,7 +230,7 @@ In this tutorial, :math:`f` is defined as:
 
 .. math::
     
-    f(x) = argmax_k P(Y=k | x, \theta)
+    f(x) = {\rm argmax}_k P(Y=k | x, \theta)
 
 In python, using Theano this can be written as :
 
