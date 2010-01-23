@@ -204,10 +204,10 @@ parameters differ.
 
     # specify how to update the parameters of the model as a dictionary
     updates = \
-        { W1: W1 - numpy.asarray(learning_rate)*g_W1 \
-        , b1: b1 - numpy.asarray(learning_rate)*g_b1 \
-        , W2: W2 - numpy.asarray(learning_rate)*g_W2 \
-        , b2: b2 - numpy.asarray(learning_rate)*g_b2 }
+        { W1: W1 - learning_rate*g_W1 \
+        , b1: b1 - learning_rate*g_b1 \
+        , W2: W2 - learning_rate*g_W2 \
+        , b2: b2 - learning_rate*g_b2 }
 
     # compiling a theano function `train_model` that returns the cost, but 
     # in the same time updates the parameter of the model based on the rules 
