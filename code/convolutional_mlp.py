@@ -220,7 +220,7 @@ def load_dataset(fname):
     return train_batches, valid_batches, test_batches
 
 
-def evaluate_lenet5(learning_rate=0.01, n_iter=200, dataset='mnist.pkl.gz'):
+def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
     rng = numpy.random.RandomState(23455)
 
     train_batches, valid_batches, test_batches = load_dataset(dataset)
