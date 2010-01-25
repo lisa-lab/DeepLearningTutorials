@@ -72,7 +72,7 @@ class LeNetConvPoolLayer(object):
         # add the bias term. Since the bias is a vector (1D array), we first
         # reshape it to a tensor of shape (1,n_filters,1,1). Each bias will thus
         # be broadcasted across mini-batches and feature map width & height
-        self.output = pooled_out + self.b.dimshuffle('x', 0, 'x', 'x')
+        self.output = T.tanh(pooled_out + self.b.dimshuffle('x', 0, 'x', 'x'))
 
         # store parameters of this layer
         self.params = [self.W, self.b]
@@ -220,8 +220,7 @@ def load_dataset(fname):
     return train_batches, valid_batches, test_batches
 
 
-def evaluate_lenet5(learning_rate=0.0001, n_iter=1000, dataset='mnist.pkl.gz'):
-    print 'learning_rate = ', learning_rate
+def evaluate_lenet5(learning_rate=0.01, n_iter=200, dataset='mnist.pkl.gz'):
     rng = numpy.random.RandomState(23455)
 
     train_batches, valid_batches, test_batches = load_dataset(dataset)
@@ -245,18 +244,18 @@ def evaluate_lenet5(learning_rate=0.0001, n_iter=1000, dataset='mnist.pkl.gz'):
     # Construct the first convolutional pooling layer:
     # filtering reduces the image size to (28-5+1,28-5+1)=(24,24)
     # maxpooling reduces this further to (24/2,24/2) = (12,12)
-    # 4D output tensor is thus of shape (20,6,12,12)
+    # 4D output tensor is thus of shape (20,20,12,12)
     layer0 = LeNetConvPoolLayer(rng, input=layer0_input,
             image_shape=(batch_size,1,28,28), 
-            filter_shape=(6,1,5,5), poolsize=(2,2))
+            filter_shape=(20,1,5,5), poolsize=(2,2))
 
     # Construct the second convolutional pooling layer
     # filtering reduces the image size to (12-5+1,12-5+1)=(8,8)
     # maxpooling reduces this further to (8/2,8/2) = (4,4)
-    # 4D output tensor is thus of shape (20,32,4,4)
+    # 4D output tensor is thus of shape (20,50,4,4)
     layer1 = LeNetConvPoolLayer(rng, input=layer0.output,
-            image_shape=(batch_size,6,12,12), 
-            filter_shape=(32,6,5,5), poolsize=(2,2))
+            image_shape=(batch_size,20,12,12), 
+            filter_shape=(50,20,5,5), poolsize=(2,2))
 
     # the SigmoidalLayer being fully-connected, it operates on 2D matrices of
     # shape (batch_size,num_pixels) (i.e matrix of rasterized images).
@@ -265,7 +264,7 @@ def evaluate_lenet5(learning_rate=0.0001, n_iter=1000, dataset='mnist.pkl.gz'):
 
     # construct a fully-connected sigmoidal layer
     layer2 = SigmoidalLayer(rng, input=layer2_input, 
-                            n_in=32*4*4, n_out=500)
+                            n_in=50*4*4, n_out=500)
 
     # classify the values of the fully-connected sigmoidal layer
     layer3 = LogisticRegression(input=layer2.output, n_in=500, n_out=10)
@@ -278,11 +277,18 @@ def evaluate_lenet5(learning_rate=0.0001, n_iter=1000, dataset='mnist.pkl.gz'):
 
     # create a list of all model parameters to be fit by gradient descent
     params = layer3.params+ layer2.params+ layer1.params + layer0.params
-    learning_rate = numpy.asarray(learning_rate, dtype=theano.config.floatX)
+    
+    # create a list of gradients for all model parameters
+    grads = T.grad(cost, params)
 
     # train_model is a function that updates the model parameters by SGD
-    train_model = theano.function([x, y], cost, 
-            updates=[(p, p - learning_rate*gp) for p,gp in zip(params, T.grad(cost, params))])
+    # Since this model has many parameters, it would be tedious to manually
+    # create an update rule for each model parameter. We thus create the updates
+    # dictionary by automatically looping over all (params[i],grads[i])  pairs.
+    updates = {}
+    for param_i, grad_i in zip(params, grads):
+        updates[param_i] = param_i - learning_rate * grad_i
+    train_model = theano.function([x, y], cost, updates=updates)
 
 
     ###############
@@ -310,7 +316,6 @@ def evaluate_lenet5(learning_rate=0.0001, n_iter=1000, dataset='mnist.pkl.gz'):
 
     # have a maximum of `n_iter` iterations through the entire dataset
     for iter in xrange(n_iter * n_minibatches):
-    #for iter in xrange(2 * n_minibatches):
 
         # get epoch and minibatch index
         epoch           = iter / n_minibatches

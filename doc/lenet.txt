@@ -173,10 +173,14 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
                         size=w_shp),
                     dtype=input.dtype))
         
-        # initialize shared variable for bias (1D tensor)
+        # initialize shared variable for bias (1D tensor) with random values
+        # IMPORTANT: biases are usually initialized to zero. However in this
+        # particular application, we simply apply the convolutional layer to
+        # an image without learning the parameters. We therefore initialize
+        # them to random values to "simulate" learning.
         b_shp = (2,)
         b = theano.shared( numpy.asarray(
-                    rng.uniform(low=-.0, high=0., Size=(2,)),
+                    rng.uniform(low=-.5, high=.5, size=b_shp),
                     dtype=input.dtype))
 
         # build symbolic expression that computes the convolution of input with filters in w
@@ -186,7 +190,7 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
         output = T.nnet.sigmoid(conv_out + b.dimshuffle('x', 0, 'x', 'x'))
 
         # create theano function to compute filtered images
-        f = theano.function([input], [output])
+        f = theano.function([input], output)
 
 
 Let's have a little bit of fun with this...
@@ -202,7 +206,7 @@ Let's have a little bit of fun with this...
 
         # put image in 4D tensor of shape (1,3,height,width)
         img_ = img.swapaxes(0,2).swapaxes(1,2).reshape(1,3,639,516)
-        filtered_img = f(img_)[0]
+        filtered_img = f(img_)
 
         # plot original image and first and second components of output
         pylab.subplot(1,3,1); pylab.axis('off'); pylab.imshow(img)
@@ -387,7 +391,7 @@ layer.
             # add the bias term. Since the bias is a vector (1D array), we first
             # reshape it to a tensor of shape (1,n_filters,1,1). Each bias will thus
             # be broadcasted across mini-batches and feature map width & height
-            self.output = pooled_out + self.b.dimshuffle('x', 0, 'x', 'x')
+            self.output = T.tanh(pooled_out + self.b.dimshuffle('x', 0, 'x', 'x'))
 
             # store parameters of this layer
             self.params = [self.W, self.b]
@@ -495,11 +499,15 @@ instantiate the network as follows.
 
     # create a list of all model parameters to be fit by gradient descent
     params = layer3.params+ layer2.params+ layer1.params + layer0.params
-    learning_rate = numpy.asarray(learning_rate, dtype=theano.config.floatX)
 
-    # train_model is a function that updates the model parameters by SGD
-    train_model = theano.function([x, y], cost,
-            updates=[(p, p - learning_rate*gp) for p,gp in zip(params, T.grad(cost, params))])
+    # train_model is a function that updates the model parameters by SGD                                             
+    # Since this model has many parameters, it would be tedious to manually                                          
+    # create an update rule for each model parameter. We thus create the updates                                     
+    # dictionary by automatically looping over all (params[i],grads[i])  pairs.                                      
+    updates = {}
+    for param_i, grad_i in zip(params, grads):                                                                       
+        updates[param_i] = param_i - learning_rate * grad_i                                                          
+    train_model = theano.function([x, y], cost, updates=updates) 
 
 
 We leave out the code, which performs the actual training and early-stopping,
