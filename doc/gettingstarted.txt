@@ -644,7 +644,7 @@ another machine in a distributed job.
 Read more about `serialization in Theano`_, or Python's `pickling`_.
 
 .. _pickling: http://docs.python.org/library/pickle.html
-.. _serialization in Theano: http://www.pylearn.org/theano/basic_tutorial/loading_and_saving.html
+.. _serialization in Theano: http://deeplearning.net/theanodoc/tutorial/loading_and_saving.html
 
 Plotting Intermediate Results
 ++++++++++++++++++++++++++++++

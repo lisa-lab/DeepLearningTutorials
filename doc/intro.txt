@@ -41,7 +41,7 @@ The unsupervised and semi-supervised learning algorithms are less co-dependent, 
   * :ref:`encoder_decoder`
 
 
-.. _Theano: http://www.pylearn.org/theano
+.. _Theano documentation: http://deeplearning.net/theanodoc
 
-.. _Theano basic tutorial: http://www.pylearn.org/theano/basic_tutorial
+.. _Theano basic tutorial: http://deeplearning.net/theanodoc/tutorial
 
