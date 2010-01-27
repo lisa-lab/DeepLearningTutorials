@@ -141,7 +141,7 @@ The following Theano code defines the (symbolic) loss for a given minibatch:
 .. code-block:: python
 
   loss = -T.mean(T.log(p_y_given_x)[T.arange(y.shape[0]), y])
-  # note on syntax: T.arange(y,shape[0]) is a vector of integers [0,1,2,...,len(y)].
+  # note on syntax: T.arange(y.shape[0]) is a vector of integers [0,1,2,...,len(y)].
   # Indexing a matrix M by the two vectors [0,1,...,K], [a,b,...,k] returns the
   # elements M[0,a], M[1,b], ..., M[K,k] as a vector.  Here, we use this
   # syntax to retrieve the log-probability of the correct labels, y.

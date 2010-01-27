@@ -284,8 +284,8 @@ This can be computed using the following line of code :
   # NLL is a symbolic variable ; to get the actual value of NLL, this symbolic
   # expression has to be compiled into a Theano function (see the Theano
   # tutorial for more details)
-  NLL = -T.sum(T.log(p_y_given_x)[y.shape[0],y])
-  # note on syntax: T.arange(y,shape[0]) is a vector of integers [0,1,2,...,len(y)].
+  NLL = -T.sum(T.log(p_y_given_x)[T.arange(y.shape[0]),y])
+  # note on syntax: T.arange(y.shape[0]) is a vector of integers [0,1,2,...,len(y)].
   # Indexing a matrix M by the two vectors [0,1,...,K], [a,b,...,k] returns the
   # elements M[0,a], M[1,b], ..., M[K,k] as a vector.  Here, we use this
   # syntax to retrieve the log-probability of the correct labels, y.
