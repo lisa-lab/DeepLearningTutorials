@@ -144,8 +144,11 @@ class dA():
     #        minibatch. We need to compute the average of all these to get 
     #        the cost of the minibatch
     self.cost = T.mean(self.L)
-
-
+    # note : y is computed from the corrupted `tilde_x`. Later on, 
+    #        we will need the hidden layer obtained from the uncorrupted 
+    #        input when for example we will pass this as input to the layer 
+    #        above
+    self.hidden_values = T.nnet.sigmoid( T.dot(x, self.W) + self.b)
 
 
 
@@ -190,28 +193,19 @@ class SdA():
             # input size is that of the previous layer
             # input is the output of the last layer inserted in our list 
             # of layers `self.layers`
-            layer = dA( hidden_layers_sizes[i-1], \
-                        hidden_layers_sizes[i],   \
-                        input = self.layers[-1].y )
+            layer = dA( hidden_layers_sizes[i-1],             \
+                        hidden_layers_sizes[i],               \
+                        input = self.layers[-1].hidden_values )
             self.layers += [layer]
         
 
         self.n_layers = len(self.layers)
         # now we need to use same weights and biases to define an MLP
-        # We can not simply use the variable that outputs the hidden layer 
-        # of the last dA because in computing its value the dA distorts the
-        # input; once the pretraining is done we do not want to add this 
-        # noise to the input anymore
+        # We can simply use the `hidden_values` of the top layer, which 
+        # computes the input that we would normally feed to the logistic
+        # layer on top of the MLP and just add a logistic regression on 
+        # this values
         
-        layer_input = input
-        # go through all layers until the top
-        for i in xrange ( self.n_layers):
-            layer_output = T.nnet.sigmoid( \
-                T.dot(layer_input, self.layers[i].W) + self.layers[i].b )
-            # make next layer input the output of this one
-            layer_input = layer_output
-
-        # add a logistic regression top layer 
         # W is initialized with `initial_W` which is uniformely sampled
         # from -6./sqrt(n_visible+n_hidden) and 6./sqrt(n_hidden+n_visible)
         # the output of uniform if converted using asarray to dtype 
@@ -226,7 +220,7 @@ class SdA():
         self.log_W  = theano.shared(value = initial_W,           name = "W")
         self.log_b  = theano.shared(value = numpy.zeros(n_outs), name = 'b')
         self.p_y_given_x = T.nnet.softmax( \
-            T.dot(layer_input, self.log_W) + self.log_b)
+            T.dot(self.layers[-1].hidden_values, self.log_W) + self.log_b)
         
         # compute prediction as class whose probability is maximal in 
         # symbolic form
