@@ -83,7 +83,7 @@ class MLP(object):
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         W2_values = numpy.asarray( numpy.random.uniform( 
-              low = numpy.sqrt(6./(n_hidden+n_out)), \
+              low = -numpy.sqrt(6./(n_hidden+n_out)), \
               high= numpy.sqrt(6./(n_hidden+n_out)),\
               size= (n_hidden, n_out)), dtype = theano.config.floatX)
 
