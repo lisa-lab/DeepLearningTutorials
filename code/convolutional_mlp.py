@@ -229,7 +229,7 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
     batch_size = 20    # sized of the minibatch
 
     # allocate symbolic variables for the data
-    x = theano.floatX.xmatrix(theano.config.floatX)  # rasterized images
+    x = T.matrix(theano.config.floatX)  # rasterized images
     y = T.lvector()  # the labels are presented as 1D vector of [long int] labels
 
 
