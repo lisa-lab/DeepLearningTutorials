@@ -89,7 +89,7 @@ Details and Notation
 
 Conceptually, a feature map is obtained by convolving the input image with a
 linear filter, adding a bias term and then applying a non-linear function. If
-we denote the K-th feature map at a given layer as :math:`h^k`, whose filters
+we denote the k-th feature map at a given layer as :math:`h^k`, whose filters
 are determined by the weights :math:`W^k` and bias :math:`b_k`, then the
 feature map :math:`h^k` is obtained as follows (for :math:`tanh` non-linearities):
 
@@ -550,33 +550,41 @@ When choosing the number of filters per layer, keep in mind that computing the
 activations of a single convolutional filter is much more expensive than with
 traditional MLPs ! 
 
-Assume layer :math:`(l-1)` contains :math:`S^{(l-1)}` pixels (across all feature
-maps), and that feature maps at layer :math:`l` are of shape :math:`m \times n`.
-Computing the activations of a single convolutional filter requires :math:`m
-\times n \times S^{(l-1)}` multiplications, compared to :math:`S^{(l-1)}` for a
-standard MLP. As such, the number of filters used in CNNs is typically much
+Assume layer :math:`(l-1)` contains :math:`K^{l-1}` feature
+maps and :math:`M \times N` pixel positions (i.e., 
+number of positions times number of feature maps),
+and there are :math:`K^l` filters at layer :math:`l` of shape :math:`m \times n`.
+Then computing a feature map (applying an :math:`m \times n` filter
+at all :math:`(M-m) \times (N-n)` pixel positions where the
+filter can be applied) costs :math:`(M-m) \times (N-n) \times m \times n \times K^{l-1}`.
+The total cost is :math:`K^l` times that. Things may be more complicated if
+not all features at one level are connected to all features at the previous one.
+
+For a standard MLP, the cost would only be :math:`K^l \times K^{l-1}`
+where there are :math:`K^l` different neurons at level :math:`l`.
+As such, the number of filters used in CNNs is typically much
 smaller than the number of hidden units in MLPs and depends on the size of the
 feature maps (itself a function of input image size and filter shapes).
 
-Since feature map size decreases with depth, shallow layers will tend to
-have fewer filters while deep layers can have much more.
+Since feature map size decreases with depth, layers near the input layer will tend to
+have fewer filters while layers higher up can have much more. In fact, to
+equalize computation at each layer, the product of the number of features
+and the number of pixel positions is typically picked to be roughly constant
+across layers. To preserve the information about the input would require
+keeping the total number of activations (number of feature maps times
+number of pixel positions) to be non-decreasing from one layer to the next
+(of course we could hope to get away with less when we are doing supervised
+learning). The number of feature maps directly controls capacity and so
+that depends on the number of available examples and the complexity of 
+the task.
+
 
 Filter Shape
 ************
 Common filter shapes found in the litterature vary greatly, usually based on
 the dataset. Best results on MNIST-sized images (28x28) are usually in the 5x5
-range, while natural image datasets (often with hundreds of pixels in each
-dimension) tend to use larger filters of shape 12x12 or 15x15.
-
-When optimizing filter shapes, it is good to keep in mind however that there
-is a relationship between the size of the input image, the filter shape and
-the number of hidden units. Filters which are too large with respect to the
-input will project the input onto a very low-dimensional space. Creating a
-useful high-level abstraction will thus require many hidden units, as in the
-case of fully connected MLPs. Smaller filter shapes (with respect to the
-input) can get away with fewer hidden units (i.e. as few as 6 in the case of
-LeNet-5) as they project into a high-dimensional space, which preserves more
-of the information content of the input signal.
+range on the first layer, while natural image datasets (often with hundreds of pixels in each
+dimension) tend to use larger first-layer filters of shape 12x12 or 15x15.
 
 The trick is thus to find the right level of "granularity" (i.e. filter
 shapes) in order to create abstractions at the proper scale, given a
