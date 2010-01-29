@@ -253,7 +253,7 @@ layer. For max-pooling over a 3x3 window, this jumps to 5/8.
 Since it provides additional robustness to position, max-pooling is thus a
 "smart" way of reducing the dimensionality of intermediate representations.
 
-Max-pooling is done in Theano by way of ``theano.sandbox.downsample.max_pool2D``.
+Max-pooling is done in Theano by way of ``theano.tensor.signal.downsample.max_pool2D``.
 This function takes as input an N dimensional tensor (with N >= 2), a
 downscaling factor and performs max-pooling over the 2 trailing dimensions of
 the tensor.
@@ -262,7 +262,7 @@ An example is worth a thousand words:
 
 .. code-block:: python
 
-    from theano.sandbox import downsample
+    from theano.tensor.signal import downsample
 
     input = T.dtensor4('input')
     maxpool_shape = (2,2)
