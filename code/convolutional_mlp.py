@@ -325,7 +325,8 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
         # `len(train_batches)`
         x,y = train_batches[ minibatch_index ]
 
-        print 'training @ iter = ', iter
+        if iter %100 == 0:
+            print 'training @ iter = ', iter
         cost_ij = train_model(x,y)
 
         if (iter+1) % validation_frequency == 0: 
