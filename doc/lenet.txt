@@ -253,7 +253,7 @@ layer. For max-pooling over a 3x3 window, this jumps to 5/8.
 Since it provides additional robustness to position, max-pooling is thus a
 "smart" way of reducing the dimensionality of intermediate representations.
 
-Max-pooling is done in Theano by way of theano.tensor.signal.downsample.max_pool2D.
+Max-pooling is done in Theano by way of ``theano.tensor.signal.downsample.max_pool2D``.
 This function takes as input an N dimensional tensor (with N >= 2), a
 downscaling factor and performs max-pooling over the 2 trailing dimensions of
 the tensor.
@@ -292,29 +292,25 @@ This should generate the following output:
          [  6.70467510e-01   4.17304802e-01   5.58689828e-01   1.40386939e-01 1.98101489e-01]
          [  8.00744569e-01   9.68261576e-01   3.13424178e-01   6.92322616e-01 8.76389152e-01]]
         output[0,0,:,:] =
-        [[ 0.72032449  0.39676747  0.53881673]
-         [ 0.6852195   0.87811744  0.19810149]
-         [ 0.96826158  0.69232262  0.87638915]]
+        [[ 0.72032449  0.39676747]
+         [ 0.6852195   0.87811744]]
 
     With ignore_border set to False:
         invals[1,0,:,:] =
-          [[ 0.01936696  0.67883553  0.21162812  0.26554666  0.49157316]
+        [[ 0.01936696  0.67883553  0.21162812  0.26554666  0.49157316]
          [ 0.05336255  0.57411761  0.14672857  0.58930554  0.69975836]
          [ 0.10233443  0.41405599  0.69440016  0.41417927  0.04995346]
          [ 0.53589641  0.66379465  0.51488911  0.94459476  0.58655504]
          [ 0.90340192  0.1374747   0.13927635  0.80739129  0.39767684]]
         output[1,0,:,:] =
-          [[ 0.67883553  0.58930554  0.69975836]
+        [[ 0.67883553  0.58930554  0.69975836]
          [ 0.66379465  0.94459476  0.58655504]
          [ 0.90340192  0.80739129  0.39767684]]
 
-Note that contrary to most Theano code, the max_pool2D operation is a little
-*special*. It requires the downscaling factor ds (tuple of length 2 containing
+Note that contrary to most Theano code, the ``max_pool2D`` operation is a little
+*special*. It requires the downscaling factor ``ds`` (tuple of length 2 containing
 downscaling factors for image width and height) to be known at graph build
 time. This may change in the near future.
-
-.. Warning::
-    The *ignore_border* parameter of max_pool2D is clearly broken !
 
 
 The Full Model: LeNet
@@ -592,7 +588,7 @@ particular dataset.
 
 
 Max Pooling Shape
-****************
+*****************
 Typical values are 2x2 or no max-pooling. Very large input images may warrant
 4x4 pooling in the lower-layers. Keep in mind however, that this will reduce the
 dimension of the signal by a factor of 16, and may result in throwing away too
