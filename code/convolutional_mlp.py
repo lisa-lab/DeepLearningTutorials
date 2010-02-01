@@ -25,7 +25,8 @@ import numpy, theano, cPickle, gzip, time
 import theano.tensor as T
 import theano.sandbox.softsign
 import pylearn.datasets.MNIST
-from theano.tensor.signal import conv, downsample
+from theano.tensor.signal import downsample
+from theano.tensor.nnet import conv
 
 class LeNetConvPoolLayer(object):
     """WRITEME"""
