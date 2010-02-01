@@ -1,2 +1,4 @@
 code/mnist.pkl.gz
 html
+*.pyc
+*~
