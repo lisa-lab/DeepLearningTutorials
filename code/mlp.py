@@ -178,50 +178,32 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
-    # make minibatches of size 20 
-    batch_size = 20    # sized of the minibatch
+    def shared_dataset(data_xy):
+        data_x, data_y = data_xy
+        shared_x = theano.shared(numpy.asarray(data_x, dtype=theano.config.floatX))
+        shared_y = theano.shared(numpy.asarray(data_y, dtype=theano.config.floatX))
+        return shared_x, T.cast(shared_y, 'int32')
 
-    # Dealing with the training set
-    # get the list of training images (x) and their labels (y)
-    (train_set_x, train_set_y) = train_set
-    # initialize the list of training minibatches with empty list
-    train_batches = []
-    for i in xrange(0, len(train_set_x), batch_size):
-        # add to the list of minibatches the minibatch starting at 
-        # position i, ending at position i+batch_size
-        # a minibatch is a pair ; the first element of the pair is a list 
-        # of datapoints, the second element is the list of corresponding 
-        # labels
-        train_batches = train_batches + \
-               [(train_set_x[i:i+batch_size], train_set_y[i:i+batch_size])]
+    test_set_x, test_set_y = shared_dataset(test_set)
+    valid_set_x, valid_set_y = shared_dataset(valid_set)
+    train_set_x, train_set_y = shared_dataset(train_set)
 
-    # Dealing with the validation set
-    (valid_set_x, valid_set_y) = valid_set
-    # initialize the list of validation minibatches 
-    valid_batches = []
-    for i in xrange(0, len(valid_set_x), batch_size):
-        valid_batches = valid_batches + \
-               [(valid_set_x[i:i+batch_size], valid_set_y[i:i+batch_size])]
+    batch_size = 500    # sized of the minibatch
 
-    # Dealing with the testing set
-    (test_set_x, test_set_y) = test_set
-    # initialize the list of testing minibatches 
-    test_batches = []
-    for i in xrange(0, len(test_set_x), batch_size):
-        test_batches = test_batches + \
-              [(test_set_x[i:i+batch_size], test_set_y[i:i+batch_size])]
-
-
-    ishape     = (28,28) # this is the size of MNIST images
+    # compute number of minibatches for training, validation and testing
+    n_train_batches = train_set_x.value.shape[0] / batch_size
+    n_valid_batches = valid_set_x.value.shape[0] / batch_size
+    n_test_batches  = test_set_x.value.shape[0]  / batch_size
 
     # allocate symbolic variables for the data
-    x = T.fmatrix()  # the data is presented as rasterized images
-    y = T.lvector()  # the labels are presented as 1D vector of 
-                          # [long int] labels
+    minibatch_offset = T.lscalar() # offset to the start of a [mini]batch 
+    x = T.matrix('x')  # the data is presented as rasterized images
+    y = T.ivector('y') # the labels are presented as 1D vector of 
+                       # [int] labels
+
 
     # construct the logistic regression class
-    classifier = MLP( input=x.reshape((batch_size,28*28)),\
-                      n_in=28*28, n_hidden = 500, n_out=10)
+    classifier = MLP( input=x, n_in=28*28, n_hidden = 500, n_out=10)
 
     # the cost we minimize during training is the negative log likelihood of 
     # the model plus the regularization terms (L1 and L2); cost is expressed
@@ -230,9 +212,17 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
          + L1_reg * classifier.L1 \
          + L2_reg * classifier.L2_sqr 
 
-    # compiling a theano function that computes the mistakes that are made by 
-    # the model on a minibatch
-    test_model = theano.function([x,y], classifier.errors(y))
+    # compiling a Theano function that computes the mistakes that are made
+    # by the model on a minibatch
+    test_model = theano.function([minibatch_offset], classifier.errors(y),
+            givens={
+                x:test_set_x[minibatch_offset:minibatch_offset+batch_size],
+                y:test_set_y[minibatch_offset:minibatch_offset+batch_size]})
+
+    validate_model = theano.function([minibatch_offset], classifier.errors(y),
+            givens={
+                x:valid_set_x[minibatch_offset:minibatch_offset+batch_size],
+                y:valid_set_y[minibatch_offset:minibatch_offset+batch_size]})
 
     # compute the gradient of cost with respect to theta = (W1, b1, W2, b2) 
     g_W1 = T.grad(cost, classifier.W1)
@@ -247,11 +237,14 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
         , classifier.W2: classifier.W2 - learning_rate*g_W2 \
         , classifier.b2: classifier.b2 - learning_rate*g_b2 }
 
-    # compiling a theano function `train_model` that returns the cost, but in 
-    # the same time updates the parameter of the model based on the rules 
+    # compiling a Theano function `train_model` that returns the cost, but  
+    # in the same time updates the parameter of the model based on the rules 
     # defined in `updates`
-    train_model = theano.function([x, y], cost, updates = updates )
-    n_minibatches        = len(train_batches) 
+    train_model =theano.function([minibatch_offset], cost, updates = updates,
+            givens={
+                x:train_set_x[minibatch_offset:minibatch_offset+batch_size],
+                y:train_set_y[minibatch_offset:minibatch_offset+batch_size]})
+
  
     # early-stopping parameters
     patience              = 10000 # look as this many examples regardless
@@ -259,7 +252,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = n_minibatches  # go through this many 
+    validation_frequency  = n_train_batches  # go through this many 
                                   # minibatche before checking the network 
                                   # on the validation set; in this case we 
                                   # check every epoch 
@@ -271,55 +264,47 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
     test_score           = 0.
     start_time = time.clock()
     # have a maximum of `n_iter` iterations through the entire dataset
-    for iter in xrange(n_iter* n_minibatches):
+    for iter in xrange(n_iter* n_train_batches):
 
-        # get epoch and minibatch index
-        epoch           = iter / n_minibatches
-        minibatch_index =  iter % n_minibatches
+        # get epoch and minibatch index for training set
+        epoch           = iter / n_train_batches
+        minibatch_index =  iter % n_train_batches
+        minibatch_offset = minibatch_index * batch_size
 
         # get the minibatches corresponding to `iter` modulo
         # `len(train_batches)`
-        x,y = train_batches[ minibatch_index ]
-        cost_ij = train_model(x,y)
+        cost_ij = train_model(minibatch_offset)
 
         if (iter+1) % validation_frequency == 0: 
             # compute zero-one loss on validation set 
-            this_validation_loss = 0.
-            for x,y in valid_batches:
-                # sum up the errors for each minibatch
-                this_validation_loss += test_model(x,y)
-            # get the average by dividing with the number of minibatches
-            this_validation_loss /= len(valid_batches)
+            validation_losses = [validate_model(i*batch_size) for i in xrange(n_valid_batches)]
+            this_validation_loss = numpy.mean(validation_losses)
 
             print('epoch %i, minibatch %i/%i, validation error %f %%' % \
-                   (epoch, minibatch_index+1, n_minibatches, \
-                    this_validation_loss*100.))
+                 (epoch, minibatch_index+1,n_train_batches, \
+                  this_validation_loss*100.))
 
 
             # if we got the best validation score until now
             if this_validation_loss < best_validation_loss:
-
                 #improve patience if loss improvement is good enough
                 if this_validation_loss < best_validation_loss *  \
                        improvement_threshold :
                     patience = max(patience, iter * patience_increase)
 
-                # save best validation score and iteration number
                 best_validation_loss = this_validation_loss
-                best_iter = iter
-
                 # test it on the test set
-                test_score = 0.
-                for x,y in test_batches:
-                    test_score += test_model(x,y)
-                test_score /= len(test_batches)
-                print(('     epoch %i, minibatch %i/%i, test error of best '
-                      'model %f %%') % 
-                             (epoch, minibatch_index+1, n_minibatches,
-                              test_score*100.))
+
+                test_losses = [test_model(i*batch_size) for i in xrange(n_test_batches)]
+                test_score = numpy.mean(test_losses)
+
+                print(('     epoch %i, minibatch %i/%i, test error of best ' 
+                       'model %f %%') % \
+                  (epoch, minibatch_index+1, n_train_batches,test_score*100.))
 
         if patience <= iter :
-            break
+                break
+
 
     end_time = time.clock()
     print(('Optimization complete. Best validation score of %f %% '
