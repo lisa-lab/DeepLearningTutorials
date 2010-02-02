@@ -154,7 +154,7 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
 
 .. code-block:: python
 
-        from theano.tensor.signal import conv
+        from theano.tensor.nnet import conv
         rng = numpy.random.RandomState(23455)
 
         # create type corresponding to 4D tensor
