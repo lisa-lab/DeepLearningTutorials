@@ -178,7 +178,7 @@ class LogisticRegression(object):
             raise NotImplementedError()
 
 
-def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
+def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz', nkerns=[20,50]):
     rng = numpy.random.RandomState(23455)
 
     # Load the dataset 
@@ -224,18 +224,18 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
     # Construct the first convolutional pooling layer:
     # filtering reduces the image size to (28-5+1,28-5+1)=(24,24)
     # maxpooling reduces this further to (24/2,24/2) = (12,12)
-    # 4D output tensor is thus of shape (batch_size,20,12,12)
+    # 4D output tensor is thus of shape (batch_size,nkerns[0],12,12)
     layer0 = LeNetConvPoolLayer(rng, input=layer0_input,
             image_shape=(batch_size,1,28,28), 
-            filter_shape=(20,1,5,5), poolsize=(2,2))
+            filter_shape=(nkerns[0],1,5,5), poolsize=(2,2))
 
     # Construct the second convolutional pooling layer
     # filtering reduces the image size to (12-5+1,12-5+1)=(8,8)
     # maxpooling reduces this further to (8/2,8/2) = (4,4)
-    # 4D output tensor is thus of shape (20,50,4,4)
+    # 4D output tensor is thus of shape (nkerns[0],nkerns[1],4,4)
     layer1 = LeNetConvPoolLayer(rng, input=layer0.output,
-            image_shape=(batch_size,20,12,12), 
-            filter_shape=(50,20,5,5), poolsize=(2,2))
+            image_shape=(batch_size,nkerns[0],12,12), 
+            filter_shape=(nkerns[1],nkerns[0],5,5), poolsize=(2,2))
 
     # the SigmoidalLayer being fully-connected, it operates on 2D matrices of
     # shape (batch_size,num_pixels) (i.e matrix of rasterized images).
@@ -244,7 +244,7 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
 
     # construct a fully-connected sigmoidal layer
     layer2 = SigmoidalLayer(rng, input=layer2_input, 
-                            n_in=50*4*4, n_out=500)
+                            n_in=nkerns[1]*4*4, n_out=500)
 
     # classify the values of the fully-connected sigmoidal layer
     layer3 = LogisticRegression(input=layer2.output, n_in=500, n_out=10)
