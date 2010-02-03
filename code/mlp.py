@@ -188,7 +188,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
     valid_set_x, valid_set_y = shared_dataset(valid_set)
     train_set_x, train_set_y = shared_dataset(train_set)
 
-    batch_size = 500    # sized of the minibatch
+    batch_size = 20    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size
@@ -252,7 +252,8 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = n_train_batches  # go through this many 
+    validation_frequency  = min(n_train_batches,patience/2)  
+                                  # go through this many 
                                   # minibatche before checking the network 
                                   # on the validation set; in this case we 
                                   # check every epoch 

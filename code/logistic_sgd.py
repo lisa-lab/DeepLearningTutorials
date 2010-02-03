@@ -165,7 +165,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_iter=100, mnist_pkl_gz='mnist.p
     valid_set_x, valid_set_y = shared_dataset(valid_set)
     train_set_x, train_set_y = shared_dataset(train_set)
 
-    batch_size = 500    # sized of the minibatch
+    batch_size = 600    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size
@@ -193,7 +193,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_iter=100, mnist_pkl_gz='mnist.p
                 x:test_set_x[minibatch_offset:minibatch_offset+batch_size],
                 y:test_set_y[minibatch_offset:minibatch_offset+batch_size]})
 
-    validate_model = theano.function([minibatch_offset], classifier.errors(y),
+    validate_model =theano.function([minibatch_offset], classifier.errors(y),
             givens={
                 x:valid_set_x[minibatch_offset:minibatch_offset+batch_size],
                 y:valid_set_y[minibatch_offset:minibatch_offset+batch_size]})
@@ -220,7 +220,8 @@ def sgd_optimization_mnist(learning_rate=0.13, n_iter=100, mnist_pkl_gz='mnist.p
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = n_train_batches  # go through this many 
+    validation_frequency  = min(n_train_batches, patience/2)  
+                                  # go through this many 
                                   # minibatche before checking the network 
                                   # on the validation set; in this case we 
                                   # check every epoch 

@@ -197,7 +197,7 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
     valid_set_x, valid_set_y = shared_dataset(valid_set)
     train_set_x, train_set_y = shared_dataset(train_set)
 
-    batch_size = 500    # sized of the minibatch
+    batch_size = 500    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size
@@ -253,7 +253,15 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
     cost = layer3.negative_log_likelihood(y)
 
     # create a function to compute the mistakes that are made by the model
-    test_model = theano.function([x,y], layer3.errors(y))
+    test_model = theano.function([minibatch_offset], layer3.errors(y),
+             givens = {
+                x: test_set_x[minibatch_offset:minibatch_offset+batch_size],
+                y: test_set_y[minibatch_offset:minibatch_offset+batch_size]})
+
+    validate_model = theano.function([minibatch_offset], layer3.errors(y),
+            givens = {
+                x: valid_set_x[minibatch_offset:minibatch_offset+batch_size],
+                y: valid_set_y[minibatch_offset:minibatch_offset+batch_size]})
 
     # create a list of all model parameters to be fit by gradient descent
     params = layer3.params+ layer2.params+ layer1.params + layer0.params
@@ -268,14 +276,16 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
     updates = {}
     for param_i, grad_i in zip(params, grads):
         updates[param_i] = param_i - learning_rate * grad_i
-    train_model = theano.function([x, y], cost, updates=updates)
+    
+    train_model = theano.function([minibatch_offset], cost, updates=updates,
+          givens = {
+            x: train_set_x[minibatch_offset:minibatch_offset+batch_size],
+            y: train_set_y[minibatch_offset:minibatch_offset+batch_size]})
 
 
     ###############
     # TRAIN MODEL #
     ###############
-
-    n_minibatches        = len(train_batches) 
 
     # early-stopping parameters
     patience              = 10000 # look as this many examples regardless
@@ -283,7 +293,8 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = n_minibatches  # go through this many 
+    validation_frequency  = min(n_train_batches, patience/2)
+                                  # go through this many 
                                   # minibatche before checking the network 
                                   # on the validation set; in this case we 
                                   # check every epoch 
@@ -295,30 +306,25 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
     start_time = time.clock()
 
     # have a maximum of `n_iter` iterations through the entire dataset
-    for iter in xrange(n_iter * n_minibatches):
+    for iter in xrange(n_iter * n_train_batches):
 
         # get epoch and minibatch index
-        epoch           = iter / n_minibatches
-        minibatch_index =  iter % n_minibatches
-
+        epoch           = iter / n_train_batches
+        minibatch_index =  iter % n_train_batches
+        minibatch_offset = minibatch_index * batch_size
+    
         # get the minibatches corresponding to `iter` modulo
         # `len(train_batches)`
-        x,y = train_batches[ minibatch_index ]
 
         if iter %100 == 0:
             print 'training @ iter = ', iter
-        cost_ij = train_model(x,y)
+        cost_ij = train_model(minibatch_offset)
 
         if (iter+1) % validation_frequency == 0: 
 
-            # compute zero-one loss on validation set 
-            this_validation_loss = 0.
-            for x,y in valid_batches:
-                # sum up the errors for each minibatch
-                this_validation_loss += test_model(x,y)
-
-            # get the average by dividing with the number of minibatches
-            this_validation_loss /= len(valid_batches)
+            # compute zero-one loss on validation set
+            validation_losses = [validate_model(i*batch_size) for i in xrange(n_valid_batches)]
+            this_validation_loss = numpy.mean(validation_losses)
             print('epoch %i, minibatch %i/%i, validation error %f %%' % \
                    (epoch, minibatch_index+1, n_minibatches, \
                     this_validation_loss*100.))
@@ -337,10 +343,8 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
                 best_iter = iter
 
                 # test it on the test set
-                test_score = 0.
-                for x,y in test_batches:
-                    test_score += test_model(x,y)
-                test_score /= len(test_batches)
+                test_losses = [test_model(i*batch_size) for i in xrange(n_test_batches)]
+                test_score = numpy.mean(test_losses)
                 print(('     epoch %i, minibatch %i/%i, test error of best '
                       'model %f %%') % 
                              (epoch, minibatch_index+1, n_minibatches,

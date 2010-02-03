@@ -226,6 +226,12 @@ We instantiate this class as follows:
 Note that the inputs x and y are defined outside the scope of the
 ``LogisticRegression`` object. Since the class requires the input x to build its
 graph however, it is passed as a parameter of the ``__init__`` function.
+This is usefull in the case when you would want to concatenate such
+classes to form a deep network (case in which the input is not a new
+variable but the output of the layer below). While in this example we
+will not do that, the tutorials are designed such that the code is as
+similar as possible among them, making it easy to go from one tutorial
+to the other.
 
 The last step involves defining a (symbolic) cost variable to minimize, using
 the instance method ``classifier.negative_log_likelihood``.
@@ -277,18 +283,27 @@ follows:
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
-    train_model = theano.function([x, y], cost, updates = updates )
+    train_model = theano.function([minibatch_offset], cost, updates = updates,
+            givens={
+                x:train_set_x[minibatch_offset:minibatch_offset+batch_size],
+                y:train_set_y[minibatch_offset:minibatch_offset+batch_size]})
+
 
 The ``updates`` dictionary contains, for each parameter, the
-stochastic gradient update operation. The function ``train_model`` is then
+stochastic gradient update operation. The ``givens`` dictionary indicates with 
+what to replace certain variables of the graph. The function ``train_model`` is then
 defined such that:
 
-* the inputs are the mini-batch :math:`x` with corresponding labels :math:`y`
-* the return value is the cost/loss associated with inputs x, y
-* on every function call, it will apply the operations defined by the
+* the input is the mini-batch offset ``minibatch_offset`` that together with the batch size( which is not an input since it is fixed) defines :math:`x` with corresponding labels :math:`y`
+* the return value is the cost/loss associated with the x, y defined by
+  the ``minibatch_offset``
+* on every function call, it will first replace ``x`` and ``y`` with the
+* corresponding slices from the training set as defined by the
+* ``minibatch_offset`` and afterwards it will evaluate the cost
+* associated with that minibatch and apply the operations defined by the
   ``updates`` dictionary. 
 
-Each time ``train_model(x,y)`` function is called, it will thus compute and
+Each time ``train_model(minibatch_offset)`` function is called, it will thus compute and
 return the appropriate cost, while also performing a step of MSGD. The entire
 learning algorithm thus consists in looping over all examples in the dataset,
 and repeatedly calling the ``train_model`` function.
@@ -319,13 +334,25 @@ The code is as follows:
             return T.mean(T.neq(self.y_pred, y))
 
 
-We then create a function ``test_model``, which we can call to retrieve this
-value. As you will see shortly, ``test_model`` is key to our early-stopping
-implementation (see :ref:`opt_early_stopping`).
+We then create a function ``test_model`` and a function ``validate_model``, which we can call to retrieve this
+value. As you will see shortly, ``validate_model`` is key to our early-stopping
+implementation (see :ref:`opt_early_stopping`). Both of these function
+will get as input a batch offset and will compute the number of
+missclassified examples for that mini-batch. The only difference between them 
+is that one draws its batches from the testing set, while
+the other from the validation set.
 
 .. code-block:: python
 
-    test_model = theano.function([x,y], classifier.errors(y))
+    test_model = theano.function([minibatch_offset], classifier.errors(y),
+            givens={
+                x:test_set_x[minibatch_offset:minibatch_offset+batch_size],
+                y:test_set_y[minibatch_offset:minibatch_offset+batch_size]})
+
+    validate_model =theano.function([minibatch_offset], classifier.errors(y),
+            givens={
+                x:valid_set_x[minibatch_offset:minibatch_offset+batch_size],
+                y:valid_set_y[minibatch_offset:minibatch_offset+batch_size]})
 
 
 
@@ -347,16 +374,16 @@ The output one should expect is of the form :
 
 .. code-block:: bash
 
-  epoch 0, minibatch 2500/2500, validation error 10.720000 %
-       epoch 0, minibatch 2500/2500, test error of best model 11.050000 %
+  epoch 0, minibatch 83/83, validation error 12.458333 %
+       epoch 0, minibatch 83/83, test error of best model 12.375000 %
   ...
-  epoch 96, minibatch 2500/2500, validation error 7.010000 %
-  Optimization complete with best validation score of 7.01%, with test performance 7.61%
-  The code ran for 2.716667 minutes
+  epoch 72, minibatch 83/83, validation error 7.50000 %
+  Optimization complete with best validation score of 7.5%, with test performance 7.489%
+  The code ran for 0.51200 minutes
 
 On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
-approximately 1.69 sec/epoch and it took 96 epochs to reach a test
-error of 7.61%. 
+approximately 2.34 epochs/sec and it took 72 epochs to reach a test
+error of 7.489%. On the GPU the code does almost 10.0 epochs/sec. 
 
 .. rubric:: Footnotes
 

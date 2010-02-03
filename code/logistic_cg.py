@@ -153,8 +153,6 @@ def cg_optimization_mnist( n_iter=50, mnist_pkl_gz='mnist.pkl.gz' ):
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
-    # make minibatches of size 20 
-    batch_size = 500    # sized of the minibatch
 
     def shared_dataset(data_xy):
         data_x, data_y = data_xy
@@ -166,7 +164,7 @@ def cg_optimization_mnist( n_iter=50, mnist_pkl_gz='mnist.pkl.gz' ):
     valid_set_x, valid_set_y = shared_dataset(valid_set)
     train_set_x, train_set_y = shared_dataset(train_set)
 
-    batch_size = 500    # sized of the minibatch
+    batch_size = 600    # size of the minibatch
 
     n_train_batches = train_set_x.value.shape[0] / batch_size
     n_valid_batches = valid_set_x.value.shape[0] / batch_size
@@ -252,7 +250,7 @@ def cg_optimization_mnist( n_iter=50, mnist_pkl_gz='mnist.pkl.gz' ):
             # if so, replace the old one, and compute the score on the 
             # testing dataset
             validation_scores[0] = this_validation_loss
-            test_loses = [test_model(i*batch_size) for i in xrange(n_train_batches)]
+            test_loses = [test_model(i*batch_size) for i in xrange(n_test_batches)]
             validation_scores[1] = numpy.mean(test_loses)
 
     # using scipy conjugate gradient optimizer 
