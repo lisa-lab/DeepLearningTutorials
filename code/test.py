@@ -14,9 +14,6 @@ def test_dbn():
     raise SkipTest('Implementation not finished')
 def test_rbm():
     raise SkipTest('Implementation not finished')
-def test_SdA_loops():
-    raise SkipTest('Implementation not finished')
-    SdA_loops.sgd_optimization_mnist()
 def test_SdA():
     raise SkipTest('Implementation not finished')
-    SdA.sgd_optimization_mnist()
+    SdA.sgd_optimization_mnist(pretraining_epochs = 2, n_iter = 3)

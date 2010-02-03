@@ -309,12 +309,10 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz', nkern
     for iter in xrange(n_iter * n_train_batches):
 
         # get epoch and minibatch index
-        epoch           = iter / n_train_batches
-        minibatch_index =  iter % n_train_batches
+        epoch            = iter / n_train_batches
+        minibatch_index  =  iter % n_train_batches
         minibatch_offset = minibatch_index * batch_size
     
-        # get the minibatches corresponding to `iter` modulo
-        # `len(train_batches)`
 
         if iter %100 == 0:
             print 'training @ iter = ', iter
