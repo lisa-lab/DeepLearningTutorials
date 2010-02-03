@@ -504,7 +504,11 @@ instantiate the network as follows.
     updates = {}
     for param_i, grad_i in zip(params, grads):                                                                       
         updates[param_i] = param_i - learning_rate * grad_i                                                          
-    train_model = theano.function([x, y], cost, updates=updates) 
+    train_model = theano.function([minibatch_offset], cost, updates = updates,
+            givens={
+                x:train_set_x[minibatch_offset:minibatch_offset+batch_size],
+                y:train_set_y[minibatch_offset:minibatch_offset+batch_size]})
+
 
 
 We leave out the code, which performs the actual training and early-stopping,

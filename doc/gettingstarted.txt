@@ -1,4 +1,4 @@
-.. _gettingstarted:
+﻿.. _gettingstarted:
 
   
 ===============
@@ -55,9 +55,7 @@ MNIST Dataset
  images. An image is represented as numpy 1-dimensional array of 784 (28
  x 28) float values between 0 and 1 (0 stands for black, 1 for white).
  The labels are numbers between 0 and 9 indicating which digit the image
- represents. When using the dataset, we usually divide it in minibatches 
- (see :ref:`opt_SGD`). The code block below shows how to load the
- dataset and how to divide it in minibatches of a given size : 
+ represents. The code block below shows how to load the dataset. 
  
 
  .. code-block:: python
@@ -69,43 +67,59 @@ MNIST Dataset
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
-    # make minibatches of size 20 
-    batch_size = 20    # sized of the minibatch
 
-    # Dealing with the training set
-    # get the list of training images (x) and their labels (y)
-    (train_set_x, train_set_y) = train_set
-    # initialize the list of training minibatches with empty list
-    train_batches = []
-    for i in xrange(0, len(train_set_x), batch_size):
-        # add to the list of minibatches the minibatch starting at 
-        # position i, ending at position i+batch_size
-        # a minibatch is a pair ; the first element of the pair is a list 
-        # of datapoints, the second element is the list of corresponding 
-        # labels
-        train_batches = train_batches + \
-               [(train_set_x[i:i+batch_size], train_set_y[i:i+batch_size])]
+ When using the dataset, we usually divide it in minibatches (see
+ :ref:`opt_SGD`). We encourage you to store the dataset into shared 
+ variables and access it based on the minibatch offset, given a fixed 
+ and known batch size. The reason behind shared variables is
+ related to using the GPU. There is a large overhead when copying data
+ into the GPU memory. If you would copy data on request ( each minibatch 
+ individually when needed) as the code will do if you do not use shared 
+ variables, due to this overhead, the GPU code will not be much faster
+ then the CPU code (maybe even slower). If you have your data into a 
+ Theano shared variables though, you give Theano the possibility to copy 
+ the entire data on the GPU in a single call when the shared variables are constructed.
+ Afterwards the GPU can access any minibatch by taking a slice from this 
+ shared variables, without needing to copy any information from the CPU 
+ memory and therefore bypassing the overhead. 
+ Because the datapoints and their labels are usually of different nature
+ (labels are usually integers while datapoints are real numbers) we
+ suggest to use different variables for labes and data. Also we recomand 
+ using different variables for the training set, validation set and
+ testing set to make the code more readable (resulting in 6 different
+ shared variables). 
+ 
+ Since now the data is in one variable, and a minibatch is defined as a
+ slice of that variable, it comes more natural to define a minibatch by
+ indicating where the slice starts (the offset) and how large it is (the 
+ batch size). Note that since the batch size stays constant through out the
+ execution of the code, a function will 
+ require only the offset as input in order to identify on which minibatch to work. 
+ The code below shows how to store your data and how to 
+ access a minibatch:
 
-    # Dealing with the validation set
-    (valid_set_x, valid_set_y) = valid_set
-    # initialize the list of validation minibatches 
-    valid_batches = []
-    for i in xrange(0, len(valid_set_x), batch_size):
-        valid_batches = valid_batches + \
-               [(valid_set_x[i:i+batch_size], valid_set_y[i:i+batch_size])]
+ 
+ .. code-block:: python
 
-    # Dealing with the testing set
-    (test_set_x, test_set_y) = test_set
-    # initialize the list of testing minibatches 
-    test_batches = []
-    for i in xrange(0, len(test_set_x), batch_size):
-        test_batches = test_batches + \
-              [(test_set_x[i:i+batch_size], test_set_y[i:i+batch_size])]
+    def shared_dataset(data_xy):
+        data_x, data_y = data_xy
+        shared_x = theano.shared(numpy.asarray(data_x, dtype=theano.config.floatX))
+        shared_y = theano.shared(numpy.asarray(data_y, dtype=theano.config.floatX))
+        return shared_x, T.cast(shared_y, 'int32')
+
+    test_set_x, test_set_y = shared_dataset(test_set)
+    valid_set_x, valid_set_y = shared_dataset(valid_set)
+    train_set_x, train_set_y = shared_dataset(train_set)
+
+    batch_size = 500    # size of the minibatch
+
+    # accessing the third minibatch of the training set 
+
+    data  = train_set_x[2*500:3*500]
+    label = train_set_y[2*500:3*500]
 
 
-   # accessing training example i of minibatch j 
-   image = training_set[j][0][i]
-   label = training_set[j][1][i]
+
 
 
 .. index:: Notation
@@ -503,7 +517,8 @@ of a strategy based on a geometrically increasing amount of patience.
                                   # validation error is found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = 2500  # make this many SGD updates between validations
+    validation_frequency  = min(2500, patience/2.)
+                                  # make this many SGD updates between validations
 
     # initialize cross-validation variables
     best_params = None
@@ -546,6 +561,14 @@ of a strategy based on a geometrically increasing amount of patience.
 
 If we run out of batches of training data before running out of patience, then
 we just go back to the beginning of the training set and repeat.  
+
+
+.. note::
+    
+    The ``validation_frequency`` should always be smaller than the
+    ``patience``. The code should check at least two times how it
+    performs before running out of patience. This is the reason we used
+    the formulation ``validation_frequency = min( 2500, patience/2.)``
 
 .. note::
 
