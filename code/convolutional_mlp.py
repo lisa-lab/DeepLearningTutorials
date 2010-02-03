@@ -224,7 +224,7 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
     # Construct the first convolutional pooling layer:
     # filtering reduces the image size to (28-5+1,28-5+1)=(24,24)
     # maxpooling reduces this further to (24/2,24/2) = (12,12)
-    # 4D output tensor is thus of shape (20,20,12,12)
+    # 4D output tensor is thus of shape (batch_size,20,12,12)
     layer0 = LeNetConvPoolLayer(rng, input=layer0_input,
             image_shape=(batch_size,1,28,28), 
             filter_shape=(20,1,5,5), poolsize=(2,2))
@@ -326,7 +326,7 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
             validation_losses = [validate_model(i*batch_size) for i in xrange(n_valid_batches)]
             this_validation_loss = numpy.mean(validation_losses)
             print('epoch %i, minibatch %i/%i, validation error %f %%' % \
-                   (epoch, minibatch_index+1, n_minibatches, \
+                   (epoch, minibatch_index+1, n_train_batches, \
                     this_validation_loss*100.))
 
 
@@ -347,7 +347,7 @@ def evaluate_lenet5(learning_rate=0.1, n_iter=200, dataset='mnist.pkl.gz'):
                 test_score = numpy.mean(test_losses)
                 print(('     epoch %i, minibatch %i/%i, test error of best '
                       'model %f %%') % 
-                             (epoch, minibatch_index+1, n_minibatches,
+                             (epoch, minibatch_index+1, n_train_batches,
                               test_score*100.))
 
         if patience <= iter :
