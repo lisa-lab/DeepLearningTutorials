@@ -300,7 +300,7 @@ class SdA():
 
   
 
-def sgd_optimization_mnist( learning_rate=0.01, pretraining_epochs = 10, \
+def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 20, \
                             pretraining_lr = 0.1, n_iter = 1000, dataset='mnist.pkl.gz'):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer 
@@ -337,7 +337,7 @@ def sgd_optimization_mnist( learning_rate=0.01, pretraining_epochs = 10, \
     valid_set_x, valid_set_y = shared_dataset(valid_set)
     train_set_x, train_set_y = shared_dataset(train_set)
 
-    batch_size = 500    # size of the minibatch
+    batch_size = 20    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size
@@ -355,7 +355,7 @@ def sgd_optimization_mnist( learning_rate=0.01, pretraining_epochs = 10, \
 
     # construct the logistic regression class
     classifier = SdA( input=x, n_ins=28*28, \
-                      hidden_layers_sizes = [500, 500,500], n_outs=10)
+                      hidden_layers_sizes = [700, 700,700], n_outs=10)
     
     ## Pre-train layer-wise 
     for i in xrange(classifier.n_layers):
