@@ -13,13 +13,13 @@ Classifying MNIST digits using Logistic Regression
 .. note::
     The code for this section is available for download `here`_.
 
-.. _here: http://www.iro.umontreal.ca/~lisa/deep/tutorial/code/logistic_sgd.py
+.. _here: http://deeplearning.net/tutorial/code/logistic_sgd.py
 
-.. _shared variables: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/examples.html#using-shared-variables
+.. _shared variables: http://deeplearning.net/software/theano/tutorial/examples.html#using-shared-variables
 
-.. _basic arithmetic ops: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/adding.html#adding-two-scalars
+.. _basic arithmetic ops: http://deeplearning.net/software/theano/tutorial/adding.html#adding-two-scalars
 
-.. _T.grad: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/examples.html#computing-gradients
+.. _T.grad: http://deeplearning.net/software/theano/tutorial/examples.html#computing-gradients
 
 In this section, we show how Theano can be used to implement the most basic
 classifier: the logistic regression. We start off with a quick primer of the
@@ -389,7 +389,7 @@ error of 7.489%. On the GPU the code does almost 10.0 epochs/sec.
 
 .. [#f1] For smaller datasets and simpler models, more sophisticated descent
          algorithms can be more effective. The sample code
-         `logistic_cg.py <http://www.iro.umontreal.ca/~lisa/deep/tutorial/code/logistic_cg.py>`_
+         `logistic_cg.py <http://deeplearning.net/tutorial/code/logistic_cg.py>`_
          demonstrates how to use SciPy's conjugate gradient solver with Theano 
          on the logistic regression task.
 

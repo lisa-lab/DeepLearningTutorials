@@ -23,7 +23,7 @@ Datasets
 MNIST Dataset
 +++++++++++++
 
-(`mnist.pkl.gz <http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz>`_)
+(`mnist.pkl.gz <http://deeplearning.net/data/mnist/mnist.pkl.gz>`_)
 
  The `MNIST <http://yann.lecun.com/exdb/mnist>`_ dataset consists of handwritten 
  digit images and it is divided in 60 000 examples for the training set and 
@@ -48,7 +48,7 @@ MNIST Dataset
  .. |5| image:: images/mnist_5.png
  
  For convenience we pickled the dataset to make it easier to use in python.
- It is available for download `here <http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz>`_.
+ It is available for download `here <http://deeplearning.net/data/mnist/mnist.pkl.gz>`_.
  The pickled file represents a tuple of 3 lists : the training set, the 
  validation set and the testing set. Each of the three lists is a pair
  formed from a list of images and a list of class labels for each of the
@@ -667,7 +667,7 @@ another machine in a distributed job.
 Read more about `serialization in Theano`_, or Python's `pickling`_.
 
 .. _pickling: http://docs.python.org/library/pickle.html
-.. _serialization in Theano: http://deeplearning.net/theanodoc/tutorial/loading_and_saving.html
+.. _serialization in Theano: http://deeplearning.net/software/theano/tutorial/loading_and_saving.html
 
 Plotting Intermediate Results
 ++++++++++++++++++++++++++++++
