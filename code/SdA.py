@@ -170,8 +170,8 @@ class dA(object):
     # the output of uniform if converted using asarray to dtype 
     # theano.config.floatX so that the code is runable on GPU
     initial_W = numpy.asarray( numpy.random.uniform( \
-              low = -numpy.sqrt(6./(n_visible+n_hidden)), \
-              high = numpy.sqrt(6./(n_visible+n_hidden)), \
+              low = -numpy.sqrt(1./(n_visible)), \
+              high = numpy.sqrt(1./(n_visible)), \
               size = (n_visible, n_hidden)), dtype = theano.config.floatX)
     initial_b       = numpy.zeros(n_hidden)
     initial_b_prime= numpy.zeros(n_visible)
@@ -388,8 +388,9 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 5, \
         print 'cost: ', theano.pp(classifier.layers[i].cost)
         print ' '
         print 'hid: ', theano.pp(classifier.layers[i].hidden_values)
+        print ' '
         print '================================================='
-        layer_update = theano.function([index], [cost, classifier.layers[i].x, classifier.layers[i].z], \
+        layer_update = theano.function([index], [cost, classifier.layers[i].x, new_W, new_b, new_b_prime], \
           updates = { 
               classifier.layers[i].W       : new_W \
             , classifier.layers[i].b       : new_b \
@@ -402,6 +403,7 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 5, \
             for batch_index in xrange(n_train_batches):
                 c = layer_update(batch_index)
             print 'Pre-training layer %i, epoch %d'%(i,epoch),c, batch_index
+
 
 
 
