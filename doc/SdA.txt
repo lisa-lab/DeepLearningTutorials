@@ -433,11 +433,7 @@ TODO
 References
 ++++++++++
 
-.. [Vincent08] Vincent, P., Larochelle H., Bengio Y. and Manzagol P.A.
-     (2008). Extracting and Composing Robust Features with Denoising
-     Autoencoders. ICML'08, pp. 1096 - 1103
+.. [Vincent08] Vincent, P., Larochelle H., Bengio Y. and Manzagol P.A.(2008).Extracting and Composing Robust Features with Denoising Autoencoders. ICML'08, pp. 1096 - 1103
 
-.. [Bengio07] Bengio Y., Lamblin P., Popovici D. and Larochelle H.
-     (2007). Greedy Layer-Wise Training of Deep Networks. NIPS'06, pp
-     153-160
+.. [Bengio07] Bengio Y., Lamblin P., Popovici D. and Larochelle H.(2007). Greedy Layer-Wise Training of Deep Networks. NIPS'06, pp  153-160
 
