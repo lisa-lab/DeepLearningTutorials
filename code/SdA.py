@@ -235,9 +235,7 @@ class SdA():
     """
 
     def __init__(self, input, n_ins, hidden_layers_sizes, n_outs):
-        """ This class is costum made for a three layer SdA, and therefore
-        is created by specifying the sizes of the hidden layers of the 
-        3 dAs used to generate the network. 
+        """ This class is made to support a variable number of layers. 
 
         :param input: symbolic variable describing the input of the SdA
 
