@@ -13,7 +13,7 @@ tutorial with a short digression on :ref:`autoencoders`
 and then move on to how classical
 autoencoders are extended to denoising autoencoders (:ref:`dA`).
 Throughout the following subchapters we will stick as close as possible to 
-the original paper ( [Vincent08]_ ).
+the original paper ( [Vincent08] ).
 
 
 .. _autoencoders:
@@ -103,9 +103,15 @@ signal :
 
 .. code-block:: python
 
-    self.y    = T.nnet.sigmoid(T.dot(x,      self.W      ) + self.b)
-    z         = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
-    self.L    = - T.sum( x*T.log(z) + (1-x)*T.log(1-z), axis=1 ) 
+    self.y    = T.nnet.sigmoid(T.dot(self.x, self.W      ) + self.b)
+    self.z    = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
+    # note : we sum over the size of a datapoint; if we are using minibatches,
+    #        L will  be a vector, with one entry per example in minibatch 
+    self.L    = - T.sum( self.x*T.log(self.z) + (1-self.x)*T.log(1-self.z), axis=1 ) 
+    # note : L is now a vector, where each element is the cross-entropy cost 
+    #        of the reconstruction of the corresponding example of the 
+    #        minibatch. We need to compute the average of all these to get 
+    #        the cost of the minibatch 
     self.cost = T.mean(self.L)
 
 Training the autoencoder consist now in updating the parameters ``W``, 
@@ -121,7 +127,7 @@ cost is minimized.
 
 Note that for the stacked denoising autoencoder we will not use the
 ``train`` function as defined here, this is here just to illustrate how 
-the autoencoder would work. In [Bengio07]_ autoencoders are used to
+the autoencoder would work. In [Bengio07] autoencoders are used to
 build deep networks.
 
 
@@ -136,7 +142,7 @@ This can be understood from different perspectives
 stochastic operator perspective, 
 bottom-up -- information theoretic perspective, 
 top-down -- generative model perspective ), all of which are explained in 
-[Vincent08]_. 
+[Vincent08]. 
 
 
 To convert the autoencoder class into a denoising autoencoder one, all we 
@@ -192,14 +198,14 @@ The final denoising autoencoder class becomes :
           if input == None : 
               # we use a matrix because we expect a minibatch of several examples,
               # each example being a row
-              x = T.dmatrix(name = 'input') 
+              self.x = T.dmatrix(name = 'input') 
           else:
-              x = input
+              self.x = input
           
-          tilde_x  = theano_rng.binomial( x.shape,  1,  0.9) * x
-          self.y   = T.nnet.sigmoid(T.dot(tilde_x, self.W      ) + self.b)
-          z        = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
-          self.L = - T.sum( x*T.log(z) + (1-x)*T.log(1-z), axis=1 ) 
+          self.tilde_x  = theano_rng.binomial( self.x.shape,  1,  0.9) * self.x
+          self.y   = T.nnet.sigmoid(T.dot(self.tilde_x, self.W      ) + self.b)
+          self.z        = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
+          self.L = - T.sum( self.x*T.log(self.z) + (1-self.x)*T.log(1-self.z), axis=1 ) 
           # note : L is now a vector, where each element is the cross-entropy cost 
           #        of the reconstruction of the corresponding example of the 
           #        minibatch. We need to compute the average of all these to get 
@@ -209,7 +215,7 @@ The final denoising autoencoder class becomes :
           #        we will need the hidden layer obtained from the uncorrupted 
           #        input when for example we will pass this as input to the layer 
           #        above
-          self.hidden_values = T.nnet.sigmoid( T.dot(x, self.W) + self.b)
+          self.hidden_values = T.nnet.sigmoid( T.dot(self.x, self.W) + self.b)
 
 
 
@@ -433,7 +439,11 @@ TODO
 References
 ++++++++++
 
-.. [Vincent08] Vincent, P., Larochelle H., Bengio Y. and Manzagol P.A.(2008).Extracting and Composing Robust Features with Denoising Autoencoders. ICML'08, pp. 1096 - 1103
+.. [Vincent08] Vincent, P., Larochelle H., Bengio Y. and Manzagol P.A. `Extracting and Composing Robust Features with Denoising Autoencoders`_. Proceedings of the Twenty-fifth International Confrence on Machine Learning (ICML'08), pages 1096 - 1103, ACM, 2008
 
-.. [Bengio07] Bengio Y., Lamblin P., Popovici D. and Larochelle H.(2007). Greedy Layer-Wise Training of Deep Networks. NIPS'06, pp  153-160
+.. [Bengio07] Bengio Y., Lamblin P., Popovici D. and Larochelle H. `Greedy Layer-Wise Training of Deep Networks`_. Advances in Neural Information Processing Systems 19 (NIPS'06), pages  153-160, MIT Press 2007
 
+
+.. _Extracting and Composing Robust Features with Denoising Autoencoders: http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/217
+
+.. _Greedy Layer-Wise Training of Deep Networks: http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/190 
