@@ -1,6 +1,7 @@
+.. index:: Multilayer Perceptron
+
 .. _mlp:
 
-.. index:: Multilayer Perceptron
 
 Multilayer Perceptron
 =====================

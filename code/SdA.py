@@ -170,8 +170,8 @@ class dA(object):
     # the output of uniform if converted using asarray to dtype 
     # theano.config.floatX so that the code is runable on GPU
     initial_W = numpy.asarray( numpy.random.uniform( \
-              low = -numpy.sqrt(1./(n_visible)), \
-              high = numpy.sqrt(1./(n_visible)), \
+              low = -numpy.sqrt(6./(n_hidden+n_visible)), \
+              high = numpy.sqrt(6./(n_hidden+n_visible)), \
               size = (n_visible, n_hidden)), dtype = theano.config.floatX)
     initial_b       = numpy.zeros(n_hidden)
     initial_b_prime= numpy.zeros(n_visible)
@@ -304,7 +304,7 @@ class SdA():
 
   
 
-def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 5, \
+def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 10, \
                             pretraining_lr = 0.1, training_epochs = 1000, dataset='mnist.pkl.gz'):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer 
@@ -359,51 +359,34 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 5, \
 
     # construct the logistic regression class
     classifier = SdA( input=x, n_ins=28*28, \
-                      hidden_layers_sizes = [500, 500, 500], n_outs=10)
+                      hidden_layers_sizes = [700, 700, 700], n_outs=10)
     
     ## Pre-train layer-wise 
     for i in xrange(classifier.n_layers):
+        cost = classifier.layers[i].cost
         # compute gradients of layer parameters
-        gW       = T.grad(classifier.layers[i].cost, classifier.layers[i].W)
-        gb       = T.grad(classifier.layers[i].cost, classifier.layers[i].b)
-        gb_prime = T.grad(classifier.layers[i].cost, \
-                                               classifier.layers[i].b_prime)
+        gW       = T.grad(cost, classifier.layers[i].W)
+        gb       = T.grad(cost, classifier.layers[i].b)
+        gb_prime = T.grad(cost, classifier.layers[i].b_prime)
         # updated value of parameters after each step
         new_W       = classifier.layers[i].W      - gW      * pretraining_lr
         new_b       = classifier.layers[i].b      - gb      * pretraining_lr
         new_b_prime = classifier.layers[i].b_prime- gb_prime* pretraining_lr
-        cost = classifier.layers[i].cost
-        print '---------------------------------------------------'
-        print ' Layer : ',i
-        print ' x : ', theano.pp(classifier.layers[i].x)
-        print ' '
-        print ' tilde_x: ', theano.pp(classifier.layers[i].tilde_x)
-        print ' '
-        print 'y :', theano.pp(classifier.layers[i].y)
-        print ' '
-        print 'z: ', theano.pp(classifier.layers[i].z)
-        print ' '
-        print 'L:', theano.pp(classifier.layers[i].L)
-        print ' '
-        print 'cost: ', theano.pp(classifier.layers[i].cost)
-        print ' '
-        print 'hid: ', theano.pp(classifier.layers[i].hidden_values)
-        print ' '
-        print '================================================='
-        layer_update = theano.function([index], [cost, classifier.layers[i].x, new_W, new_b, new_b_prime], \
+
+        layer_update = theano.function([index], [cost], \
           updates = { 
               classifier.layers[i].W       : new_W \
             , classifier.layers[i].b       : new_b \
             , classifier.layers[i].b_prime : new_b_prime },
           givens = {
-              x :train_set_x[index*batch_size:(index+1)*batch_size]})
+              x :train_set_x[index*batch_size:(index+1)*batch_size-1]})
         # go through pretraining epochs 
         for epoch in xrange(pretraining_epochs):
             # go through the training set
             for batch_index in xrange(n_train_batches):
                 c = layer_update(batch_index)
-            print 'Pre-training layer %i, epoch %d'%(i,epoch),c, batch_index
-
+            print 'Pre-training layer %i, epoch %d'%(i,epoch),c
+ 
 
 
 
