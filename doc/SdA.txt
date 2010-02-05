@@ -8,7 +8,7 @@ Stacked Denoising Autoencoders (SdA)
 
 
 The Stacked Denoising Autoencoder (SdA) is an extension of the stacked 
-autoencoder and it was introduced in [Vincent08]_. We will start the 
+autoencoder [Bengio07]_ and it was introduced in [Vincent08]_. We will start the 
 tutorial with a short digression on :ref:`autoencoders`
 and then move on to how classical
 autoencoders are extended to denoising autoencoders (:ref:`dA`).
@@ -22,14 +22,14 @@ Autoencoders
 +++++++++++++
 
 An autoencoder takes an input :math:`\mathbf{x} \in [0,1]^d` and first 
-maps it to a hidden representation :math:`\mathbf{y} \in [0,1]^{d'}` 
+maps it (with an *encoder*) to a hidden representation :math:`\mathbf{y} \in [0,1]^{d'}` 
 through a deterministic mapping:
 
 .. math::
   
   \mathbf{y} = s(\mathbf{W}\mathbf{x} + \mathbf{b})
 
-The latent representation :math:`\mathbf{y}` is then mapped back into a
+The latent representation :math:`\mathbf{y}` is then mapped back (with a *decoder*) into a
 "reconstructed" vector :math:`\mathbf{z}` of same shape as
 :math:`\mathbf{x}` through a similar transformation, namely:
 
@@ -37,24 +37,26 @@ The latent representation :math:`\mathbf{y}` is then mapped back into a
 
   \mathbf{z} = s(\mathbf{W'}\mathbf{y} + \mathbf{b'})
 
-The weights matrix :math:`\mathbf{W'}` of the reverse mapping may be
-optionally constrained by :math:`\mathbf{W'} = \mathbf{W}^T`, this is 
-called using *tied weights*. The parameters of this model (nameley 
+where ' does not indicate transpose, and
+:math:`\mathbf{z}` should be seen as a prediction of :math:`\mathbf{x}`.
+The weight matrix :math:`\mathbf{W'}` of the reverse mapping may be
+optionally constrained by :math:`\mathbf{W'} = \mathbf{W}^T`, which is
+an instance of *tied weights*. The parameters of this model (namely 
 :math:`\mathbf{W}`, :math:`\mathbf{b}`, 
 :math:`\mathbf{b'}` and, if one doesn't use tied weights, also 
 :math:`\mathbf{W'}`) are optimized such that the average reconstruction 
 error is minimized. The reconstruction error can be measured using the 
-traditional *squared error* :math:`L(\mathbf{x}, \mathbf{z}) = | \mathbf{x} - \mathbf{z} |^2`, 
+traditional *squared error* :math:`L(\mathbf{x}, \mathbf{z}) = || \mathbf{x} - \mathbf{z} ||^2`, 
 or if the input is interpreted as either bit vectors or vectors of 
 bit probabilities by the reconstruction *cross-entropy* defined as : 
 
 .. math::
 
-  L_{H} (\mathbf{x}, \mathbf{z} = - \sum^d_{k=1}[\mathbf{x}_k \log
+  L_{H} (\mathbf{x}, \mathbf{z}) = - \sum^d_{k=1}[\mathbf{x}_k \log
           \mathbf{z}_k + (1 - \mathbf{x}_k)\log(1 - \mathbf{z}_k)] 
 
 
-We want to implent this behaviour using Theano, in the form of a class,
+We want to implement this behavior using Theano, in the form of a class,
 that could be afterwards used in constructing a stacked autoencoder. The
 first step is to create shared variables for the parameters of the 
 autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and 
@@ -92,7 +94,9 @@ autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
 
 Note that we pass the ``input``  to the autoencoder as a
 parameter. This is such that later we can concatenate layers of 
-autoencoders to form a deep network.
+autoencoders to form a deep network: the symbolic output (the :math:`\mathbf{y}` above, self.y 
+in the code below) of
+the k-th layer will be the symbolic input of the (k+1)-th.
 
 Now we can compute the latent representation and the reconstructed
 signal : 
@@ -127,11 +131,11 @@ Denoising Autoencoders (dA)
 The idea behind denoising autoencoders is simple. In order to enforce
 the hidden layer to discover more roboust features we train the
 autoencoder to reconstruct the input from a corrupted version of it.
-This can be understoond from different perspectives 
+This can be understood from different perspectives 
 ( the manifold learning perspective, 
 stochastic operator perspective, 
 bottom-up -- information theoretic perspective, 
-top-down -- generative model perspective ), all of which being explained in 
+top-down -- generative model perspective ), all of which are explained in 
 [Vincent08]_. 
 
 
