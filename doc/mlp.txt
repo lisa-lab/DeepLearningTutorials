@@ -1,6 +1,7 @@
+.. index:: Multilayer Perceptron
+
 .. _mlp:
 
-.. index:: Multilayer Perceptron
 
 Multilayer Perceptron
 =====================
@@ -14,15 +15,15 @@ Multilayer Perceptron
 .. note::
     The code for this section is available for download `here`_.
 
-.. _here: http://www.iro.umontreal.ca/~lisa/deep/tutorial/code/mlp.py
+.. _here: http://deeplearning.net/tutorial/code/mlp.py
 
-.. _T.tanh: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/examples.html?highlight=tanh
+.. _T.tanh: http://deeplearning.net/software/theano/tutorial/examples.html?highlight=tanh
 
-.. _shared variables: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/examples.html#using-shared-variables
+.. _shared variables: http://deeplearning.net/software/theano/tutorial/examples.html#using-shared-variables
 
-.. _basic arithmetic ops: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/adding.html#adding-two-scalars
+.. _basic arithmetic ops: http://deeplearning.net/software/theano/tutorial/adding.html#adding-two-scalars
 
-.. _T.grad: http://www.iro.umontreal.ca/~lisa/deep/theanodoc/tutorial/examples.html#computing-gradients
+.. _T.grad: http://deeplearning.net/software/theano/tutorial/examples.html#computing-gradients
 
 
 The next architecture we are going to present using Theano is the single-hidden

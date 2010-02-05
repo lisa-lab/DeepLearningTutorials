@@ -23,7 +23,7 @@ Datasets
 MNIST Dataset
 +++++++++++++
 
-(`mnist.pkl.gz <http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz>`_)
+(`mnist.pkl.gz <http://deeplearning.net/data/mnist/mnist.pkl.gz>`_)
 
  The `MNIST <http://yann.lecun.com/exdb/mnist>`_ dataset consists of handwritten 
  digit images and it is divided in 60 000 examples for the training set and 
@@ -48,7 +48,7 @@ MNIST Dataset
  .. |5| image:: images/mnist_5.png
  
  For convenience we pickled the dataset to make it easier to use in python.
- It is available for download `here <http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz>`_.
+ It is available for download `here <http://deeplearning.net/data/mnist/mnist.pkl.gz>`_.
  The pickled file represents a tuple of 3 lists : the training set, the 
  validation set and the testing set. Each of the three lists is a pair
  formed from a list of images and a list of class labels for each of the
@@ -70,7 +70,7 @@ MNIST Dataset
 
  When using the dataset, we usually divide it in minibatches (see
  :ref:`opt_SGD`). We encourage you to store the dataset into shared 
- variables and access it based on the minibatch offset, given a fixed 
+ variables and access it based on the minibatch index, given a fixed 
  and known batch size. The reason behind shared variables is
  related to using the GPU. There is a large overhead when copying data
  into the GPU memory. If you would copy data on request ( each minibatch 
@@ -91,10 +91,10 @@ MNIST Dataset
  
  Since now the data is in one variable, and a minibatch is defined as a
  slice of that variable, it comes more natural to define a minibatch by
- indicating where the slice starts (the offset) and how large it is (the 
- batch size). Note that since the batch size stays constant through out the
+ indicating its index and how large one minibatch is 
+ Note that since the batch size stays constant through out the
  execution of the code, a function will 
- require only the offset as input in order to identify on which minibatch to work. 
+ require only the index as input in order to identify on which minibatch to work. 
  The code below shows how to store your data and how to 
  access a minibatch:
 
@@ -667,7 +667,7 @@ another machine in a distributed job.
 Read more about `serialization in Theano`_, or Python's `pickling`_.
 
 .. _pickling: http://docs.python.org/library/pickle.html
-.. _serialization in Theano: http://deeplearning.net/theanodoc/tutorial/loading_and_saving.html
+.. _serialization in Theano: http://deeplearning.net/software/theano/tutorial/loading_and_saving.html
 
 Plotting Intermediate Results
 ++++++++++++++++++++++++++++++

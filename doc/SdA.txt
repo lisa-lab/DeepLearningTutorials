@@ -1,0 +1,443 @@
+Stacked Denoising Autoencoders (SdA)
+====================================
+
+.. note::
+  This section assumes the reader has already read through :doc:`logreg`
+  and :doc:`mlp`. Additionally it uses the following Theano functions
+  and concepts : TODO
+
+
+The Stacked Denoising Autoencoder (SdA) is an extension of the stacked 
+autoencoder [Bengio07]_ and it was introduced in [Vincent08]_. We will start the 
+tutorial with a short digression on :ref:`autoencoders`
+and then move on to how classical
+autoencoders are extended to denoising autoencoders (:ref:`dA`).
+Throughout the following subchapters we will stick as close as possible to 
+the original paper ( [Vincent08]_ ).
+
+
+.. _autoencoders:
+
+Autoencoders
++++++++++++++
+
+An autoencoder takes an input :math:`\mathbf{x} \in [0,1]^d` and first 
+maps it (with an *encoder*) to a hidden representation :math:`\mathbf{y} \in [0,1]^{d'}` 
+through a deterministic mapping:
+
+.. math::
+  
+  \mathbf{y} = s(\mathbf{W}\mathbf{x} + \mathbf{b})
+
+The latent representation :math:`\mathbf{y}` is then mapped back (with a *decoder*) into a
+"reconstructed" vector :math:`\mathbf{z}` of same shape as
+:math:`\mathbf{x}` through a similar transformation, namely:
+
+.. math::
+
+  \mathbf{z} = s(\mathbf{W'}\mathbf{y} + \mathbf{b'})
+
+where ' does not indicate transpose, and
+:math:`\mathbf{z}` should be seen as a prediction of :math:`\mathbf{x}`.
+The weight matrix :math:`\mathbf{W'}` of the reverse mapping may be
+optionally constrained by :math:`\mathbf{W'} = \mathbf{W}^T`, which is
+an instance of *tied weights*. The parameters of this model (namely 
+:math:`\mathbf{W}`, :math:`\mathbf{b}`, 
+:math:`\mathbf{b'}` and, if one doesn't use tied weights, also 
+:math:`\mathbf{W'}`) are optimized such that the average reconstruction 
+error is minimized. The reconstruction error can be measured using the 
+traditional *squared error* :math:`L(\mathbf{x}, \mathbf{z}) = || \mathbf{x} - \mathbf{z} ||^2`, 
+or if the input is interpreted as either bit vectors or vectors of 
+bit probabilities by the reconstruction *cross-entropy* defined as : 
+
+.. math::
+
+  L_{H} (\mathbf{x}, \mathbf{z}) = - \sum^d_{k=1}[\mathbf{x}_k \log
+          \mathbf{z}_k + (1 - \mathbf{x}_k)\log(1 - \mathbf{z}_k)] 
+
+
+We want to implement this behavior using Theano, in the form of a class,
+that could be afterwards used in constructing a stacked autoencoder. The
+first step is to create shared variables for the parameters of the 
+autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and 
+:math:`\mathbf{b'}`, since we are using tied weights in this tutorial ): 
+
+
+
+.. code-block:: python
+ 
+    class AutoEncoder(object):
+
+        def __init__(self, n_visible= 784, n_hidden= 500, input = None):
+
+          # initial values for weights and biases
+          # note : W' was written as `W_prime` and b' as `b_prime`
+
+          # W is initialized with `initial_W` which is uniformely sampled
+          # from -6./sqrt(n_visible+n_hidden) and 6./sqrt(n_hidden+n_visible)
+          # the output of uniform if converted using asarray to dtype 
+          # theano.config.floatX so that the code is runable on GPU
+          initial_W = numpy.asarray( numpy.random.uniform( \
+              low = -numpy.sqrt(6./(n_visible+n_hidden)), \
+              high = numpy.sqrt(6./(n_visible+n_hidden)), \
+              size = (n_visible, n_hidden)), dtype = theano.config.floatX)
+          initial_b       = numpy.zeros(n_hidden)
+          initial_b_prime= numpy.zeros(n_visible)
+     
+    
+          # theano shared variables for weights and biases
+          self.W       = theano.shared(value = initial_W,       name = "W")
+          self.b       = theano.shared(value = initial_b,       name = "b")
+          # tied weights, therefore W_prime is W transpose
+          self.W_prime = W.T 
+          self.b_prime = theano.shared(value = initial_b_prime, name = "b'")
+
+Note that we pass the ``input``  to the autoencoder as a
+parameter. This is such that later we can concatenate layers of 
+autoencoders to form a deep network: the symbolic output (the :math:`\mathbf{y}` above, self.y 
+in the code below) of
+the k-th layer will be the symbolic input of the (k+1)-th.
+
+Now we can compute the latent representation and the reconstructed
+signal : 
+
+.. code-block:: python
+
+    self.y    = T.nnet.sigmoid(T.dot(x,      self.W      ) + self.b)
+    z         = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
+    self.L    = - T.sum( x*T.log(z) + (1-x)*T.log(1-z), axis=1 ) 
+    self.cost = T.mean(self.L)
+
+Training the autoencoder consist now in updating the parameters ``W``, 
+``b`` and ``b_prime`` by stochastic gradient descent such that the 
+cost is minimized.
+
+.. code-block:: python
+
+  train = theano.function( [x], cost, updates = { \
+            self.W       : self.W       - T.grad(self.cost, self.W      )*learning_rate, 
+            self.b       : self.b       - T.grad(self.cost, self.b      )*learning_rate,
+            self.b_prime : self.b_prime - T.grad(self.cost, self.b_prime)*learning_rate})
+
+Note that for the stacked denoising autoencoder we will not use the
+``train`` function as defined here, this is here just to illustrate how 
+the autoencoder would work. In [Bengio07]_ autoencoders are used to
+build deep networks.
+
+
+Denoising Autoencoders (dA)
++++++++++++++++++++++++++++
+
+The idea behind denoising autoencoders is simple. In order to enforce
+the hidden layer to discover more roboust features we train the
+autoencoder to reconstruct the input from a corrupted version of it.
+This can be understood from different perspectives 
+( the manifold learning perspective, 
+stochastic operator perspective, 
+bottom-up -- information theoretic perspective, 
+top-down -- generative model perspective ), all of which are explained in 
+[Vincent08]_. 
+
+
+To convert the autoencoder class into a denoising autoencoder one, all we 
+need to do is to add a corrupt the input step. The input can be
+corrupted in many ways, in this tutorial we will stick to the original 
+corruption mechanism of randomly masking entries of the input by making
+them zero. The code below 
+does just that : 
+
+.. code-block:: python
+
+	from theano.tensor.shared_randomstreals import RandomStreams
+
+	theano_rng = RandomStreams()
+	corrupted_x = x * theano.rng.binomial(x.shape, 1, 0.9)
+
+The final denoising autoencoder class becomes : 
+
+.. code-block:: python
+
+   class dA(object):
+
+       def __init__(self, n_visible= 784, n_hidden= 500, input= None):
+
+          self.n_visible = n_visible
+          self.n_hidden  = n_hidden
+    
+          # create a Theano random generator that gives symbolic random values
+          theano_rng = RandomStreams()
+          # create a numpy random generator
+          numpy_rng = numpy.random.RandomState()
+    
+     
+          # initial values for weights and biases
+          # note : W' was written as `W_prime` and b' as `b_prime`
+
+          initial_W = numpy.asarray( numpy.random.uniform( \
+              low = -numpy.sqrt(6./(n_visible+n_hidden)), \
+              high = numpy.sqrt(6./(n_visible+n_hidden)), \
+              size = (n_visible, n_hidden)), dtype = theano.config.floatX)
+          initial_b       = numpy.zeros(n_hidden)
+          initial_b_prime= numpy.zeros(n_visible)
+     
+    
+          # theano shared variables for weights and biases
+          self.W       = theano.shared(value = initial_W,       name = "W")
+          self.b       = theano.shared(value = initial_b,       name = "b")
+          # tied weights, therefore W_prime is W transpose
+          self.W_prime = self.W.T 
+          self.b_prime = theano.shared(value = initial_b_prime, name = "b'")
+
+          # if no input is given, generate a variable representing the input
+          if input == None : 
+              # we use a matrix because we expect a minibatch of several examples,
+              # each example being a row
+              x = T.dmatrix(name = 'input') 
+          else:
+              x = input
+          
+          tilde_x  = theano_rng.binomial( x.shape,  1,  0.9) * x
+          self.y   = T.nnet.sigmoid(T.dot(tilde_x, self.W      ) + self.b)
+          z        = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
+          self.L = - T.sum( x*T.log(z) + (1-x)*T.log(1-z), axis=1 ) 
+          # note : L is now a vector, where each element is the cross-entropy cost 
+          #        of the reconstruction of the corresponding example of the 
+          #        minibatch. We need to compute the average of all these to get 
+          #        the cost of the minibatch
+          self.cost = T.mean(self.L)
+          # note : y is computed from the corrupted `tilde_x`. Later on, 
+          #        we will need the hidden layer obtained from the uncorrupted 
+          #        input when for example we will pass this as input to the layer 
+          #        above
+          self.hidden_values = T.nnet.sigmoid( T.dot(x, self.W) + self.b)
+
+
+
+.. _stacked_autoencoders:
+
+Stacked Autoencoders
+++++++++++++++++++++
+
+The denoising autoencoders can now be stacked to form a deep network by
+feeding the latent representation of the dA found on the layer 
+below as input to the current layer. The "pre-training" of such an 
+architecture is done one layer at a time. Once the first :math:`k` layers 
+are trained, we can train the :math:`k+1`-th layer because we can now 
+compute the "correct" latent representation generated by the layer below. 
+Once all layers are pre-trained, the network goes through a second stage
+of training called fine-tuning. For this we first add a logistic regression 
+layer on top and train the entire network as we would train a multilayer 
+perceptron. This stage is supervised, since now we use the target during
+training (see the :ref:`mlp` for details on the multilayer perceptron).
+
+This can be easily implemented in Theano, using the class defined
+before for a denoising autoencode :
+
+.. code-block:: python
+
+  class StackedAutoencoder():
+   
+    def __init__(self, input, n_ins, hidden_layers_sizes, n_outs):
+        """ This class is made to support a variable number of layers. 
+
+        :param input: symbolic variable describing the input of the SdA
+
+        :param n_ins: dimension of the input to the sdA
+
+        :param n_layers_sizes: intermidiate layers size, must contain 
+        at least one value
+
+        :param n_outs: dimension of the output of the network
+        """
+
+Next step, we create an denoising autoencoder for each layer and link them
+together:
+
+.. code-block:: python
+
+        self.layers =[]
+
+        if len(hidden_layers_sizes) < 1 :
+            raiseException (' You must have at least one hidden layer ')
+
+        # add first layer:
+        layer = dA(n_ins, hidden_layers_sizes[0], input = input)
+        self.layers += [layer]
+        # add all intermidiate layers
+        for i in xrange( 1, len(hidden_layers_sizes) ):
+            # input size is that of the previous layer
+            # input is the output of the last layer inserted in our list 
+            # of layers `self.layers`
+            layer = dA( hidden_layers_sizes[i-1],             \
+                        hidden_layers_sizes[i],               \
+                        input = self.layers[-1].hidden_values )
+            self.layers += [layer]
+        
+
+        self.n_layers = len(self.layers)
+
+
+Note that during the second stage of training (fine-tuning) we need to 
+use the weights of the autoencoders to define a multilayer perceptron.
+This is already given by the above lines of code, in the sense that 
+the ``hidden_values`` of the last denoising autoencoder already computes what
+should be the input of the logistic regression layer that sits at the 
+top of the MLP. All we need now is to add the logistic layer. We will 
+use the ``LogisticRegression`` class introduced in :ref:`logreg`. 
+
+.. code-block:: python
+
+        # add a logistic layer on top
+        self.logLayer = LogisticRegression(\
+                         input = self.layers[-1].hidden_values,\
+                         n_in = hidden_layers_sizes[-1], n_out = n_outs)
+
+
+The negative log likelihood of this MLP (formed from reusing the weights 
+of the denoising autoencoders) is given by the negative log likelihood
+function of the logistic layer : 
+
+.. code-block:: python
+
+    def negative_log_likelihood(self, y):
+        """Return the mean of the negative log-likelihood of the prediction
+        of this model under a given target distribution. In our case this 
+        is given by the logistic layer.
+
+        :param y: corresponds to a vector that gives for each example the
+        :correct label
+        """
+        return self.logLayer.negative_log_likelihood(y)
+
+    def errors(self, y):
+        """Return a float representing the number of errors in the minibatch 
+        over the total number of examples of the minibatch 
+        """
+        
+        return self.logLayer.errors(y)
+
+
+
+Putting it all together
++++++++++++++++++++++++
+
+The few lines of code below constructs the stacked denoising
+autoencoder : 
+
+.. code-block:: python 
+
+
+    # construct the logistic regression class
+    classifier = SdA( input=x, n_ins=28*28, \
+                      hidden_layers_sizes = [500, 500, 500], n_outs=10)
+    
+
+There are two stages in training this network, a layer wise pre-training and 
+fine-tuning afterwads. 
+
+For the pre-training stage, we will loop over all the layers of the
+network. For each layer we will compile a theano function that
+implements a SGD step towards optimizing the weights for reducing 
+the reconstruction cost of that layer. This function will be apllied 
+to the training set for a fixed number of epochs given by
+``pretraining_epochs``
+
+
+.. code-block:: python
+
+
+    ## Pre-train layer-wise 
+    for i in xrange(classifier.n_layers):
+        # compute gradients of layer parameters
+        gW       = T.grad(classifier.layers[i].cost, classifier.layers[i].W)
+        gb       = T.grad(classifier.layers[i].cost, classifier.layers[i].b)
+        gb_prime = T.grad(classifier.layers[i].cost, \
+                                               classifier.layers[i].b_prime)
+        # updated value of parameters after each step
+        new_W       = classifier.layers[i].W      - gW      * pretraining_lr
+        new_b       = classifier.layers[i].b      - gb      * pretraining_lr
+        new_b_prime = classifier.layers[i].b_prime- gb_prime* pretraining_lr
+        cost = classifier.layers[i].cost
+        layer_update = theano.function([index], [cost], \
+          updates = { 
+              classifier.layers[i].W       : new_W \
+            , classifier.layers[i].b       : new_b \
+            , classifier.layers[i].b_prime : new_b_prime },
+          givens = {
+              x :train_set_x[index*batch_size:(index+1)*batch_size]})
+        # go through pretraining epochs 
+        for epoch in xrange(pretraining_epochs):
+            # go through the training set
+            for batch_index in xrange(n_train_batches):
+                c = layer_update(batch_index)
+            print 'Pre-training layer %i, epoch %d'%(i,epoch)
+ 
+
+The fine-tuning loop is very similar with the one in :ref:`mlp`, we just
+have a slighly more complex training function. The reason is that now we 
+need to update all parameters of the network in one call of the training 
+function ( this includes the weight and baiases of the denoising
+autoencoders plus those of the logistic regression layer). To create 
+this function, we will loop over the layers and create an update list 
+containing pairs of the form (parameter before the SGD step, paramter after 
+the SGD step). The new value of a paramter can be easily computed by calling 
+``T.grad`` to compute the corresponding gradient, multiply it with the 
+learning rate and subtract the result from the old value of the
+parameter: 
+
+.. code-block:: python 
+
+    # Fine-tune the entire model
+    # the cost we minimize during training is the negative log likelihood of 
+    # the model
+    cost = classifier.negative_log_likelihood(y) 
+
+    # compute the gradient of cost with respect to theta and add them to the 
+    # updates list
+    updates = []
+    for i in xrange(classifier.n_layers):        
+        g_W   = T.grad(cost, classifier.layers[i].W)
+        g_b   = T.grad(cost, classifier.layers[i].b)
+        new_W = classifier.layers[i].W - learning_rate * g_W
+        new_b = classifier.layers[i].b - learning_rate * g_b
+        updates += [ (classifier.layers[i].W, new_W) \
+                   , (classifier.layers[i].b, new_b) ]
+    # add the gradients of the logistic layer
+    g_log_W   = T.grad(cost, classifier.logLayer.W)
+    g_log_b   = T.grad(cost, classifier.logLayer.b)
+    new_log_W = classifier.logLayer.W - learning_rate * g_log_W
+    new_log_b = classifier.logLayer.b - learning_rate * g_log_b
+    updates += [ (classifier.logLayer.W, new_log_W) \
+               , (classifier.logLayer.b, new_log_b) ]
+
+    # compiling a theano function `train_model` that returns the cost, but  
+    # in the same time updates the parameter of the model based on the rules 
+    # defined in `updates`
+    train_model = theano.function([index], cost, updates=updates,
+          givens = {
+            x: train_set_x[index*batch_size:(index+1)*batch_size],
+            y: train_set_y[index*batch_size:(index+1)*batch_size]})
+
+Now we pass this ``training_model`` (together with a ``validate_model`` and 
+a ``test_model`` generated as in the other tutorials) to the 
+early stopping loop and we are done. 
+
+
+
+
+Running the Code
+++++++++++++++++
+
+TODO
+
+References
+++++++++++
+
+.. [Vincent08] Vincent, P., Larochelle H., Bengio Y. and Manzagol P.A.
+     (2008). Extracting and Composing Robust Features with Denoising
+     Autoencoders. ICML'08, pp. 1096 - 1103
+
+.. [Bengio07] Bengio Y., Lamblin P., Popovici D. and Larochelle H.
+     (2007). Greedy Layer-Wise Training of Deep Networks. NIPS'06, pp
+     153-160
+
