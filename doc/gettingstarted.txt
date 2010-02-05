@@ -70,7 +70,7 @@ MNIST Dataset
 
  When using the dataset, we usually divide it in minibatches (see
  :ref:`opt_SGD`). We encourage you to store the dataset into shared 
- variables and access it based on the minibatch offset, given a fixed 
+ variables and access it based on the minibatch index, given a fixed 
  and known batch size. The reason behind shared variables is
  related to using the GPU. There is a large overhead when copying data
  into the GPU memory. If you would copy data on request ( each minibatch 
@@ -91,10 +91,10 @@ MNIST Dataset
  
  Since now the data is in one variable, and a minibatch is defined as a
  slice of that variable, it comes more natural to define a minibatch by
- indicating where the slice starts (the offset) and how large it is (the 
- batch size). Note that since the batch size stays constant through out the
+ indicating its index and how large one minibatch is 
+ Note that since the batch size stays constant through out the
  execution of the code, a function will 
- require only the offset as input in order to identify on which minibatch to work. 
+ require only the index as input in order to identify on which minibatch to work. 
  The code below shows how to store your data and how to 
  access a minibatch:
 
