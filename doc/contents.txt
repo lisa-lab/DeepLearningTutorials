@@ -18,4 +18,3 @@ Contents
    rbm
    dbn
    dae
-   sdae
