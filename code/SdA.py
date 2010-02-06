@@ -207,6 +207,8 @@ class dA(object):
     # Equation (3)
     self.z   = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
     # Equation (4)
+    # note : we sum over the size of a datapoint; if we are using minibatches,
+    #        L will  be a vector, with one entry per example in minibatch
     self.L = - T.sum( self.x*T.log(self.z) + (1-self.x)*T.log(1-self.z), axis=1 ) 
     # note : L is now a vector, where each element is the cross-entropy cost 
     #        of the reconstruction of the corresponding example of the 
@@ -235,9 +237,7 @@ class SdA():
     """
 
     def __init__(self, input, n_ins, hidden_layers_sizes, n_outs):
-        """ This class is costum made for a three layer SdA, and therefore
-        is created by specifying the sizes of the hidden layers of the 
-        3 dAs used to generate the network. 
+        """ This class is made to support a variable number of layers. 
 
         :param input: symbolic variable describing the input of the SdA
 
@@ -262,8 +262,6 @@ class SdA():
             # input size is that of the previous layer
             # input is the output of the last layer inserted in our list 
             # of layers `self.layers`
-            print i 
-            print theano.pp(self.layers[-1].hidden_values)
             layer = dA( hidden_layers_sizes[i-1],             \
                         hidden_layers_sizes[i],               \
                         input = self.layers[-1].hidden_values )
@@ -271,8 +269,6 @@ class SdA():
         
 
         self.n_layers = len(self.layers)
-        print '------------------------------------------'
-        print theano.pp(self.layers[-1].hidden_values)
         # now we need to use same weights and biases to define an MLP
         # We can simply use the `hidden_values` of the top layer, which 
         # computes the input that we would normally feed to the logistic
@@ -304,7 +300,7 @@ class SdA():
 
   
 
-def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 10, \
+def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 15, \
                             pretraining_lr = 0.1, training_epochs = 1000, dataset='mnist.pkl.gz'):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer 
@@ -359,7 +355,7 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 10, \
 
     # construct the logistic regression class
     classifier = SdA( input=x, n_ins=28*28, \
-                      hidden_layers_sizes = [700, 700, 700], n_outs=10)
+                      hidden_layers_sizes = [1000, 1000, 1000], n_outs=10)
     
     ## Pre-train layer-wise 
     for i in xrange(classifier.n_layers):
@@ -385,7 +381,7 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 10, \
             # go through the training set
             for batch_index in xrange(n_train_batches):
                 c = layer_update(batch_index)
-            print 'Pre-training layer %i, epoch %d'%(i,epoch),c
+            print 'Pre-training layer %i, epoch %d'%(i,epoch),c[0]
  
 
 
@@ -460,10 +456,8 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 10, \
         iter    = epoch * n_train_batches + minibatch_index
 
         if (iter+1) % validation_frequency == 0: 
-            print cost_ij
             cost_ij = []
             validation_losses = [validate_model(i) for i in xrange(n_valid_batches)]
-            print validation_losses
             this_validation_loss = numpy.mean(validation_losses)
             print('epoch %i, minibatch %i/%i, validation error %f %%' % \
                    (epoch, minibatch_index+1, n_train_batches, \
