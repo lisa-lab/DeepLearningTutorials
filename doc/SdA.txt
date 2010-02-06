@@ -140,7 +140,7 @@ top-down -- generative model perspective ), all of which are explained in
 
 
 To convert the autoencoder class into a denoising autoencoder one, all we 
-need to do is to add a corrupt the input step. The input can be
+need to do is to add a stochastic corruption step operating on the input. The input can be
 corrupted in many ways, in this tutorial we will stick to the original 
 corruption mechanism of randomly masking entries of the input by making
 them zero. The code below 
