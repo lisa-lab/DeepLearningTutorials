@@ -9,7 +9,7 @@ Stacked Denoising Autoencoders (SdA)
 
 The Stacked Denoising Autoencoder (SdA) is an extension of the stacked 
 autoencoder [Bengio07]_ and it was introduced in [Vincent08]_. We will start the 
-tutorial with a short digression on :ref:`autoencoders`
+tutorial with a short discussion on :ref:`autoencoders`
 and then move on to how classical
 autoencoders are extended to denoising autoencoders (:ref:`dA`).
 Throughout the following subchapters we will stick as close as possible to 
@@ -21,6 +21,7 @@ the original paper ( [Vincent08] ).
 Autoencoders
 +++++++++++++
 
+See section 4.6 of [Bengio09] for an overview of auto-encoders.
 An autoencoder takes an input :math:`\mathbf{x} \in [0,1]^d` and first 
 maps it (with an *encoder*) to a hidden representation :math:`\mathbf{y} \in [0,1]^{d'}` 
 through a deterministic mapping:
@@ -29,8 +30,8 @@ through a deterministic mapping:
   
   \mathbf{y} = s(\mathbf{W}\mathbf{x} + \mathbf{b})
 
-The latent representation :math:`\mathbf{y}` is then mapped back (with a *decoder*) into a
-"reconstructed" vector :math:`\mathbf{z}` of same shape as
+The latent representation :math:`\mathbf{y}`, or **code** is then mapped back (with a *decoder*) into a
+**reconstruction** :math:`\mathbf{z}` of same shape as
 :math:`\mathbf{x}` through a similar transformation, namely:
 
 .. math::
@@ -55,8 +56,23 @@ bit probabilities by the reconstruction *cross-entropy* defined as :
   L_{H} (\mathbf{x}, \mathbf{z}) = - \sum^d_{k=1}[\mathbf{x}_k \log
           \mathbf{z}_k + (1 - \mathbf{x}_k)\log(1 - \mathbf{z}_k)] 
 
+The hope is that the code :math:`\mathbf{y}` is a distributed representation
+that captures the coordinates along the main factors of variation in the data:
+because :math:`\mathbf{y}` is viewed as a lossy compression of :math:`\mathbf{x}`, it cannot
+be a good compression (with small loss) for all :math:`\mathbf{x}`, so learning
+drives it to be one that is a good compression in particular for training
+examples, and hopefully for others as well (and that is the sense
+in which an auto-encoder generalizes), but not for arbitrary inputs.
 
-We want to implement this behavior using Theano, in the form of a class,
+If there is one linear hidden layer (the code) and
+the mean squared error criterion is used to train the network, then the :math:`k`
+hidden units learn to project the input in the span of the first :math:`k`
+principal components of the data. If the hidden
+layer is non-linear, the auto-encoder behaves differently from PCA,
+with the ability to capture multi-modal aspects of the input
+distribution.
+
+We want to implement an auto-encoder using Theano, in the form of a class,
 that could be afterwards used in constructing a stacked autoencoder. The
 first step is to create shared variables for the parameters of the 
 autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and 
@@ -130,6 +146,42 @@ Note that for the stacked denoising autoencoder we will not use the
 the autoencoder would work. In [Bengio07] autoencoders are used to
 build deep networks.
 
+One serious potential issue with auto-encoders is that if there is no other
+constraint besides minimizing the reconstruction error, 
+then an auto-encoder with :math:`n` inputs and an
+encoding of dimension at least :math:`n` could potentially just learn
+the identity function, for which many encodings would be useless (e.g.,
+just copying the input). Surprisingly, experiments reported
+in [Bengio07] suggest that in practice, when trained with
+stochastic gradient descent, non-linear auto-encoders with more hidden units
+than inputs (called overcomplete) yield useful representations
+(in the sense of classification error measured on a network taking this
+representation in input). A simple explanation is based on the 
+observation that stochastic gradient
+descent with early stopping is similar to an L2 regularization of the
+parameters. To achieve perfect reconstruction of continuous
+inputs, a one-hidden layer auto-encoder with non-linear hidden units
+needs very small weights in the first layer (to bring the non-linearity of
+the hidden units in their linear regime) and very large weights in the
+second layer.
+With binary inputs, very large weights are
+also needed to completely minimize the reconstruction error. Since the
+implicit or explicit regularization makes it difficult to reach
+large-weight solutions, the optimization algorithm finds encodings which
+only work well for examples similar to those in the training set, which is
+what we want. It means that the representation is exploiting statistical
+regularities present in the training set, rather than learning to
+replicate the identity function.
+
+There are different ways that an auto-encoder with more hidden units
+than inputs could be prevented from learning the identity, and still
+capture something useful about the input in its hidden representation.
+One is the addition of sparsity (forcing many of the hidden units to
+be zero or near-zero), and it has been exploited very successfully
+by many. Another is to add randomness in the transformation from
+input to reconstruction. This is exploited in Restricted Boltzmann
+Machines (discussed later in this tutorial), as well as in
+Denoising Auto-Encoders, discussed below. 
 
 Denoising Autoencoders (dA)
 +++++++++++++++++++++++++++
@@ -137,13 +189,27 @@ Denoising Autoencoders (dA)
 The idea behind denoising autoencoders is simple. In order to enforce
 the hidden layer to discover more roboust features we train the
 autoencoder to reconstruct the input from a corrupted version of it.
-This can be understood from different perspectives 
+The denoising auto-encoder is a stochastic version of the auto-encoder.
+Intuitively, a denoising auto-encoder does two things: try to encode the
+input (preserve the information about the input), and try to undo the
+effect of a corruption process stochastically applied to the input of the
+auto-encoder. The latter can only be done by capturing the statistical
+dependencies between the inputs. The denoising
+auto-encoder can be understood from different perspectives 
 ( the manifold learning perspective, 
 stochastic operator perspective, 
 bottom-up -- information theoretic perspective, 
 top-down -- generative model perspective ), all of which are explained in 
 [Vincent08]. 
+See also section 7.2 of [Bengio09] for an overview of auto-encoders.
 
+In [Vincent08], the stochastic corruption process
+consists in randomly setting some of the inputs (as many as half of them)
+to zero. Hence the denoising auto-encoder is trying to predict the missing
+values from the non-missing values, for randomly selected subsets of
+missing patterns. Note how being able to predict any subset of variables
+from the rest is a sufficient condition for completely capturing the
+joint distribution between a set of variables.
 
 To convert the autoencoder class into a denoising autoencoder one, all we 
 need to do is to add a stochastic corruption step operating on the input. The input can be
@@ -225,15 +291,25 @@ Stacked Autoencoders
 ++++++++++++++++++++
 
 The denoising autoencoders can now be stacked to form a deep network by
-feeding the latent representation of the dA found on the layer 
-below as input to the current layer. The "pre-training" of such an 
-architecture is done one layer at a time. Once the first :math:`k` layers 
+feeding the latent representation (output code)
+of the denoising auto-encoder found on the layer 
+below as input to the current layer. The **unsupervised pre-training** of such an 
+architecture is done one layer at a time. Each layer is trained as 
+a denoising auto-encoder by minimizing the reconstruction of its input
+(which is the output code of the previous layer).
+Once the first :math:`k` layers 
 are trained, we can train the :math:`k+1`-th layer because we can now 
-compute the "correct" latent representation generated by the layer below. 
+compute the code or latent representation from the layer below. 
 Once all layers are pre-trained, the network goes through a second stage
-of training called fine-tuning. For this we first add a logistic regression 
-layer on top and train the entire network as we would train a multilayer 
-perceptron. This stage is supervised, since now we use the target during
+of training called **fine-tuning**. Here we consider **supervised fine-tuning**
+where we want to minimize prediction error on a supervised task.
+For this we first add a logistic regression 
+layer on top of the network (more precisely on the output code of the
+output layer). We then
+train the entire network as we would train a multilayer 
+perceptron. At this point, we only consider the encoding parts of
+each auto-encoder.
+This stage is supervised, since now we use the target during
 training (see the :ref:`mlp` for details on the multilayer perceptron).
 
 This can be easily implemented in Theano, using the class defined
@@ -439,11 +515,14 @@ TODO
 References
 ++++++++++
 
-.. [Vincent08] Vincent, P., Larochelle H., Bengio Y. and Manzagol P.A. `Extracting and Composing Robust Features with Denoising Autoencoders`_. Proceedings of the Twenty-fifth International Confrence on Machine Learning (ICML'08), pages 1096 - 1103, ACM, 2008
+.. [Bengio07] Bengio Y., Lamblin P., Popovici D. and Larochelle H. `Greedy Layer-Wise Training of Deep Networks`_. Advances in Neural Information Processing Systems 19 (NIPS'06), pages  153-160, MIT Press 2007.
 
-.. [Bengio07] Bengio Y., Lamblin P., Popovici D. and Larochelle H. `Greedy Layer-Wise Training of Deep Networks`_. Advances in Neural Information Processing Systems 19 (NIPS'06), pages  153-160, MIT Press 2007
+.. [Vincent08] Vincent, P., Larochelle H., Bengio Y. and Manzagol P.A. `Extracting and Composing Robust Features with Denoising Autoencoders`_. Proceedings of the Twenty-fifth International Confrence on Machine Learning (ICML'08), pages 1096 - 1103, ACM, 2008.
 
+.. [Bengio09] Bengio Y. `Learning deep architectures for AI`_, Foundations and Trends in Machine Learning 1(2) pages 1-127.
+
+.. _Greedy Layer-Wise Training of Deep Networks: http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/190 
 
 .. _Extracting and Composing Robust Features with Denoising Autoencoders: http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/217
 
-.. _Greedy Layer-Wise Training of Deep Networks: http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/190 
+.. _Learning deep architectures for AI: http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/239
