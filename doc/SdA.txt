@@ -97,7 +97,7 @@ autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
           # initial values for weights and biases
           # note : W' was written as `W_prime` and b' as `b_prime`
 
-          # W is initialized with `initial_W` which is uniformely sampled
+          # W is initialized with `initial_W` which is uniformly sampled
           # from -6./sqrt(n_visible+n_hidden) and 6./sqrt(n_hidden+n_visible)
           # the output of uniform if converted using asarray to dtype 
           # theano.config.floatX so that the code is runable on GPU
@@ -129,7 +129,7 @@ signal:
 
     self.y    = T.nnet.sigmoid(T.dot(self.x, self.W      ) + self.b)
     self.z    = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
-    # note : we sum over the size of a datapoint; if we are using minibatches,
+    # note : we sum over the size of a data point; if we are using minibatches,
     #        L will  be a vector, with one entry per example in minibatch 
     self.L    = - T.sum( self.x*T.log(self.z) + (1-self.x)*T.log(1-self.z), axis=1 ) 
     # note : L is now a vector, where each element is the cross-entropy cost 
@@ -166,7 +166,7 @@ then an auto-encoder with :math:`n` inputs and an
 encoding of dimension at least :math:`n` could potentially just learn
 the identity function, for which many encodings would be useless (e.g.,
 just copying the input), i.e., the autoencoder would not differentiate
-test examples (from the training distribuion) from other input configurations.
+test examples (from the training distribution) from other input configurations.
 Surprisingly, experiments reported in [Bengio07]_ nonetheless 
 suggest that in practice, when trained with
 stochastic gradient descent, non-linear auto-encoders with more hidden units
@@ -205,9 +205,11 @@ Denoising Auto-Encoders, discussed below.
 Denoising Autoencoders
 ++++++++++++++++++++++
 
-The idea behind denoising autoencoders is simple. In order to enforce
-the hidden layer to discover more roboust features we train the
-autoencoder to reconstruct the input from a corrupted version of it.
+The idea behind denoising autoencoders is simple. In order to force
+the hidden layer to discover more robust features and prevent it
+from simply learning the identity, we train the
+autoencoder to *reconstruct the input from a corrupted version of it*.
+
 The denoising auto-encoder is a stochastic version of the auto-encoder.
 Intuitively, a denoising auto-encoder does two things: try to encode the
 input (preserve the information about the input), and try to undo the
@@ -224,15 +226,16 @@ See also section 7.2 of [Bengio09]_ for an overview of auto-encoders.
 
 In [Vincent08], the stochastic corruption process
 consists in randomly setting some of the inputs (as many as half of them)
-to zero. Hence the denoising auto-encoder is trying to predict the missing
-values from the non-missing values, for randomly selected subsets of
+to zero. Hence the denoising auto-encoder is trying to *predict the corrupted (i.e. missing)
+values from the uncorrupted (i.e., non-missing) values*, for randomly selected subsets of
 missing patterns. Note how being able to predict any subset of variables
 from the rest is a sufficient condition for completely capturing the
-joint distribution between a set of variables.
+joint distribution between a set of variables (this is how Gibbs
+sampling works).
 
-To convert the autoencoder class into a denoising autoencoder one, all we 
+To convert the autoencoder class into a denoising autoencoder class, all we 
 need to do is to add a stochastic corruption step operating on the input. The input can be
-corrupted in many ways, in this tutorial we will stick to the original 
+corrupted in many ways, but in this tutorial we will stick to the original 
 corruption mechanism of randomly masking entries of the input by making
 them zero. The code below 
 does just that : 
@@ -309,7 +312,7 @@ The final denoising autoencoder class becomes :
 Stacked Autoencoders
 ++++++++++++++++++++
 
-The denoising autoencoders can now be stacked to form a deep network by
+The denoising autoencoders can be stacked to form a deep network by
 feeding the latent representation (output code)
 of the denoising auto-encoder found on the layer 
 below as input to the current layer. The **unsupervised pre-training** of such an 
@@ -328,11 +331,11 @@ output layer). We then
 train the entire network as we would train a multilayer 
 perceptron. At this point, we only consider the encoding parts of
 each auto-encoder.
-This stage is supervised, since now we use the target during
+This stage is supervised, since now we use the target class during
 training (see the :ref:`mlp` for details on the multilayer perceptron).
 
 This can be easily implemented in Theano, using the class defined
-before for a denoising autoencode :
+before for a denoising autoencoder :
 
 .. code-block:: python
 
@@ -345,7 +348,7 @@ before for a denoising autoencode :
 
         :param n_ins: dimension of the input to the sdA
 
-        :param n_layers_sizes: intermidiate layers size, must contain 
+        :param n_layers_sizes: intermediate layers size, must contain 
         at least one value
 
         :param n_outs: dimension of the output of the network
@@ -364,7 +367,7 @@ together:
         # add first layer:
         layer = dA(n_ins, hidden_layers_sizes[0], input = input)
         self.layers += [layer]
-        # add all intermidiate layers
+        # add all intermediate layers
         for i in xrange( 1, len(hidden_layers_sizes) ):
             # input size is that of the previous layer
             # input is the output of the last layer inserted in our list 
@@ -434,12 +437,12 @@ autoencoder :
     
 
 There are two stages in training this network, a layer wise pre-training and 
-fine-tuning afterwads. 
+fine-tuning afterwards. 
 
 For the pre-training stage, we will loop over all the layers of the
 network. For each layer we will compile a theano function that
 implements a SGD step towards optimizing the weights for reducing 
-the reconstruction cost of that layer. This function will be apllied 
+the reconstruction cost of that layer. This function will be applied 
 to the training set for a fixed number of epochs given by
 ``pretraining_epochs``
 
@@ -474,14 +477,14 @@ to the training set for a fixed number of epochs given by
             print 'Pre-training layer %i, epoch %d'%(i,epoch)
  
 
-The fine-tuning loop is very similar with the one in :ref:`mlp`, we just
-have a slighly more complex training function. The reason is that now we 
+The fine-tuning loop is very similar with the one in the :ref:`mlp`, we just
+have a slightly more complex training function. The reason is that now we 
 need to update all parameters of the network in one call of the training 
-function ( this includes the weight and baiases of the denoising
+function ( this includes the weight and biases of the denoising
 autoencoders plus those of the logistic regression layer). To create 
 this function, we will loop over the layers and create an update list 
-containing pairs of the form (parameter before the SGD step, paramter after 
-the SGD step). The new value of a paramter can be easily computed by calling 
+containing pairs of the form (parameter before the SGD step, parameter after 
+the SGD step). The new value of a parameter can be easily computed by calling 
 ``T.grad`` to compute the corresponding gradient, multiply it with the 
 learning rate and subtract the result from the old value of the
 parameter: 
@@ -542,7 +545,7 @@ References
 
 .. [Lee08] `Sparse deep belief net model for visual area V2 <http://www.stanford.edu/~hllee/nips07-sparseDBN.pdf>`_, H. Lee, C. Ekanadham, and A.Y. Ng., in Advances in Neural Information Processing Systems (NIPS) 20, 2008.
 
-.. [Vincent08] `Extracting and Composing Robust Features with Denoising Autoencoders <http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/217>`_, P. Vincent, H. Larochelle Y. Bengio and P.A. Manzagol,  Proceedings of the Twenty-fifth International Confrence on Machine Learning (ICML'08), pages 1096 - 1103, ACM, 2008.
+.. [Vincent08] `Extracting and Composing Robust Features with Denoising Autoencoders <http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/217>`_, P. Vincent, H. Larochelle Y. Bengio and P.A. Manzagol,  Proceedings of the Twenty-fifth International Conference on Machine Learning (ICML'08), pages 1096 - 1103, ACM, 2008.
 
 .. [Bengio09] `Learning deep architectures for AI <http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/239>`_, Y. Bengio,  Foundations and Trends in Machine Learning 1(2) pages 1-127.
 
