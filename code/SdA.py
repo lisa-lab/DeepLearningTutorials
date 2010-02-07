@@ -192,6 +192,7 @@ class dA(object):
     else:
         self.x = input
     # Equation (1)
+    # keep 90% of the inputs the same and zero-out randomly selected subset of 10% of the inputs
     # note : first argument of theano.rng.binomial is the shape(size) of 
     #        random numbers that it should produce
     #        second argument is the number of trials 
