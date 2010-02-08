@@ -152,13 +152,10 @@ class dA(object):
 
     :param input:     a symbolic description of the input or None 
 
-    :param corruption_level: the corruption mechanism picks up randomly this fraction 
-                             of entries of the input and turns them to 0
+    :param corruption_level: the corruption mechanism picks up randomly this 
+    fraction of entries of the input and turns them to 0
     
     
-    amount of entries from the input to  0 from the input, defaul 
-                             is 0.1, which means 10% of entries are corrupted to 0
-
     """
     self.n_visible = n_visible
     self.n_hidden  = n_hidden
@@ -206,7 +203,8 @@ class dA(object):
     #        third argument is the probability of success of any trial
     #
     #        this will produce an array of 0s and 1s where 1 has a 
-    #        probability of 1 - corruption_level and 0 if corruption_level
+    #        probability of 1 - ``corruption_level`` and 0 with
+    #        ``corruption_level``
     self.tilde_x  = theano_rng.binomial( self.x.shape,  1,  1 - corruption_level) * self.x
     # Equation (2)
     # note  : y is stored as an attribute of the class so that it can be 
@@ -244,7 +242,8 @@ class SdA():
     the dAs are only used to initialize the weights.
     """
 
-    def __init__(self, input, n_ins, hidden_layers_sizes, n_outs):
+    def __init__(self, input, n_ins, hidden_layers_sizes, n_outs, 
+                 corruption_levels):
         """ This class is made to support a variable number of layers. 
 
         :param input: symbolic variable describing the input of the SdA
@@ -255,6 +254,9 @@ class SdA():
         at least one value
 
         :param n_outs: dimension of the output of the network
+
+        :param corruption_levels: amount of corruption to use for each 
+        layer
         """
         
         self.layers =[]
@@ -263,7 +265,8 @@ class SdA():
             raiseException (' You must have at least one hidden layer ')
 
         # add first layer:
-        layer = dA(n_ins, hidden_layers_sizes[0], input = input)
+        layer = dA(n_ins, hidden_layers_sizes[0], input = input, \
+                            corruption_level = corruption_levels[0])
         self.layers += [layer]
         # add all intermidiate layers
         for i in xrange( 1, len(hidden_layers_sizes) ):
@@ -272,7 +275,8 @@ class SdA():
             # of layers `self.layers`
             layer = dA( hidden_layers_sizes[i-1],             \
                         hidden_layers_sizes[i],               \
-                        input = self.layers[-1].hidden_values )
+                        input = self.layers[-1].hidden_values,\
+                        corruption_level = corruption_levels[i])
             self.layers += [layer]
         
 
@@ -309,7 +313,8 @@ class SdA():
   
 
 def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 15, \
-                            pretraining_lr = 0.1, training_epochs = 1000, dataset='mnist.pkl.gz'):
+                            pretraining_lr = 0.1, training_epochs = 1000, \
+                            dataset='mnist.pkl.gz'):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer 
     perceptron
@@ -363,7 +368,8 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 15, \
 
     # construct the logistic regression class
     classifier = SdA( input=x, n_ins=28*28, \
-                      hidden_layers_sizes = [1000, 1000, 1000], n_outs=10)
+                      hidden_layers_sizes = [1000, 1000, 1000], n_outs=10, \
+                      corruption_levels = [ 0.1, 0.1, 0.1])
 
 
     start_time = time.clock()  
