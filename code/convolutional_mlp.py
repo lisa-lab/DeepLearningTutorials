@@ -316,7 +316,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200, dataset='mnist.pkl.gz', nke
     epoch = 0 
     done_looping = False
 
-    while (epoch < n_epoch) and (not done_looping):
+    while (epoch < n_epochs) and (not done_looping):
       epoch = epoch + 1
       for minibatch_index in xrange(n_train_batches):
         
