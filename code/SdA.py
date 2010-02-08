@@ -199,6 +199,7 @@ class dA(object):
     else:
         self.x = input
     # Equation (1)
+    # keep 90% of the inputs the same and zero-out randomly selected subset of 10% of the inputs
     # note : first argument of theano.rng.binomial is the shape(size) of 
     #        random numbers that it should produce
     #        second argument is the number of trials 
@@ -244,9 +245,7 @@ class SdA():
     """
 
     def __init__(self, input, n_ins, hidden_layers_sizes, n_outs):
-        """ This class is costum made for a three layer SdA, and therefore
-        is created by specifying the sizes of the hidden layers of the 
-        3 dAs used to generate the network. 
+        """ This class is made to support a variable number of layers. 
 
         :param input: symbolic variable describing the input of the SdA
 
