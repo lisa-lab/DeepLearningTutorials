@@ -136,12 +136,12 @@ class LogisticRegression(object):
 
 
 
-def cg_optimization_mnist( n_iter=50, mnist_pkl_gz='mnist.pkl.gz' ):
+def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='mnist.pkl.gz' ):
     """Demonstrate conjugate gradient optimization of a log-linear model 
 
     This is demonstrated on MNIST.
     
-    :param n_iter: number of iterations ot run the optimizer 
+    :param n_epochs: number of epochs to run the optimizer 
 
     :param mnist_pkl_gz: the path of the mnist training file from 
     http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz
@@ -263,7 +263,7 @@ def cg_optimization_mnist( n_iter=50, mnist_pkl_gz='mnist.pkl.gz' ):
             fprime=train_fn_grad,
             callback=callback,
             disp=0,
-            maxiter=n_iter)
+            maxiter=n_epochs)
     end_time = time.clock()
     print(('Optimization complete with best validation score of %f %%, with '
           'test performance %f %%') % 

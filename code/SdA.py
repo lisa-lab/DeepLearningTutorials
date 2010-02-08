@@ -135,14 +135,14 @@ class dA(object):
 
   """
 
-  def __init__(self, n_visible= 784, n_hidden= 500, input= None):
+  def __init__(self, n_visible= 784, n_hidden= 500, input= None, corruption_level = 0.1):
     """
     Initialize the dA class by specifying the number of visible units (the 
     dimension d of the input ), the number of hidden units ( the dimension 
     d' of the latent or hidden space ) and by giving a symbolic variable 
     for the input. Such a symbolic variable is useful when the input is 
     the result of some computations. For example when dealing with SdAs,
-    the dA on layer 2 gets as input the output of the DAE on layer 1. 
+    the dA on layer 2 gets as input the output of the dA on layer 1. 
     This output can be written as a function of the input to the entire 
     model, and as such can be computed by theano whenever needed. 
     
@@ -152,6 +152,10 @@ class dA(object):
 
     :param input:     a symbolic description of the input or None 
 
+    :param corruption_level: the corruption mechanism picks up randomly this 
+    fraction of entries of the input and turns them to 0
+    
+    
     """
     self.n_visible = n_visible
     self.n_hidden  = n_hidden
@@ -192,14 +196,16 @@ class dA(object):
     else:
         self.x = input
     # Equation (1)
+    # keep 90% of the inputs the same and zero-out randomly selected subset of 10% of the inputs
     # note : first argument of theano.rng.binomial is the shape(size) of 
     #        random numbers that it should produce
     #        second argument is the number of trials 
     #        third argument is the probability of success of any trial
     #
     #        this will produce an array of 0s and 1s where 1 has a 
-    #        probability of 0.9 and 0 if 0.1
-    self.tilde_x  = theano_rng.binomial( self.x.shape,  1,  0.9) * self.x
+    #        probability of 1 - ``corruption_level`` and 0 with
+    #        ``corruption_level``
+    self.tilde_x  = theano_rng.binomial( self.x.shape,  1,  1 - corruption_level) * self.x
     # Equation (2)
     # note  : y is stored as an attribute of the class so that it can be 
     #         used later when stacking dAs. 
@@ -236,7 +242,8 @@ class SdA():
     the dAs are only used to initialize the weights.
     """
 
-    def __init__(self, input, n_ins, hidden_layers_sizes, n_outs):
+    def __init__(self, input, n_ins, hidden_layers_sizes, n_outs, 
+                 corruption_levels):
         """ This class is made to support a variable number of layers. 
 
         :param input: symbolic variable describing the input of the SdA
@@ -247,6 +254,9 @@ class SdA():
         at least one value
 
         :param n_outs: dimension of the output of the network
+
+        :param corruption_levels: amount of corruption to use for each 
+        layer
         """
         
         self.layers =[]
@@ -255,7 +265,8 @@ class SdA():
             raiseException (' You must have at least one hidden layer ')
 
         # add first layer:
-        layer = dA(n_ins, hidden_layers_sizes[0], input = input)
+        layer = dA(n_ins, hidden_layers_sizes[0], input = input, \
+                            corruption_level = corruption_levels[0])
         self.layers += [layer]
         # add all intermidiate layers
         for i in xrange( 1, len(hidden_layers_sizes) ):
@@ -264,7 +275,8 @@ class SdA():
             # of layers `self.layers`
             layer = dA( hidden_layers_sizes[i-1],             \
                         hidden_layers_sizes[i],               \
-                        input = self.layers[-1].hidden_values )
+                        input = self.layers[-1].hidden_values,\
+                        corruption_level = corruption_levels[i])
             self.layers += [layer]
         
 
@@ -301,7 +313,8 @@ class SdA():
   
 
 def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 15, \
-                            pretraining_lr = 0.1, training_epochs = 1000, dataset='mnist.pkl.gz'):
+                            pretraining_lr = 0.1, training_epochs = 1000, \
+                            dataset='mnist.pkl.gz'):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer 
     perceptron
@@ -355,8 +368,11 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 15, \
 
     # construct the logistic regression class
     classifier = SdA( input=x, n_ins=28*28, \
-                      hidden_layers_sizes = [1000, 1000, 1000], n_outs=10)
-    
+                      hidden_layers_sizes = [1000, 1000, 1000], n_outs=10, \
+                      corruption_levels = [ 0.1, 0.1, 0.1])
+
+
+    start_time = time.clock()  
     ## Pre-train layer-wise 
     for i in xrange(classifier.n_layers):
         cost = classifier.layers[i].cost
@@ -385,7 +401,9 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 15, \
  
 
 
+    end_time = time.clock()
 
+    print ('Pretraining took %f minutes' %((end_time-start_time)/60.))
     # Fine-tune the entire model
     # the cost we minimize during training is the negative log likelihood of 
     # the model
@@ -433,9 +451,9 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 15, \
 
     # early-stopping parameters
     patience              = 10000 # look as this many examples regardless
-    patience_increase     = 2     # wait this much longer when a new best is 
+    patience_increase     = 2.    # wait this much longer when a new best is 
                                   # found
-    improvement_threshold = 0.995 # a relative improvement of this much is 
+    improvement_threshold = 0.99  # a relative improvement of this much is 
                                   # considered significant
     validation_frequency  = min(n_train_batches, patience/2)
                                   # go through this many 
@@ -448,15 +466,19 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 15, \
     best_validation_loss = float('inf')
     test_score           = 0.
     start_time = time.clock()
-    cost_ij = []
-    for epoch in xrange(training_epochs):
+
+    done_looping = False
+    epoch = 0
+
+    while (epoch < training_epochs) and (not done_looping):
+      epoch = epoch + 1
       for minibatch_index in xrange(n_train_batches):
 
-        cost_ij += [train_model(minibatch_index)]
+        cost_ij = train_model(minibatch_index)
         iter    = epoch * n_train_batches + minibatch_index
 
         if (iter+1) % validation_frequency == 0: 
-            cost_ij = []
+            
             validation_losses = [validate_model(i) for i in xrange(n_valid_batches)]
             this_validation_loss = numpy.mean(validation_losses)
             print('epoch %i, minibatch %i/%i, validation error %f %%' % \
@@ -486,6 +508,7 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 15, \
 
 
         if patience <= iter :
+                done_looping = True
                 break
 
     end_time = time.clock()

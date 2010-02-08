@@ -313,7 +313,11 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200, dataset='mnist.pkl.gz', nke
     test_score           = 0.
     start_time = time.clock()
 
-    for epoch in xrange(n_epochs):
+    epoch = 0 
+    done_looping = False
+
+    while (epoch < n_epochs) and (not done_looping):
+      epoch = epoch + 1
       for minibatch_index in xrange(n_train_batches):
         
         iter = epoch * n_train_batches + minibatch_index
@@ -353,6 +357,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200, dataset='mnist.pkl.gz', nke
                               test_score*100.))
 
         if patience <= iter :
+            done_looping = False
             break
 
     end_time = time.clock()
