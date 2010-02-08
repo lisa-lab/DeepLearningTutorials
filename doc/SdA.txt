@@ -434,6 +434,10 @@ early stopping loop and we are done.
 Running the Code
 ++++++++++++++++
 
+pretraining duration : 79.4971 minutes
+
+
+282.195 min , 144epochs 1.36 validation , 1.6 test
 TODO
 
 References
