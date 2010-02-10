@@ -90,6 +90,12 @@ class RBM():
         '''
         :param n_Gibbs_steps: number of Gibbs steps to do when computing the 
         gradient with CD
+
+        *** Document what does this function return?
+
+        *** How about a more flexible way to make this function do PCD: an optional
+        visible_0=None parameter to this function where None means self.input.  This variable
+        is used to initialize the negative chain.
         '''
 
         # define the graph for positive phase
@@ -109,6 +115,8 @@ class RBM():
 
            # if you want persistent CD, we have to use the last negative 
            # value generated ( which is stored in ``self.n_hid``
+
+           # *** 
            if persistent : 
                 hid_km1 = self.n_hid
 
@@ -124,10 +132,18 @@ class RBM():
            hid_k            = T.nnet.sigmoid(hid_activation_k)
 
            # return a list of outputs, plus a dictionary of updates 
+
+           # *** Could we modify scan to accept a friendlier encoding of this information,
+           # like: 
+           #    dict( outputs=[vis_k, hid_k], updates={...})
            return ([vis_k, hid_k],{ self.n_vis : vis_k, self.n_hid : hid_k})
         
         # to compute the negative phase perform k Gibbs step; for this we 
         # use the scan op, that implements a loop
+
+
+        # *** Could we use a different variable name here?  n_something usually means the
+        # number of somethings.  Like the number of visible or hidden units.
 
         # keep_outputs tells scan that we do not care about intermediate values
         # of n_vis and n_hid, and that it should only return the last one
@@ -136,23 +152,31 @@ class RBM():
 
         g_vbias = T.mean( self.input - n_vis , axis = 0)
         g_hbias = T.mean( p_hid      - n_hid , axis = 0)
+
+        # ***Why are we using mean for the biases but a dot()/size formula for the weights?
+        #    It's a minor point, but we're confusing two kinds of terminology.
+        #    Better would be using mean & covariance (I think we have a cov() op...)
+        #    -or- sum()/batchsize and then dot() / batchsize
         
         g_W = T.dot(p_hid.T, self.input )/ self.batch_size - \
               T.dot(n_hid.T, n_vis      )/ self.batch_size
 
         gparams = [g_W.T, g_vbias, g_hbias]
         # define dictionary of stochastic gradient update equations
+
+        # *** It is misleading to say that it returns a cost, since usually a cost is the thing
+        # we are minimizing.
+
         cost = T.mean(abs(self.input - n_vis))
         return (gparams, cost)
 
        
 
-
+# *** rename this function
 def sgd_optimization_mnist( learning_rate=0.1, training_epochs = 20, \
                             dataset='mnist.pkl.gz'):
     """
-    Demonstrate stochastic gradient descent optimization for a multilayer 
-    perceptron
+    Demonstrate ***
 
     This is demonstrated on MNIST.
 
