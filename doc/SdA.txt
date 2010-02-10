@@ -6,7 +6,7 @@ Stacked Denoising Autoencoders (SdA)
 .. note::
   This section assumes the reader has already read through :doc:`logreg`
   and :doc:`mlp`. Additionally it uses the following Theano functions
-  and concepts : TODO
+  and concepts : `T.nnet.sigmoid`, `shared variables`_, `basic arithmetic ops`_, `T.grad`_ 
 
 
 The Stacked Denoising Autoencoder (SdA) is an extension of the stacked 

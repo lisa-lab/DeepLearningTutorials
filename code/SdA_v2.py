@@ -407,7 +407,7 @@ class SdA():
 
 
 
-def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 15, \
+def sgd_optimization_mnist( learning_rate=0.05, pretraining_epochs = 15, \
                             pretrain_lr = 0.1, training_epochs = 1000, \
                             dataset='mnist.pkl.gz'):
     """
@@ -499,7 +499,7 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 15, \
     patience              = 10000 # look as this many examples regardless
     patience_increase     = 2.    # wait this much longer when a new best is 
                                   # found
-    improvement_threshold = 0.99  # a relative improvement of this much is 
+    improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
     validation_frequency  = min(n_train_batches, patience/2)
                                   # go through this many 

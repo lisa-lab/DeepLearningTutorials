@@ -594,9 +594,9 @@ The user can run the code by calling:
 
 By default the code runs 15 pre-training epochs for each layer, with 
 a corruption level of 0.1 and a learning rate of 0.1. Pre-training takes
-79.4971 minutes. Fine-tuning is completed after 144 epochs in 282.195 
-minutes and results  in a validation score of 1.36 %, with a test 
-performace of 1.6 %.
+78.88 minutes. Fine-tuning is completed after 32 epochs in 65.89 
+minutes and results  in a validation score of 1.7 %, with a test 
+performace of 1.65 %.
 
 
 References
