@@ -261,11 +261,6 @@ class dA(object):
     #        minibatch. We need to compute the average of all these to get 
     #        the cost of the minibatch
     self.cost = T.mean(self.L)
-    # note : y is computed from the corrupted `tilde_x`. Later on, 
-    #        we will need the hidden layer obtained from the uncorrupted 
-    #        input when for example we will pass this as input to the layer 
-    #        above
-    self.hidden_values = T.nnet.sigmoid( T.dot(self.x, self.W) + self.b)
 
     self.params = [ self.W, self.b, self.b_prime ]
 
@@ -367,20 +362,15 @@ class SdA():
         
             # Construct a function that trains this dA
             # compute gradients of layer parameters
-            gW       = T.grad(dA_layer.cost, dA_layer.W)
-            gb       = T.grad(dA_layer.cost, dA_layer.b)
-            gb_prime = T.grad(dA_layer.cost, dA_layer.b_prime)
-            # updated value of paramaters after each training step
-            new_W       = dA_layer.W        - gW       * pretrain_lr
-            new_b       = dA_layer.b        - gb       * pretrain_lr
-            new_b_prime = dA_layer.b_prime  - gb_prime * pretrain_lr
+            gparams = T.grad(dA_layer.cost, dA_layer.params)
+            # compute the list of updates
+            updates = {}
+            for param, gparam in zip(dA_layer.params, gparams):
+                updates[param] = param - gparam * pretrain_lr
             
             # create a function that trains the dA
             update_fn = theano.function([index], dA_layer.cost, \
-                  updates = {
-                     dA_layer.W       : new_W \
-                   , dA_layer.b       : new_b \
-                   , dA_layer.b_prime : new_b_prime },
+                  updates = updates,
                   givens = { 
                      self.x : train_set_x[index*batch_size:(index+1)*batch_size]})
             # collect this function into a list

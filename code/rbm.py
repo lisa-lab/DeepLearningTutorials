@@ -82,40 +82,61 @@ class RBM():
 
         # define graph for positive phase
         p_hid_activation = T.dot(self.input, self.W) + self.hbias
-        self.p_hid            = T.nnet.sigmoid(p_hid_activation)
-        p_hid_sample     = theano_rng.binomial(T.shape(self.p_hid), 1, self.p_hid)*1.0
-
+        p_hid            = T.nnet.sigmoid(p_hid_activation)
+        p_hid_sample     = theano_rng.binomial(T.shape(p_hid), 1, p_hid)*1.0
+        
+        # for negative phase we need to implement k Gibbs steps; for this we 
+        # will use the scan op (see theano documentation about it)
     
-        def oneGibbsStep(vis_km1, hid_km1):
+        # Create the shared variables that will store the negative phase values
+        self.n_vis   = theano.shared( value = numpy.zeros(n_visible)
+        self.n_hid   = theano.shared( value = numpy.zeros(n_hidden)
+
+        # Create a function that builds the graph for one Gibbs step
+        def oneGibbsStep( vis_km1, hid_km1):
+           # For clarity we used the following naming conventions : 
+           #     var_kmx -> the value of variable ``var`` at step k - x
+           #     var_k   -> the value of variable ``var`` at step k
+           #     var_kpx -> the value of variable ``var`` at step k + x
+
+
+           # the previous value of the hidden layer is stored in our 
+           # shared variable self.n_hid
+           hid_km1          = self.n_hid
+           # sample this hidden layer
            hid_sample_km1   = theano_rng.binomial(T.shape(hid_km1),1,hid_km1)*1.0
+           # compute visible layer values
            vis_activation_k = T.dot(hid_sample_km1, self.W.T) + self.vbias
            vis_k            = T.nnet.sigmoid(vis_activation_k)
+           # sample the visible
            vis_sample_k     = theano_rng.binomial(T.shape(vis_k),1,vis_k)*1.0
+           # compute new hidden layer values
            hid_activation_k = T.dot(vis_sample_k, self.W) + self.hbias
            hid_k            = T.nnet.sigmoid(hid_activation_k)
-           
-           return [vis_k, hid_k]
-           
+
+           # return a list of outputs, plus a dictionary of updates 
+           return ([vis_k, hid_k],{self.n_vis : vis_k, self.n_hid : hid_k})
+        
         # to compute the negative phase perform k Gibbs step; for this we 
         # use the scan op, that implements a loop
 
-        self.n_vis_values, self.n_hid_values = scan(oneGibbsStep,[],[self.input, self.p_hid],
-                            [], n_steps = n_Gibbs_steps) #, mode='DEBUG_MODE')
+        n_vis_values, n_hid_values = scan(oneGibbsStep,[],[self.input, p_hid],
+                            [], n_steps = n_Gibbs_steps) 
 
         
-        self.g_vbias = T.mean( self.input - self.n_vis_values[-1], axis = 0)
-        self.g_hbias = T.mean( self.p_hid      - self.n_hid_values[-1], axis = 0)
-
+        g_vbias = T.mean( input - n_vis_values[-1], axis = 0)
+        g_hbias = T.mean( p_hid - n_hid_values[-1], axis = 0)
+        
         minibatch_size = self.input.shape[0]
-        self.g_W = T.dot(self.p_hid.T           , self.input      )/minibatch_size - \
-              T.dot(self.n_hid_values[-1].T, self.n_vis_values[-1])/ minibatch_size
+        g_W = T.dot(p_hid.T           , self.input      )/minibatch_size - \
+              T.dot(n_hid_values[-1].T, n_vis_values[-1])/ minibatch_size
 
         self.params  = [self.W, self.vbias, self.hbias]
-        self.gparams = [self.g_W, self.g_vbias, self.g_hbias]
+        self.gparams = [g_W.T, g_vbias, g_hbias]
 
         # define dictionary of stochastic gradient update equations
         self.updates = zip (self.params, self.gparams)
-        self.cost = T.mean(self.input - self.n_vis_values[-1])
+        self.cost = T.mean(abs(self.input - n_vis_values[-1]))
 
 
 
@@ -173,23 +194,21 @@ def sgd_optimization_mnist( learning_rate=0.1, training_epochs = 20, \
     rbm_object = RBM( input = x, n_visible=28*28, \
                       n_hidden = 500, n_Gibbs_steps = 3)
 
-    train_rbm = theano.function([index], rbm_object.g_hbias, 
-           updates = {},#rbm_object.updates, 
+    train_rbm = theano.function([index], rbm_object.cost, 
+           updates = rbm_object.updates, 
            givens = { 
              x: train_set_x[index*batch_size:(index+1)*batch_size],
              y: train_set_y[index*batch_size:(index+1)*batch_size]}
-             )# , mode='DEBUG_MODE')
+             )
 
     start_time = time.clock()  
     # go through training epochs 
     for epoch in xrange(training_epochs):
         # go through the training set
+        c = []
         for batch_index in xrange(n_train_batches):
-           c =  train_rbm(batch_index)
-           print '---------------------------------------------'
-           print c.shape
-           print c
-        print 'Training epoch %d '%epoch, c
+           c += [ train_rbm(batch_index) ]
+        print 'Training epoch %d '%epoch, numpy.mean(c)
  
     end_time = time.clock()
 
