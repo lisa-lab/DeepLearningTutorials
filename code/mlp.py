@@ -202,7 +202,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
                            # [int] labels
 
 
-    # construct the logistic regression class
+    # construct the MLP class
     classifier = MLP( input=x, n_in=28*28, n_hidden = 500, n_out=10)
 
     # the cost we minimize during training is the negative log likelihood of 
