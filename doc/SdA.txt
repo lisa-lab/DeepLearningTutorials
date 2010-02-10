@@ -6,7 +6,7 @@ Stacked Denoising Autoencoders (SdA)
 .. note::
   This section assumes the reader has already read through :doc:`logreg`
   and :doc:`mlp`. Additionally it uses the following Theano functions
-  and concepts : `T.nnet.sigmoid`, `shared variables`_, `basic arithmetic ops`_, `T.grad`_ 
+  and concepts : TODO
 
 
 The Stacked Denoising Autoencoder (SdA) is an extension of the stacked 
@@ -242,10 +242,16 @@ does just that :
 
 .. code-block:: python
 
-	from theano.tensor.shared_randomstreals import RandomStreams
+  from theano.tensor.shared_randomstreals import RandomStreams
 
-	theano_rng = RandomStreams()
-	corrupted_x = x * theano.rng.binomial(x.shape, 1, 0.9)
+  theano_rng = RandomStreams()
+  corrupted_x = x * theano.rng.binomial(x.shape, 1, 0.9)
+
+In the stacked autoencoder class (:ref:`stacked_autoencoders`) the
+weights of the ``dA`` class have to be shared with those of an
+corresponding sigmoid layer. For this reason, the constructor of the ``dA`` also gets Theano
+variables pointing to the shared parameters. If those parameters are left
+to ``None``, new ones will be constructed.
 
 The final denoising autoencoder class becomes : 
 
@@ -253,35 +259,46 @@ The final denoising autoencoder class becomes :
 
    class dA(object):
 
-       def __init__(self, n_visible= 784, n_hidden= 500, input= None, corruption_level = 0.1):
+       def __init__(self, n_visible= 784, n_hidden= 500, corruption_level = 0.1, input = None, shared_W = None, shared_b = None):
 
           self.n_visible = n_visible
           self.n_hidden  = n_hidden
-    
+          
+          
           # create a Theano random generator that gives symbolic random values
           theano_rng = RandomStreams()
           # create a numpy random generator
           numpy_rng = numpy.random.RandomState()
     
-     
-          # initial values for weights and biases
-          # note : W' was written as `W_prime` and b' as `b_prime`
-
-          initial_W = numpy.asarray( numpy.random.uniform( \
-              low = -numpy.sqrt(6./(n_visible+n_hidden)), \
-              high = numpy.sqrt(6./(n_visible+n_hidden)), \
-              size = (n_visible, n_hidden)), dtype = theano.config.floatX)
-          initial_b       = numpy.zeros(n_hidden)
-          initial_b_prime= numpy.zeros(n_visible)
-     
+          if shared_W != None and shared_b != None : 
+              self.W = shared_W
+              self.b = shared_b
+          else:
+              # initial values for weights and biases
+              # note : W' was written as `W_prime` and b' as `b_prime`
+              
+              # W is initialized with `initial_W` which is uniformely sampled
+              # from -6./sqrt(n_visible+n_hidden) and 6./sqrt(n_hidden+n_visible)
+              # the output of uniform if converted using asarray to dtype 
+              # theano.config.floatX so that the code is runable on GPU
+              initial_W = numpy.asarray( numpy.random.uniform( \
+                  low = -numpy.sqrt(6./(n_hidden+n_visible)), \
+                  high = numpy.sqrt(6./(n_hidden+n_visible)), \
+                  size = (n_visible, n_hidden)), dtype = theano.config.floatX)
+              initial_b       = numpy.zeros(n_hidden)
     
-          # theano shared variables for weights and biases
-          self.W       = theano.shared(value = initial_W,       name = "W")
-          self.b       = theano.shared(value = initial_b,       name = "b")
+    
+              # theano shared variables for weights and biases
+              self.W       = theano.shared(value = initial_W,       name = "W")
+              self.b       = theano.shared(value = initial_b,       name = "b")
+    
+ 
+          initial_b_prime= numpy.zeros(n_visible)
           # tied weights, therefore W_prime is W transpose
           self.W_prime = self.W.T 
           self.b_prime = theano.shared(value = initial_b_prime, name = "b'")
 
+   
           # if no input is given, generate a variable representing the input
           if input == None : 
               # we use a matrix because we expect a minibatch of several examples,
@@ -307,11 +324,10 @@ The final denoising autoencoder class becomes :
           #        minibatch. We need to compute the average of all these to get 
           #        the cost of the minibatch
           self.cost = T.mean(self.L)
-          # note : y is computed from the corrupted `tilde_x`. Later on, 
-          #        we will need the hidden layer obtained from the uncorrupted 
-          #        input when for example we will pass this as input to the layer 
-          #        above
-          self.hidden_values = T.nnet.sigmoid( T.dot(self.x, self.W) + self.b)
+
+
+          self.params = [ self.W, self.b, self.b_prime ]
+
 
 
 
@@ -343,96 +359,178 @@ This stage is supervised, since now we use the target class during
 training (see the :ref:`mlp` for details on the multilayer perceptron).
 
 This can be easily implemented in Theano, using the class defined
-before for a denoising autoencoder :
+before for a denoising autoencoder. We can see the stacked denoising
+autoencode as having two facades, one is a list of
+autoencoders, the other is an MLP. During pre-training we use the first facade, i.e we treat our model
+as a list of autoencoders, and train each autoencoder seperately. In the 
+second stage of training, we use the second facade. These two
+facedes are linked by the fact that the autoencoders and the sigmoid layers of 
+the MLP share parameters, and the fact that autoencoders get as input latent
+representations of intermediate layers of the MLP. 
 
 .. code-block:: python
 
   class StackedAutoencoder():
-   
-    def __init__(self, input, n_ins, hidden_layers_sizes, n_outs, corruption_levels):
+
+     def __init__(self, train_set_x, train_set_y, batch_size, n_ins, 
+                 hidden_layers_sizes, n_outs, 
+                 corruption_levels, rng, pretrain_lr, finetune_lr):
         """ This class is made to support a variable number of layers. 
 
-        :param input: symbolic variable describing the input of the SdA
+        :param train_set_x: symbolic variable pointing to the training dataset 
+
+        :param train_set_y: symbolic variable pointing to the labels of the
+        training dataset
 
         :param n_ins: dimension of the input to the sdA
 
-        :param n_layers_sizes: intermediate layers size, must contain 
+        :param n_layers_sizes: intermidiate layers size, must contain 
         at least one value
 
         :param n_outs: dimension of the output of the network
-        
+
         :param corruption_levels: amount of corruption to use for each 
         layer
+
+        :param rng: numpy random number generator used to draw initial weights
+
+        :param pretrain_lr: learning rate used during pre-trainnig stage
+
+        :param finetune_lr: learning rate used during finetune stage
  
-        """
-
-Next step, we create an denoising autoencoder for each layer and link them
-together:
-
-.. code-block:: python
-
-        self.layers =[]
+        self.layers             = []
+        self.pretrain_functions = []
+        self.params             = []
+        self.n_layers           = len(hidden_layers_sizes)
 
         if len(hidden_layers_sizes) < 1 :
             raiseException (' You must have at least one hidden layer ')
 
-        # add first layer:
-        layer = dA(n_ins, hidden_layers_sizes[0], input = input, \
-                   corruption_level = corruption_levels[0])
-        self.layers += [layer]
-        # add all intermediate layers
-        for i in xrange( 1, len(hidden_layers_sizes) ):
-            # input size is that of the previous layer
-            # input is the output of the last layer inserted in our list 
-            # of layers `self.layers`
-            layer = dA( hidden_layers_sizes[i-1],             \
-                        hidden_layers_sizes[i],               \
-                        input = self.layers[-1].hidden_values,\
-                        corruption_level = corruption_levels[i])
-            self.layers += [layer]
-        
 
-        self.n_layers = len(self.layers)
+        # allocate symbolic variables for the data
+        index   = T.lscalar()    # index to a [mini]batch 
+        self.x  = T.matrix('x')  # the data is presented as rasterized images
+        self.y  = T.ivector('y') # the labels are presented as 1D vector of 
+                                 # [int] labels
 
+       """
 
-Note that during the second stage of training (fine-tuning) we need to 
-use the weights of the autoencoders to define a multilayer perceptron.
-This is already given by the above lines of code, in the sense that 
-the ``hidden_values`` of the last denoising autoencoder already computes what
-should be the input of the logistic regression layer that sits at the 
-top of the MLP. All we need now is to add the logistic layer. We will 
-use the ``LogisticRegression`` class introduced in :ref:`logreg`. 
+``self.layers`` will store the sigmoid layers of the MLP facade, while
+``self.pretrain_function`` will store  compiled Theano function to train 
+each of the denoising autoencoder associated with the layers of the MLP. 
+Because we compile our functions inside this class, we need to pass to
+the constructor Theano variable pointing to our training 
+set ( on which these functions will operate). 
+
+Next step, we construct ``n_layers`` sigmoid layers (we use the
+``SigmoidalLayer`` class introduced in :ref:`lenet`, with the only
+modification that we replaced the non-linearity from ``tanh`` to the
+logistic function :math:`s(x) = \frac{1}{1+e^{-x}}`) and ``n_layers``
+denoising autoencoders, where ``n_layers`` is the depth of our model.
+We link the sigmoid layers such that they form an MLP, and construct
+each denoising autoencoder such that they share the weight matrix and the 
+bias of the encoding part with its corresponding sigmoid layer.
 
 .. code-block:: python
 
-        # add a logistic layer on top
+        for i in xrange( self.n_layers ):
+            # construct the sigmoidal layer
+
+            # the size of the input is either the number of hidden units of 
+            # the layer below or the input size if we are on the first layer
+            if i == 0 :
+                input_size = n_ins
+            else:
+                input_size = hidden_layers_sizes[i-1]
+
+            # the input to this layer is either the activation of the hidden
+            # layer below or the input of the SdA if you are on the first
+            # layer
+            if i == 0 : 
+                layer_input = self.x
+            else:
+                layer_input = self.layers[-1].output
+
+            layer = SigmoidalLayer(rng, layer_input, input_size, 
+                                   hidden_layers_sizes[i] )
+            # add the layer to the 
+            self.layers += [layer]
+            self.params += layer.params
+        
+            # Construct a denoising autoencoder that shared weights with this
+            # layer
+            dA_layer = dA(input_size, hidden_layers_sizes[i], \
+                          corruption_level = corruption_levels[0],\
+                          input = layer_input, \
+                          shared_W = layer.W, shared_b = layer.b)
+ 
+
+We do not need the ``dA_layer``, since we have pointers to all
+parameters in ``layer``. Do only thing that we need from ``dA_layer`` is 
+a function that we can call over the training set in order to train the 
+autoencoder. The next few lines of code compile such a function. The
+function is added to our list of functions. Note that the order in this
+list is important, because pre-training has to be done starting from 
+first layer to the last. 
+
+.. code-block:: python 
+
+            # Construct a function that trains this dA
+            # compute gradients of layer parameters
+            gparams = T.grad(dA_layer.cost, dA_layer.params)
+            # compute the list of updates
+            updates = {}
+            for param, gparam in zip(dA_layer.params, gparams):
+                updates[param] = param - gparam * pretrain_lr
+            
+            # create a function that trains the dA
+            update_fn = theano.function([index], dA_layer.cost, \
+                  updates = updates,
+                  givens = { 
+                     self.x : train_set_x[index*batch_size:(index+1)*batch_size]})
+            # collect this function into a list
+            self.pretrain_functions += [update_fn]
+
+
+
+All we need now is to add the logistic layer on top of the sigmoid
+layers such that we have an MLP. We will 
+use the ``LogisticRegression`` class introduced in :ref:`logreg`. Since
+we already have Theano variables pointing to our training dataset we
+will also construct a training function for the MLP (that we will use
+later in the fine-tunining stage). 
+
+.. code-block:: python
+
+        # We now need to add a logistic layer on top of the MLP
         self.logLayer = LogisticRegression(\
-                         input = self.layers[-1].hidden_values,\
+                         input = self.layers[-1].output,\
                          n_in = hidden_layers_sizes[-1], n_out = n_outs)
 
+        self.params += self.logLayer.params
+        # construct a function that implements one step of finetunining
 
-The negative log likelihood of this MLP (formed from reusing the weights 
-of the denoising autoencoders) is given by the negative log likelihood
-function of the logistic layer : 
+        # compute the cost, defined as the negative log likelihood 
+        cost = self.logLayer.negative_log_likelihood(self.y)
+        # compute the gradients with respect to the model parameters
+        gparams = T.grad(cost, self.params)
+        # compute list of updates
+        updates = {}
+        for param,gparam in zip(self.params, gparams):
+            updates[param] = param - gparam*finetune_lr
+            
+        self.finetune = theano.function([index], cost, 
+                updates = updates,
+                givens = {
+                  self.x : train_set_x[index*batch_size:(index+1)*batch_size],
+                  self.y : train_set_y[index*batch_size:(index+1)*batch_size]} )
 
-.. code-block:: python
+        # symbolic variable that points to the number of errors made on the
+        # minibatch given by self.x and self.y
 
-    def negative_log_likelihood(self, y):
-        """Return the mean of the negative log-likelihood of the prediction
-        of this model under a given target distribution. In our case this 
-        is given by the logistic layer.
+        self.errors = self.logLayer.errors(self.y)
 
-        :param y: corresponds to a vector that gives for each example the
-        :correct label
-        """
-        return self.logLayer.negative_log_likelihood(y)
 
-    def errors(self, y):
-        """Return a float representing the number of errors in the minibatch 
-        over the total number of examples of the minibatch 
-        """
-        
-        return self.logLayer.errors(y)
 
 
 
@@ -445,100 +543,42 @@ autoencoder :
 .. code-block:: python 
 
 
-    # construct the logistic regression class
-    classifier = SdA( input=x, n_ins=28*28, \
-                      hidden_layers_sizes = [1000, 1000, 1000], n_outs=10)
-    
+    # construct the stacked denoising autoencoder class
+    classifier = SdA( train_set_x=train_set_x, train_set_y = train_set_y,\
+                      batch_size = batch_size, n_ins=28*28, \
+                      hidden_layers_sizes = [1000, 1000, 1000], n_outs=10, \
+                      corruption_levels = [ 0.2, 0.2, 0.2],\
+                      rng = numpy.random.RandomState(1234),\
+                      pretrain_lr = pretrain_lr, finetune_lr = learning_rate )
+
 
 There are two stages in training this network, a layer wise pre-training and 
 fine-tuning afterwards. 
 
 For the pre-training stage, we will loop over all the layers of the
-network. For each layer we will compile a theano function that
-implements a SGD step towards optimizing the weights for reducing 
-the reconstruction cost of that layer. This function will be applied 
-to the training set for a fixed number of epochs given by
-``pretraining_epochs``
+network and apply the autoencode training function for a fixed number of 
+epochs given by ``pretraining_epochs``
 
 
 .. code-block:: python
 
-
+    start_time = time.clock()  
     ## Pre-train layer-wise 
     for i in xrange(classifier.n_layers):
-        # compute gradients of layer parameters
-        gW       = T.grad(classifier.layers[i].cost, classifier.layers[i].W)
-        gb       = T.grad(classifier.layers[i].cost, classifier.layers[i].b)
-        gb_prime = T.grad(classifier.layers[i].cost, \
-                                               classifier.layers[i].b_prime)
-        # updated value of parameters after each step
-        new_W       = classifier.layers[i].W      - gW      * pretraining_lr
-        new_b       = classifier.layers[i].b      - gb      * pretraining_lr
-        new_b_prime = classifier.layers[i].b_prime- gb_prime* pretraining_lr
-        cost = classifier.layers[i].cost
-        layer_update = theano.function([index], [cost], \
-          updates = { 
-              classifier.layers[i].W       : new_W \
-            , classifier.layers[i].b       : new_b \
-            , classifier.layers[i].b_prime : new_b_prime },
-          givens = {
-              x :train_set_x[index*batch_size:(index+1)*batch_size]})
         # go through pretraining epochs 
         for epoch in xrange(pretraining_epochs):
             # go through the training set
             for batch_index in xrange(n_train_batches):
-                c = layer_update(batch_index)
-            print 'Pre-training layer %i, epoch %d'%(i,epoch)
+                c = classifier.pretrain_functions[i](batch_index)
+            print 'Pre-training layer %i, epoch %d, cost '%(i,epoch),c
  
+    end_time = time.clock()
 
-The fine-tuning loop is very similar with the one in the :ref:`mlp`, we just
-have a slightly more complex training function. The reason is that now we 
-need to update all parameters of the network in one call of the training 
-function ( this includes the weight and biases of the denoising
-autoencoders plus those of the logistic regression layer). To create 
-this function, we will loop over the layers and create an update list 
-containing pairs of the form (parameter before the SGD step, parameter after 
-the SGD step). The new value of a parameter can be easily computed by calling 
-``T.grad`` to compute the corresponding gradient, multiply it with the 
-learning rate and subtract the result from the old value of the
-parameter: 
 
-.. code-block:: python 
-
-    # Fine-tune the entire model
-    # the cost we minimize during training is the negative log likelihood of 
-    # the model
-    cost = classifier.negative_log_likelihood(y) 
-
-    # compute the gradient of cost with respect to theta and add them to the 
-    # updates list
-    updates = []
-    for i in xrange(classifier.n_layers):        
-        g_W   = T.grad(cost, classifier.layers[i].W)
-        g_b   = T.grad(cost, classifier.layers[i].b)
-        new_W = classifier.layers[i].W - learning_rate * g_W
-        new_b = classifier.layers[i].b - learning_rate * g_b
-        updates += [ (classifier.layers[i].W, new_W) \
-                   , (classifier.layers[i].b, new_b) ]
-    # add the gradients of the logistic layer
-    g_log_W   = T.grad(cost, classifier.logLayer.W)
-    g_log_b   = T.grad(cost, classifier.logLayer.b)
-    new_log_W = classifier.logLayer.W - learning_rate * g_log_W
-    new_log_b = classifier.logLayer.b - learning_rate * g_log_b
-    updates += [ (classifier.logLayer.W, new_log_W) \
-               , (classifier.logLayer.b, new_log_b) ]
-
-    # compiling a theano function `train_model` that returns the cost, but  
-    # in the same time updates the parameter of the model based on the rules 
-    # defined in `updates`
-    train_model = theano.function([index], cost, updates=updates,
-          givens = {
-            x: train_set_x[index*batch_size:(index+1)*batch_size],
-            y: train_set_y[index*batch_size:(index+1)*batch_size]})
-
-Now we pass this ``training_model`` (together with a ``validate_model`` and 
-a ``test_model`` generated as in the other tutorials) to the 
-early stopping loop and we are done. 
+The fine-tuning loop is very similar with the one in the :ref:`mlp`, the
+only difference is that we will use now the ``finetune`` function that 
+we compiled in the ``SdA`` class instead of a ``train_model`` function 
+used in the other tutorials.
 
 
 
@@ -554,9 +594,9 @@ The user can run the code by calling:
 
 By default the code runs 15 pre-training epochs for each layer, with 
 a corruption level of 0.1 and a learning rate of 0.1. Pre-training takes
-79.4971 minutes. Fine-tuning is completed after 144 epochs in 282.195 
-minutes and results  in a validation score of 1.36 %, with a test 
-performace of 1.6 %.
+78.88 minutes. Fine-tuning is completed after 32 epochs in 65.89 
+minutes and results  in a validation score of 1.7 %, with a test 
+performace of 1.65 %.
 
 
 References
