@@ -1,0 +1,98 @@
+.. _RBM:
+
+Restricted Boltzmann Machines (RBM)
+===================================
+
+Boltzmann Machines (BM)
++++++++++++++++++++++++
+
+Boltzmann Machines (BM) are probabilistic generative models which learn to
+model a distribution :math:`p_T(x)`, by attempting to capture the underlying
+structure in the input. BMs contain a network of binary probabilistic units,
+which interact through weighted undirected connections. The probability of a
+unit :math:`s_i` being "on" given its connected neighbours, is stochastically
+determined by the state of these neighbours, the strength of the weighted
+connections and the internal offset :math:`b_i`. Positive weights
+:math:`w_{ij}` indicate a tendency for units :math:`s_i` and :math:`s_j` to be
+"on" together, while :math:`w_{ij} < 0` indicates some form of inhibition. The
+entire network defines an energy function, defined as:
+
+.. math::
+    E(s) = - \sum_i \sum_{j > i} w_{ij}s_is_j - \sum_i b_i x_i.
+
+The stochastic update equation is then given by:
+
+.. math::
+    p(s_i = 1 | \{s_j: \forall j \neq i \}) = sigm(\sum_j w_{ij} s_j + b_i),
+
+a stochastic version of the neuronal activation function found in Artificial
+Neural Networks (ANNs). Under these conditions and at a stochastic equilibrium,
+it can also be shown that the probability of a given global configuration is
+given as
+
+.. math::
+    p(s) = \frac{1}{Z} e^{-E(s)}.
+
+High probability configurations therefore correspond to low-energy states.
+
+Learning can be made more powerful by splitting the units into *visible* and
+*hidden* units, as shown in Fig. TODO, i.e. :math:`s=(v,h)`. During training,
+visible units are driven by training samples :math:`x^{(i)}` and the hidden
+units are left free to converge to the equilibrium distribution. The goal of
+learning is then to modify the network parameters :math:`\theta` in such a way
+that :math:`p(v) = \sum_h p(v,h)` is approximately the same during training
+(with visible units clamped) and when the entire network is free-running. This
+amounts to maximizing the empirical log-likelihood
+
+.. math::
+    \frac{1}{N} \sum_{i=1}^n \log p(v=x^{(i)}).
+
+
+Restricted Boltzmann Machines (RBM)
++++++++++++++++++++++++++++++++++++
+
+Restricted Boltzmann Machines are variants of BMs, where visible-visible
+and hidden-hidden connections are prohibited. The energy function :math:`E(v,h)` is
+thus defined as,
+
+.. math::
+    E(v,h) = - b'v - c'h - h'Wv  (1)
+
+where :math:`W` represents the weights connecting hidden and visible units and
+:math:`b`, :math:`c` are the offsets of the visible and hidden layers
+respectively.
+
+The biggest advantage of such an architecture is that the hidden units become
+conditionally independent, given the visible layer (and vice-versa). This is
+self-evident from looking at the graphical model of Fig. TODO. We can therefore
+write,
+
+.. math::
+    p(h|v) = \prod_i p(h_i|v) \\
+    p(v|h) = \prod_j p(v_j|h).
+
+This greatly simplifies the learning rule of Eq. TODO, as inference
+now becomes trivial and exact. As an example, we derive the gradient on
+:math:`W_{ij}`. Gradients on the offsets can be obtained in a similar manner.
+
+.. math::
+    \left. \frac {\partial{log p(v)}} {\partial\theta} \right|_{v=x^{(i)}} = 
+    - x^{(i)}_j \cdot sigm(W_i \cdot x^{(i)} + c_i) + E_v[p(h_i|v) \cdot v_j]
+
+As we can see from Eq. TODO, the positive phase gradient is straightforward to
+compute. Computing the negative phase gradient still requires samples from
+:math:`p(v)` however. How to get these negative samples is what sets most of the RBM
+training algorithms apart. Regardless of their peculiarities, they all exploit
+the fact that Gibbs sampling is very efficient in an RBM. Because units in one
+layer are conditionally independent given the other layer, getting :math:`x^{(n+1)}`
+from :math:`x^{(n)}` can be achieved in two steps:
+
+.. math::
+    h^{(n+1)} &\sim sigm(W'x^{(n)} + c) \\
+    x^{(n+1)} &\sim sigm(W h^{(n+1)} + b) 
+
+For a more detailed derivation of all the above formulas, we refer the reader to
+Bengio-2009 [TODO].
+
+
+
