@@ -12,40 +12,70 @@ structure in the input. BMs contain a network of binary probabilistic units,
 which interact through weighted undirected connections. The probability of a
 unit :math:`s_i` being "on" given its connected neighbours, is stochastically
 determined by the state of these neighbours, the strength of the weighted
-connections and the internal offset :math:`b_i`. Positive weights
-:math:`w_{ij}` indicate a tendency for units :math:`s_i` and :math:`s_j` to be
-"on" together, while :math:`w_{ij} < 0` indicates some form of inhibition. The
-entire network defines an energy function, defined as:
+connections and the internal offset :math:`b_i`. The model parameters are thus
+:math:`\theta=\{W,b\}`. Positive weights :math:`W_{ij}` indicate a tendency for
+units :math:`s_i` and :math:`s_j` to be "on" together, while :math:`W_{ij} <
+0` indicates some form of inhibition. The entire network defines an energy
+function, defined as:
 
 .. math::
-    E(s) = - \sum_i \sum_{j > i} w_{ij}s_is_j - \sum_i b_i x_i.
+    E(s) = - \sum_i \sum_{j > i} W_{ij}s_is_j - \sum_i b_i x_i.
 
 The stochastic update equation is then given by:
 
 .. math::
-    p(s_i = 1 | \{s_j: \forall j \neq i \}) = sigm(\sum_j w_{ij} s_j + b_i),
-
+    p(s_i = 1 | \{s_j: \forall j \neq i \}) = sigm(\sum_j W_{ij} s_j + b_i),
 a stochastic version of the neuronal activation function found in Artificial
-Neural Networks (ANNs). Under these conditions and at a stochastic equilibrium,
-it can also be shown that the probability of a given global configuration is
-given as
+Neural Networks (ANNs). 
+
+Under these conditions and at a stochastic equilibrium, it can also be shown
+that the probability of a given global configuration is given as
 
 .. math::
-    p(s) = \frac{1}{Z} e^{-E(s)}.
+    p(s) = \frac{1}{Z} e^{-E(s)},
+where :math:`Z` is the partition function defined as :math:`Z = \sum_s E(s)`.
+Notice how high probability configurations correspond to low-energy states.
 
-High probability configurations therefore correspond to low-energy states.
+Splitting the units into *visible* and *hidden* units leads to a more powerful
+model (shown below).
 
-Learning can be made more powerful by splitting the units into *visible* and
-*hidden* units, as shown in Fig. TODO, i.e. :math:`s=(v,h)`. During training,
-visible units are driven by training samples :math:`x^{(i)}` and the hidden
-units are left free to converge to the equilibrium distribution. The goal of
-learning is then to modify the network parameters :math:`\theta` in such a way
-that :math:`p(v) = \sum_h p(v,h)` is approximately the same during training
-(with visible units clamped) and when the entire network is free-running. This
-amounts to maximizing the empirical log-likelihood
+.. image:: images/bm.png
+    :align: center
+
+During training, visible units are driven by training samples :math:`x^{(i)}`
+and the hidden units are left free to converge to the equilibrium
+distribution. The goal of learning is then to modify the network parameters
+:math:`\theta` in such a way that :math:`p(v) = \sum_h p(v,h)` is
+approximately the same during training (with visible units clamped) and when
+the entire network is free-running. This amounts to maximizing the empirical
+log-likelihood
 
 .. math::
-    \frac{1}{N} \sum_{i=1}^n \log p(v=x^{(i)}).
+    \mathcal{L}(\theta, \mathcal{D}) = \frac{1}{N} \sum_{x^{(i)} \in \mathcal{D}} log\ p(v=x^{(i)}).
+
+From this likelihood, we can derive a stochastic gradient over the parameters
+:math:`\theta` for training example :math:`x^{(i)}`:
+
+.. math::
+   :label: bm_grad
+
+    \left. \frac {\partial{log p(v)}} {\partial\theta} \right|_{v=x^{(i)}} =
+    -\sum_h p(h|v=x^{(i)}) \frac {\partial{E(x^{(i)},h)}} {\partial\theta}
+    +\sum_{v,h} p(v,h)
+      \frac {\partial{E(v,h)}} {\partial\theta}
+
+The above gradient is the sum of two terms, corresponding to the so-called
+**positive** and **negative phases**. The first term is an average
+over :math:`p(h|v=x^{(i)})` (i.e. probability over the hidden units given that the
+visible units are clamped to training data). It will act to decrease the
+energy of the training examples, referred to as *positive examples*.
+The second term, an average over :math:`p(v,h)`, is of opposite sign and will thus act
+to increase the energy of configurations sampled from the model.
+These configurations are referred to as *negative examples*, as they
+are training examples which the network needs to *unlearn*. Together,
+this *push-pull* mechanism attempts to mold an energy landscape where
+configurations with visible units corresponding to training examples have
+low-energy and all other configurations have high-energy.
 
 
 Restricted Boltzmann Machines (RBM)
@@ -56,7 +86,7 @@ and hidden-hidden connections are prohibited. The energy function :math:`E(v,h)`
 thus defined as,
 
 .. math::
-    E(v,h) = - b'v - c'h - h'Wv  (1)
+    E(v,h) = - b'v - c'h - h'Wv 
 
 where :math:`W` represents the weights connecting hidden and visible units and
 :math:`b`, :math:`c` are the offsets of the visible and hidden layers
@@ -64,35 +94,75 @@ respectively.
 
 The biggest advantage of such an architecture is that the hidden units become
 conditionally independent, given the visible layer (and vice-versa). This is
-self-evident from looking at the graphical model of Fig. TODO. We can therefore
-write,
+self-evident from looking at the graphical model shown below.
+
+.. image:: images/rbm.png
+    :align: center
+
+This property allows us to write:
 
 .. math::
-    p(h|v) = \prod_i p(h_i|v) \\
-    p(v|h) = \prod_j p(v_j|h).
+    p(h|v) &= \prod_i p(h_i|v) \\
+    p(v|h) &= \prod_j p(v_j|h).
 
-This greatly simplifies the learning rule of Eq. TODO, as inference
-now becomes trivial and exact. As an example, we derive the gradient on
-:math:`W_{ij}`. Gradients on the offsets can be obtained in a similar manner.
+This greatly simplifies the learning rule of Eq. :eq:`bm_grad`.
+As an example, we derive the gradient on :math:`W_{ij}`. For derivations of
+the other gradients, we refer the reader to [Bengio09]_.
 
 .. math::
-    \left. \frac {\partial{log p(v)}} {\partial\theta} \right|_{v=x^{(i)}} = 
+    \left. \frac {\partial{log p(v)}} {\partial W_{ij}} \right|_{v=x^{(i)}} = 
     - x^{(i)}_j \cdot sigm(W_i \cdot x^{(i)} + c_i) + E_v[p(h_i|v) \cdot v_j]
 
-As we can see from Eq. TODO, the positive phase gradient is straightforward to
-compute. Computing the negative phase gradient still requires samples from
-:math:`p(v)` however. How to get these negative samples is what sets most of the RBM
-training algorithms apart. Regardless of their peculiarities, they all exploit
-the fact that Gibbs sampling is very efficient in an RBM. Because units in one
-layer are conditionally independent given the other layer, getting :math:`x^{(n+1)}`
-from :math:`x^{(n)}` can be achieved in two steps:
+In RBMs, the positive phase gradient is thus straightforward to compute.
+Computing the negative phase gradient is still problematic however, since
+it requires samples from :math:`p(v)` to compute the expectation. Samples of
+:math:`p(v)` can be obtained by running a Markov chain to convergence, using
+Gibbs sampling as the transition operator.
+
+.. image:: images/markov_chain.png
+    :align: center
+
+In the figure above, the superscript refers to the sample index within the
+Markov chain. Visible and hidden samples are obtained as follows:
 
 .. math::
-    h^{(n+1)} &\sim sigm(W'x^{(n)} + c) \\
-    x^{(n+1)} &\sim sigm(W h^{(n+1)} + b) 
+    h^{(n+1)} &\sim sigm(W'v^{(n)} + c) \\
+    v^{(n+1)} &\sim sigm(W h^{(n+1)} + b).
 
-For a more detailed derivation of all the above formulas, we refer the reader to
-Bengio-2009 [TODO].
+Samples :math:`(v^{(t)}, h^{(t)})` are guaranteed to be accurate samples of
+:math:`p(v,h)` as :math:`t \rightarrow \infty`. Since each parameter update
+would require running this chain to convergence, learning algorithms for RBMs
+tend to use different tricks to efficiently sample from :math:`p(v,h)`.
+
+Contrastive Divergence
+----------------------
+
+Contrastive Divergence uses two tricks to speed up the sampling process:
+
+* since we eventually want :math:`p(v) \approx p_T(v)` (the true, underlying
+  distribution of the data), initialize the Markov chain with a training
+  example. This should help speed up convergence of the chain.
+  
+* do not wait for the chain to converge: samples are obtained after k-steps of
+  Gibbs sampling. In pratice, :math:`k=1` has been shown to work surprisingly
+  well.
+
+Persistent CD
+-------------
+
+Persistent CD [Tieleman08]_ uses another approximation for sampling from
+:math:`p(v,h)`.  It relies on a single Markov chain, which has a persistent
+state. For each parameter update, we extract new samples by simply running the
+chain for k-steps. The state of the chain is then preserved for subsequent updates.
+
+The general intuition is that if parameter updates are small enough compared
+to the mixing rate of the chain, the Markov chain should be able to "catch up"
+to changes in the model.
 
 
+References
+++++++++++
 
+.. [Bengio09] Y. Bengio, `Learning deep architectures for AI <http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/239>`_, Foundations and Trends in Machine Learning 1(2) pages 1-127.
+
+.. [Tieleman08] T. Tieleman, `Training restricted boltzmann machines using approximations to the likelihood gradient`, ICML 2008.
