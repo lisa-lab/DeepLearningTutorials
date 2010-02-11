@@ -245,6 +245,7 @@ does just that :
 	from theano.tensor.shared_randomstreals import RandomStreams
 
 	theano_rng = RandomStreams()
+  # keep 90% of the inputs the same and zero-out randomly selected subset of 10% of the inputs
 	corrupted_x = x * theano.rng.binomial(x.shape, 1, 0.9)
 
 The final denoising autoencoder class becomes : 
@@ -290,6 +291,7 @@ The final denoising autoencoder class becomes :
           else:
               self.x = input
           
+          # keep 90% of the inputs the same and zero-out randomly selected subset of 10% of the inputs
           self.tilde_x  = theano_rng.binomial( self.x.shape,  1,  0.9) * self.x
           self.y   = T.nnet.sigmoid(T.dot(self.tilde_x, self.W      ) + self.b)
           self.z        = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
@@ -436,7 +438,7 @@ autoencoder :
                       hidden_layers_sizes = [500, 500, 500], n_outs=10)
     
 
-There are two stages in training this network, a layer wise pre-training and 
+There are two stages in training this network, a layer-wise pre-training and 
 fine-tuning afterwards. 
 
 For the pre-training stage, we will loop over all the layers of the
@@ -444,7 +446,7 @@ network. For each layer we will compile a theano function that
 implements a SGD step towards optimizing the weights for reducing 
 the reconstruction cost of that layer. This function will be applied 
 to the training set for a fixed number of epochs given by
-``pretraining_epochs``
+``pretraining_epochs``.
 
 
 .. code-block:: python
