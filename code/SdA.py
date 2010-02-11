@@ -197,8 +197,6 @@ class dA(object):
     
     # create a Theano random generator that gives symbolic random values
     theano_rng = RandomStreams()
-    # create a numpy random generator
-    numpy_rng = numpy.random.RandomState()
     
     if shared_W != None and shared_b != None : 
         self.W = shared_W
@@ -215,7 +213,7 @@ class dA(object):
               low = -numpy.sqrt(6./(n_hidden+n_visible)), \
               high = numpy.sqrt(6./(n_hidden+n_visible)), \
               size = (n_visible, n_hidden)), dtype = theano.config.floatX)
-        initial_b       = numpy.zeros(n_hidden)
+        initial_b       = numpy.zeros(n_hidden, dtype = theano.config.floatX)
     
     
         # theano shared variables for weights and biases
@@ -407,7 +405,7 @@ class SdA():
 
 
 
-def sgd_optimization_mnist( learning_rate=0.05, pretraining_epochs = 15, \
+def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 20, \
                             pretrain_lr = 0.1, training_epochs = 1000, \
                             dataset='mnist.pkl.gz'):
     """

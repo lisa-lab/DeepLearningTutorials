@@ -245,6 +245,7 @@ does just that :
   from theano.tensor.shared_randomstreals import RandomStreams
 
   theano_rng = RandomStreams()
+  # keep 90% of the inputs the same and zero-out randomly selected subset of 10% of the inputs
   corrupted_x = x * theano.rng.binomial(x.shape, 1, 0.9)
 
 In the stacked autoencoder class (:ref:`stacked_autoencoders`) the
@@ -306,6 +307,7 @@ The final denoising autoencoder class becomes :
               self.x = T.dmatrix(name = 'input') 
           else:
               self.x = input
+
           # keep 90% of the inputs the same and zero-out randomly selected subset of 10% of the inputs
           # note : first argument of theano.rng.binomial is the shape(size) of 
           #        random numbers that it should produce
@@ -360,7 +362,7 @@ training (see the :ref:`mlp` for details on the multilayer perceptron).
 
 This can be easily implemented in Theano, using the class defined
 before for a denoising autoencoder. We can see the stacked denoising
-autoencode as having two facades, one is a list of
+autoencoder as having two facades, one is a list of
 autoencoders, the other is an MLP. During pre-training we use the first facade, i.e we treat our model
 as a list of autoencoders, and train each autoencoder seperately. In the 
 second stage of training, we use the second facade. These two
@@ -552,12 +554,15 @@ autoencoder :
                       pretrain_lr = pretrain_lr, finetune_lr = learning_rate )
 
 
-There are two stages in training this network, a layer wise pre-training and 
+There are two stages in training this network, a layer-wise pre-training and 
 fine-tuning afterwards. 
 
 For the pre-training stage, we will loop over all the layers of the
-network and apply the autoencode training function for a fixed number of 
-epochs given by ``pretraining_epochs``
+network. For each layer we will compile a theano function that
+implements a SGD step towards optimizing the weights for reducing 
+the reconstruction cost of that layer. This function will be applied 
+to the training set for a fixed number of epochs given by
+``pretraining_epochs``.
 
 
 .. code-block:: python
