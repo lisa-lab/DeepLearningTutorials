@@ -158,19 +158,19 @@ class RBM():
 
         # keep_outputs tells scan that we do not care about intermediate values
         # of n_vis and n_hid, and that it should only return the last one
-        n_vis, n_hid = scan(oneGibbsStep,[],[self.input, p_hid],\
-               [], n_steps = n_Gibbs_steps, keep_outputs = {0:False, 1:False} ) 
+        n_vis_vals, n_hid_vals = scan(oneGibbsStep,[],[self.input, p_hid],\
+               [], n_steps = n_Gibbs_steps  ) 
 
-        g_vbias = T.mean( self.input - n_vis , axis = 0)
-        g_hbias = T.mean( p_hid      - n_hid , axis = 0)
+        g_vbias = T.mean( self.input - n_vis_vals[-1] , axis = 0)
+        g_hbias = T.mean( p_hid      - n_hid_vals[-1] , axis = 0)
 
         # ***Why are we using mean for the biases but a dot()/size formula for the weights?
         #    It's a minor point, but we're confusing two kinds of terminology.
         #    Better would be using mean & covariance (I think we have a cov() op...)
         #    -or- sum()/batchsize and then dot() / batchsize
         
-        g_W = T.dot(p_hid.T, self.input )/ self.batch_size - \
-              T.dot(n_hid.T, n_vis      )/ self.batch_size
+        g_W = T.dot(p_hid.T         , self.input          )/ self.batch_size - \
+              T.dot(n_hid_vals[-1].T, n_vis_vals[-1]      )/ self.batch_size
 
         gparams = [g_W.T, g_vbias, g_hbias]
         # define dictionary of stochastic gradient update equations
@@ -178,7 +178,7 @@ class RBM():
         # *** It is misleading to say that it returns a cost, since usually a cost is the thing
         # we are minimizing.
 
-        cost = T.mean(abs(self.input - n_vis))
+        cost = T.mean(abs(self.input - n_vis_vals[-1]))
         return (gparams, cost)
 
 
@@ -345,9 +345,23 @@ class RBM_option2(object):
         return v1_mean, v1_act
 
     def gibbs_k(self, k):
-        def gibbs_step(v_sample):
-            raise NotImplementedError('waiting for scan op')
-        return gibbs_step
+        def gibbs_steps(v_sample):
+            v0_sample = v_sample; del v_sample
+            h0_mean = T.nnet.sigmoid(T.dot(v0_sample, self.W) + self.hbias)
+            h0_sample = self.theano_rng.binomial(h0_mean.shape, 1, h0_mean)
+            v1_mean = T.nnet.sigmoid(T.dot(h0_sample, self.W.T) + self.vbias)
+            v1_act = self.theano_rng.binomial(v1_mean.shape, 1, v1_mean)
+ 
+            def gibbs_step(v_sample_tm1, v_mean_tm1 ):
+                h_mean_t   = T.nnet.sigmoid(T.dot(v_sample_tm1, self.W) + self.hbias)
+                h_sample_t = self.theano_rng.binomial(h_mean_t.shape, 1, h_mean_t)
+                v_mean_t   = T.nnet.sigmoid(T.dot(h_sample_t, self.W.T) + self.vbias)
+                v_sample_t = self.theano_rng.binomial(v_mean_t.shape, 1, v_mean_t)
+                return v_sample_t, v_mean_t
+
+            v_samples, v_means = scan(gibbs_step, [], [v1_act, v1_mean],[], \
+                                                                n_steps = k-1)
+            return v_means[-1], v_samples[-1]
 
     def free_energy(self, v_sample):
         h_mean = T.nnet.sigmoid(T.dot(v_sample, self.W) + self.hbias)
@@ -451,12 +465,12 @@ def test_RBM_option2(learning_rate=0.1, training_epochs = 20,
     # construct the RBM class
     rbm = RBM_option2.new(input = x, n_visible=28*28, n_hidden=500, numpy_rng=
             numpy.random.RandomState(234234))
-
-    cost = rbm.cd()[0]
+    step = rbm.gibbs_k(10) 
+    cost = rbm.cd(step = step)[0]
 
     print '... compiling train function'
-    train_rbm = theano.function([index], rbm.cd()[0], 
-           updates = rbm.cd_updates(learning_rate), 
+    train_rbm = theano.function([index], rbm.cd(step = step)[0], 
+           updates = rbm.cd_updates(learning_rate, step = step), 
            givens = { 
              x: train_set_x[index*batch_size:(index+1)*batch_size],
              y: train_set_y[index*batch_size:(index+1)*batch_size]}
