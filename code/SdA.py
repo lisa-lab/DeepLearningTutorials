@@ -213,7 +213,7 @@ class dA(object):
               low = -numpy.sqrt(6./(n_hidden+n_visible)), \
               high = numpy.sqrt(6./(n_hidden+n_visible)), \
               size = (n_visible, n_hidden)), dtype = theano.config.floatX)
-        initial_b       = numpy.zeros(n_hidden)
+        initial_b       = numpy.zeros(n_hidden, dtype = theano.config.floatX)
     
     
         # theano shared variables for weights and biases
