@@ -351,7 +351,8 @@ class RBM_option2(object):
 
     def free_energy(self, v_sample):
         h_mean = T.nnet.sigmoid(T.dot(v_sample, self.W) + self.hbias)
-        return T.sum(T.log(h_mean)) + T.sum(T.dot(v_sample, self.vbias))
+        #TODO: make sure log(sigmoid) is optimized to something stable!
+        return -T.sum(T.log(1.0001-h_mean)) - T.sum(T.dot(v_sample, self.vbias))
 
     def cd(self, visible=None, persistent=None, step = None):
         """
