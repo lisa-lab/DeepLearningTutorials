@@ -202,7 +202,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
                            # [int] labels
 
 
-    # construct the logistic regression class
+    # construct the MLP class
     classifier = MLP( input=x, n_in=28*28, n_hidden = 500, n_out=10)
 
     # the cost we minimize during training is the negative log likelihood of 
@@ -265,7 +265,11 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
     test_score           = 0.
     start_time = time.clock()
 
-    for epoch in xrange(n_epochs):
+    epoch = 0
+    done_looping = False
+
+    while (epoch < n_epochs) and (not done_looping):
+      epoch = epoch + 1
       for minibatch_index in xrange(n_train_batches):
 
         cost_ij = train_model(minibatch_index)
@@ -300,6 +304,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
                   (epoch, minibatch_index+1, n_train_batches,test_score*100.))
 
         if patience <= iter :
+                done_looping = True
                 break
 
 

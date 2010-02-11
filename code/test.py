@@ -1,5 +1,5 @@
 #import convolutional_mlp, dbn, logistic_cg, logistic_sgd, mlp, rbm, SdA_loops, SdA
-import convolutional_mlp, logistic_cg, logistic_sgd, mlp
+import convolutional_mlp, logistic_cg, logistic_sgd, mlp, SdA
 from nose.plugins.skip import SkipTest
 #TODO: dbn, rbm, SdA, SdA_loops, convolutional_mlp
 def test_logistic_sgd():
@@ -15,5 +15,4 @@ def test_dbn():
 def test_rbm():
     raise SkipTest('Implementation not finished')
 def test_SdA():
-    raise SkipTest('Implementation not finished')
-    SdA.sgd_optimization_mnist(pretraining_epochs = 2, n_epochs = 3)
+    SdA.sgd_optimization_mnist(pretraining_epochs = 2, training_epochs = 3)
