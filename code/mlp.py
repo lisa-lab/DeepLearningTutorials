@@ -75,17 +75,17 @@ class MLP(object):
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         W1_values = numpy.asarray( numpy.random.uniform( \
-              low = -numpy.sqrt(6./(n_in+n_hidden)), \
-              high = numpy.sqrt(6./(n_in+n_hidden)), \
-              size = (n_in, n_hidden)), dtype = theano.config.floatX)
+                low  = -numpy.sqrt(6./(n_in+n_hidden)), \
+                high = numpy.sqrt(6./(n_in+n_hidden)), \
+                size = (n_in, n_hidden)), dtype = theano.config.floatX)
         # `W2` is initialized with `W2_values` which is uniformely sampled 
         # from -6./sqrt(n_hidden+n_out) and 6./sqrt(n_hidden+n_out)
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         W2_values = numpy.asarray( numpy.random.uniform( 
-              low = -numpy.sqrt(6./(n_hidden+n_out)), \
-              high= numpy.sqrt(6./(n_hidden+n_out)),\
-              size= (n_hidden, n_out)), dtype = theano.config.floatX)
+                low  = -numpy.sqrt(6./(n_hidden+n_out)), \
+                high = numpy.sqrt(6./(n_hidden+n_out)),\
+                size = (n_hidden, n_out)), dtype = theano.config.floatX)
 
         self.W1 = theano.shared( value = W1_values )
         self.b1 = theano.shared( value = numpy.zeros((n_hidden,), 
@@ -98,7 +98,7 @@ class MLP(object):
         self.hidden = T.tanh(T.dot(input, self.W1)+ self.b1)
 
         # symbolic expression computing the values of the top layer 
-        self.p_y_given_x= T.nnet.softmax(T.dot(self.hidden, self.W2)+self.b2)
+        self.p_y_given_x = T.nnet.softmax(T.dot(self.hidden, self.W2)+self.b2)
 
         # compute prediction as class whose probability is maximal in 
         # symbolic form
@@ -106,7 +106,7 @@ class MLP(object):
         
         # L1 norm ; one regularization option is to enforce L1 norm to 
         # be small 
-        self.L1     = abs(self.W1).sum() + abs(self.W2).sum()
+        self.L1 = abs(self.W1).sum() + abs(self.W2).sum()
 
         # square of L2 norm ; one regularization option is to enforce 
         # square of L2 norm to be small
@@ -184,7 +184,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
         shared_y = theano.shared(numpy.asarray(data_y, dtype=theano.config.floatX))
         return shared_x, T.cast(shared_y, 'int32')
 
-    test_set_x, test_set_y = shared_dataset(test_set)
+    test_set_x,  test_set_y  = shared_dataset(test_set)
     valid_set_x, valid_set_y = shared_dataset(valid_set)
     train_set_x, train_set_y = shared_dataset(train_set)
 

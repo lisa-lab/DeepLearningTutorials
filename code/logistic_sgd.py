@@ -161,7 +161,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000, mnist_pkl_gz='mnis
         shared_y = theano.shared(numpy.asarray(data_y, dtype=theano.config.floatX))
         return shared_x, T.cast(shared_y, 'int32')
 
-    test_set_x, test_set_y = shared_dataset(test_set)
+    test_set_x,  test_set_y  = shared_dataset(test_set)
     valid_set_x, valid_set_y = shared_dataset(valid_set)
     train_set_x, train_set_y = shared_dataset(train_set)
 
@@ -193,7 +193,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000, mnist_pkl_gz='mnis
                 x:test_set_x[index*batch_size:(index+1)*batch_size],
                 y:test_set_y[index*batch_size:(index+1)*batch_size]})
 
-    validate_model =theano.function([index], classifier.errors(y),
+    validate_model = theano.function([index], classifier.errors(y),
             givens={
                 x:valid_set_x[index*batch_size:(index+1)*batch_size],
                 y:valid_set_y[index*batch_size:(index+1)*batch_size]})
@@ -262,7 +262,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000, mnist_pkl_gz='mnis
                 # test it on the test set
 
                 test_losses = [test_model(i) for i in xrange(n_test_batches)]
-                test_score = numpy.mean(test_losses)
+                test_score  = numpy.mean(test_losses)
 
                 print(('     epoch %i, minibatch %i/%i, test error of best ' 
                        'model %f %%') % \
