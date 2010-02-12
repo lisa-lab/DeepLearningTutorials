@@ -12,7 +12,7 @@ Motivation
 ++++++++++
 
 Convolutional Neural Networks (CNN) are variants of MLPs which are inspired from
-biology. From Hubel and Wiesel's early work on the cat's visual cortex [Hubel]_,
+biology. From Hubel and Wiesel's early work on the cat's visual cortex [Hubel68]_,
 we know there exists a complex arrangement of cells within the visual cortex.
 These cells are sensitive to small sub-regions of the input space, called a
 **receptive field**, and are tiled in such a way as to cover the entire visual
@@ -28,7 +28,7 @@ stimulus.
 The visual cortex being the most powerful "vision" system in existence, it
 seems natural to emulate its behavior. Many such neurally inspired models can be
 found in the litterature. To name a few: the NeoCognitron [Fukushima]_, HMAX
-[Serre]_ and LeNet-5 [LeCun]_, which will be the focus of this tutorial.
+[Serre07]_ and LeNet-5 [LeCun98]_, which will be the focus of this tutorial.
 
 
 Sparse Connectivity
@@ -598,17 +598,6 @@ Typical values are 2x2 or no max-pooling. Very large input images may warrant
 dimension of the signal by a factor of 16, and may result in throwing away too
 much information.
 
-
-References
-++++++++++
-
-.. [Hubel] Hubel, D. and Wiesel, T. (1968). Receptive fields and functional architecture of monkey striate cortex. Journal of Physiology (London), 195, 215–243.
-
-.. [Fukushima] Fukushima, K. (1980). Neocognitron: A self-organizing neural network model for a mechanism of pattern recognition unaffected by shift in position. Biological Cybernetics, 36, 193–202.
-
-.. [Serre] Serre, T., Wolf, L., Bileschi, S., and Riesenhuber, M. (2007).  Robust object recog- nition with cortex-like mechanisms. IEEE Trans. Pattern Anal. Mach. Intell., 29(3), 411–426. Member-Poggio, Tomaso.
-
-.. [LeCun] LeCun, Y., Bottou, L., Bengio, Y., and Haffner, P. (1998d).  Gradient-based learning applied to document recognition. Proceedings of the IEEE, 86(11), 2278–2324.
 
 .. rubric:: Footnotes
 

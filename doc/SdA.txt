@@ -604,18 +604,3 @@ minutes and results  in a validation score of 1.7 %, with a test
 performace of 1.65 %.
 
 
-References
-++++++++++
-
-.. [Hinton06] `Reducing the Dimensionality of Data with Neural Networks <http://www.cs.toronto.edu/~rsalakhu/papers/science.pdf>`_, G.E. Hinton and R.R. Salakhutdinov,  Science, 28 July 2006, Vol. 313. no. 5786, pp. 504 - 507.
-
-.. [Bengio07] `Greedy Layer-Wise Training of Deep Networks <http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/190>`_, Y. Bengio, P. Lamblin, D. Popovici and H. Larochelle, in Advances in Neural Information Processing Systems 19 (NIPS'06), pages  153-160, MIT Press 2007.
-
-.. [Ranzato07] `Efficient Learning of Sparse Representations with an Energy-Based Model <http://yann.lecun.com/exdb/publis/pdf/ranzato-06.pdf>`_, M.A. Ranzato, C. Poultney, S. Chopra and Y. LeCun, in J. Platt et al. (Eds), Advances in Neural Information Processing Systems (NIPS 2006), MIT Press, 2007.
-
-.. [Lee08] `Sparse deep belief net model for visual area V2 <http://www.stanford.edu/~hllee/nips07-sparseDBN.pdf>`_, H. Lee, C. Ekanadham, and A.Y. Ng., in Advances in Neural Information Processing Systems (NIPS) 20, 2008.
-
-.. [Vincent08] `Extracting and Composing Robust Features with Denoising Autoencoders <http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/217>`_, P. Vincent, H. Larochelle Y. Bengio and P.A. Manzagol,  Proceedings of the Twenty-fifth International Conference on Machine Learning (ICML'08), pages 1096 - 1103, ACM, 2008.
-
-.. [Bengio09] `Learning deep architectures for AI <http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/239>`_, Y. Bengio,  Foundations and Trends in Machine Learning 1(2) pages 1-127.
-
