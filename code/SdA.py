@@ -263,6 +263,9 @@ class dA(object):
     self.params = [ self.W, self.b, self.b_prime ]
 
 
+class DeepNetwork()
+   def pretrain( dataset )
+   def finetune()
 
 
 class SdA():

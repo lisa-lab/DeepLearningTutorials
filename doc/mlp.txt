@@ -169,7 +169,7 @@ norm of the weights :math:`W^{(1)}, W^{(2)}`.
 
         # L1 norm ; one regularization option is to enforce L1 norm to 
         # be small 
-        L1     = abs(W1).sum() + abs(W2).sum()
+        L1 = abs(W1).sum() + abs(W2).sum()
 
         # square of L2 norm ; one regularization option is to enforce 
         # square of L2 norm to be small

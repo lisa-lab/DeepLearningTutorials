@@ -8,6 +8,12 @@ Convolutional Neural Networks (LeNet)
     :doc:`mlp`. Additionally, it uses the following new Theano functions and
     concepts: TODO
 
+.. note::
+    The code for this section is available for download `here`_.
+
+.. _here: http://deeplearning.net/tutorial/code/convolutional_mlp.py
+
+
 Motivation
 ++++++++++
 
