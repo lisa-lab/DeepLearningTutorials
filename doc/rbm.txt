@@ -3,155 +3,216 @@
 Restricted Boltzmann Machines (RBM)
 ===================================
 
-Boltzmann Machines (BM)
-+++++++++++++++++++++++
+Energy-Based Models (EBM)
++++++++++++++++++++++++++
 
-Boltzmann Machines (BM) are probabilistic generative models which learn to
-model a distribution :math:`p_T(x)`, by attempting to capture the underlying
-structure in the input. BMs contain a network of binary probabilistic units,
-which interact through weighted undirected connections. The probability of a
-unit :math:`s_i` being "on" given its connected neighbours, is stochastically
-determined by the state of these neighbours, the strength of the weighted
-connections and the internal offset :math:`b_i`. The model parameters are thus
-:math:`\theta=\{W,b\}`. Positive weights :math:`W_{ij}` indicate a tendency for
-units :math:`s_i` and :math:`s_j` to be "on" together, while :math:`W_{ij} <
-0` indicates some form of inhibition. The entire network defines an energy
-function, defined as:
+**Energy-based** models associate a scalar energy to each configuration of the
+variables of interest. Learning corresponds to modifying that energy function
+so that its shape has desirable properties. For example, we would like
+plausible or desirable configurations to have low energy.  Energy-based
+probabilistic models define a probability distribution through an energy
+function, as follows:
 
 .. math::
-    E(s) = - \sum_i \sum_{j > i} W_{ij}s_is_j - \sum_i b_i x_i.
+  :label: energy1
 
-The stochastic update equation is then given by:
+  p(x) = \frac {e^{-E(x)}} {Z}.
 
-.. math::
-    p(s_i = 1 | \{s_j: \forall j \neq i \}) = sigm(\sum_j W_{ij} s_j + b_i),
-a stochastic version of the neuronal activation function found in Artificial
-Neural Networks (ANNs). 
-
-Under these conditions and at a stochastic equilibrium, it can also be shown
-that the probability of a given global configuration is given as
+The normalizing factor :math:`Z` is called the **partition function** by analogy
+with physical systems.
 
 .. math::
-    p(s) = \frac{1}{Z} e^{-E(s)},
-where :math:`Z` is the partition function defined as :math:`Z = \sum_s E(s)`.
-Notice how high probability configurations correspond to low-energy states.
+    Z = \sum_x e^{-E(x)}
 
-Splitting the units into *visible* and *hidden* units leads to a more powerful
-model (shown below).
-
-.. image:: images/bm.png
-    :align: center
-
-During training, visible units are driven by training samples :math:`x^{(i)}`
-and the hidden units are left free to converge to the equilibrium
-distribution. The goal of learning is then to modify the network parameters
-:math:`\theta` in such a way that :math:`p(v) = \sum_h p(v,h)` is
-approximately the same during training (with visible units clamped) and when
-the entire network is free-running. This amounts to maximizing the empirical
-log-likelihood
+An energy-based model can be learnt by performing (stochastic) gradient
+descent on the empirical log-likelihood of the training data:
 
 .. math::
-    \mathcal{L}(\theta, \mathcal{D}) = \frac{1}{N} \sum_{x^{(i)} \in \mathcal{D}} log\ p(v=x^{(i)}).
+    \mathcal{L}(\theta, \mathcal{D}) = \frac{1}{N} \sum_{x^{(i)} \in
+    \mathcal{D}} log\ p(x^{(i)}).
 
-From this likelihood, we can derive a stochastic gradient over the parameters
-:math:`\theta` for training example :math:`x^{(i)}`:
+using the stochastic gradient :math:`\frac{\partial p(x^{(i)})}{\partial
+\theta}`, where :math:`\theta` are the parameters of the model.
+
+
+**EBMs with Hidden Units**
+
+In many cases of interest, we do not observe the example :math:`x` fully, or we
+want to introduce some non-observed variables to increase the expressive power
+of the model. So we consider an observed part (still denoted :math:`x` here) and a
+**hidden** part :math:`h`. We can then write:
 
 .. math::
-   :label: bm_grad
+  :label: energy2
 
-    \left. \frac {\partial{log p(v)}} {\partial\theta} \right|_{v=x^{(i)}} =
-    -\sum_h p(h|v=x^{(i)}) \frac {\partial{E(x^{(i)},h)}} {\partial\theta}
-    +\sum_{v,h} p(v,h)
-      \frac {\partial{E(v,h)}} {\partial\theta}
+   P(x) = \sum_h P(x,h) = \sum_h \frac{e^{-E(x,h)}}{Z}.
 
-The above gradient is the sum of two terms, corresponding to the so-called
-**positive** and **negative phases**. The first term is an average
-over :math:`p(h|v=x^{(i)})` (i.e. probability over the hidden units given that the
-visible units are clamped to training data). It will act to decrease the
-energy of the training examples, referred to as *positive examples*.
-The second term, an average over :math:`p(v,h)`, is of opposite sign and will thus act
-to increase the energy of configurations sampled from the model.
-These configurations are referred to as *negative examples*, as they
-are training examples which the network needs to *unlearn*. Together,
-this *push-pull* mechanism attempts to mold an energy landscape where
-configurations with visible units corresponding to training examples have
-low-energy and all other configurations have high-energy.
+In such cases, to map this formulation to one similar to Eq. :eq:`energy1`, we
+introduce the notation (inspired from physics) of **free energy**, defined as
+follows:
+
+.. math::
+   :label: free_energy
+
+    \mathcal{F}(x) = - \log \sum_h e^{-E(x,h)}
+
+which allows us to write,
+
+.. math::
+    &P(x) = \frac{e^{-\mathcal{F}(x)}}{Z} \text{ with } Z=\sum_x e^{-\mathcal{F}(x)}.
+
+The data log-likelihood gradient then has a particularly interesting form.
+
+.. math::
+  \frac{\partial log p(x)}{\partial \theta}
+   &= - \frac{\partial \mathcal{F}(x)}{\partial \theta} + 
+         \sum_{\tilde{x}} p(\tilde{x}) \
+             \frac{\partial \mathcal{F}(\tilde{x})}{\partial \theta}.
+
+Notice that the above gradient contains two terms, which are referred to as
+the **positive** and **negative phase**. The terms positive and negative do
+not refer to the sign of each term in the equation, but rather reflect their
+effect on the probability density defined by the model. The first term
+increases the probability of training data (by reducing the corresponding free
+energy), while the second term decreases the probability of samples generated
+by the model.
+
+It is usually difficult to determine this gradient analytically, as it
+involves the computation of 
+:math:`E_P [ \frac{\partial \mathcal{F}(x)} {\partial \theta} ]`. This is
+nothing less than an expectation over all possible configurations of the input
+:math:`x` (under the distribution :math:`P` formed by the model) !
+
+The first step in making this computation tractable is to estimate the
+expectation using a fixed number of model samples. Samples used to estimate the
+negative phase gradient are referred to as **negative particles**, which are
+denoted as :math:`\mathcal{N}`. The gradient can then be written as:
+
+.. math::
+  \frac{\partial log p(x)}{\partial \theta}
+   &\approx 
+   - \frac{\partial \mathcal{F}(x)}{\partial \theta} + 
+     \sum_{\tilde{x} \in \mathcal{N}} p(\tilde{x}) \
+     \frac{\partial \mathcal{F}(\tilde{x})}{\partial \theta}.
+
+With the above formula, we almost have a pratical, stochastic algorithm for
+learning an EBM. The only missing ingredient is how to extract these negative
+particles :math:`\mathcal{N}`. While the statistical litterature abounds with
+sampling methods, Markov Chain Monte Carlo methods are especially well suited
+for models such as the Restricted Boltzmann Machines (RBM), a specific type of
+EBM.
 
 
 Restricted Boltzmann Machines (RBM)
 +++++++++++++++++++++++++++++++++++
 
-Restricted Boltzmann Machines are variants of BMs, where visible-visible
-and hidden-hidden connections are prohibited. The energy function :math:`E(v,h)` is
-thus defined as,
+Boltzmann Machines (BMs) are a particular form of energy-based model which
+contain hidden variables. Restricted Boltzmann Machines further restrict BMs to
+those without visible-visible and hidden-hidden connections.  A graphical
+depiction of an RBM is shown below.
+
+.. image:: images/rbm.png
+    :align: center
+
+The energy function :math:`E(x,h)` of an RBM is defined as:
 
 .. math::
-    E(v,h) = - b'v - c'h - h'Wv 
+    :label: rbm_energy
+
+    E(v,h) = - b'x - c'h - h'Wx 
 
 where :math:`W` represents the weights connecting hidden and visible units and
 :math:`b`, :math:`c` are the offsets of the visible and hidden layers
 respectively.
 
-The biggest advantage of such an architecture is that the hidden units become
-conditionally independent, given the visible layer (and vice-versa). This is
-self-evident from looking at the graphical model shown below.
-
-.. image:: images/rbm.png
-    :align: center
-
-This property allows us to write:
+This translates directly to the following free energy formula:
 
 .. math::
-    p(h|v) &= \prod_i p(h_i|v) \\
-    p(v|h) &= \prod_j p(v_j|h).
+  \mathcal{F}(x)= - b'x - \sum_i log \sum_{h_i} e^{h_i (c_i + W_i x)}.
 
-This greatly simplifies the learning rule of Eq. :eq:`bm_grad`.
-As an example, we derive the gradient on :math:`W_{ij}`. For derivations of
-the other gradients, we refer the reader to [Bengio09]_.
+Because of the specific structure of RBMs, visible and hidden units are
+conditionally independent given one-another. Using this property, we can
+write:
 
 .. math::
-    \left. \frac {\partial{log p(v)}} {\partial W_{ij}} \right|_{v=x^{(i)}} = 
-    - x^{(i)}_j \cdot sigm(W_i \cdot x^{(i)} + c_i) + E_v[p(h_i|v) \cdot v_j]
+    p(h|x) &= \prod_i p(h_i|x) \\
+    p(x|h) &= \prod_j p(x_j|h).
 
-In RBMs, the positive phase gradient is thus straightforward to compute.
-Computing the negative phase gradient is still problematic however, since
-it requires samples from :math:`p(v)` to compute the expectation. Samples of
-:math:`p(v)` can be obtained by running a Markov chain to convergence, using
-Gibbs sampling as the transition operator.
+**RBMs with binary units**
+
+In the commonly studied case of using binary units (where :math:`h_i \in
+\{0,1\}`, we obtain from Eq. :eq:`rbm_energy` and :eq:`energy2`, a stochastic
+version of the usual neuron activation function:
+
+.. math::
+  P(h_i=1|x) = sigm(c_i + W_i x) \\
+  P(x_j=1|h) = sigm(b_j + W'_j h)
+
+The free energy of an RBM with binary units further simplifies to:
+
+.. math::
+  \mathcal{F}(x)= - b'x - \sum_i log 1 + e^{(c_i + W_i x)}.
+
+
+Sampling in an RBM
+++++++++++++++++++
+
+Samples of :math:`p(x)` can be obtained by running a Markov chain to
+convergence, using Gibbs sampling as the transition operator.
+
+Gibbs sampling of the joint of N random variables :math:`S=(S_1, ... , S_N)`
+is done through a sequence of N sampling sub-steps of the form 
+:math:`S_i \sim p(S_i | S_{-i})` where :math:`S_{-i}` contains the :math:`N-1`
+other random variables in :math:`S` excluding :math:`S_i`.
+
+For RBMs, :math:`S` consists of the set of visible and hidden units. However,
+since they are conditionally independent, one can perform block Gibbs
+sampling. In this setting, visible units are sampled simultaneously given
+fixed values of the hidden units. Similarly, hidden units are sampled
+simultaneously given the visibles. A step in the Markov chain is thus taken as
+follows: 
+
+.. math::
+    h^{(n+1)} &\sim sigm(W'x^{(n)} + c) \\
+    x^{(n+1)} &\sim sigm(W h^{(n+1)} + b),
+
+where :math:`h^{(n)}` refers to the set of all hidden units at the n-th step of
+within the Markov chain.
+
+This can be illustrated graphically:
 
 .. image:: images/markov_chain.png
     :align: center
 
-In the figure above, the superscript refers to the sample index within the
-Markov chain. Visible and hidden samples are obtained as follows:
+As :math:`t \rightarrow \infty`, samples :math:`(x^{(t)}, h^{(t)})` are
+guaranteed to be accurate samples of :math:`p(x,h)`.
 
-.. math::
-    h^{(n+1)} &\sim sigm(W'v^{(n)} + c) \\
-    v^{(n+1)} &\sim sigm(W h^{(n+1)} + b).
+In theory, each parameter update in the learning process would require running
+one such chain to convergence. It is needless to say that doing so would be
+prohibitively expensive. As such, several algorithms have been devised for
+RBMs, in order to efficiently sample from :math:`p(x,h)` during the learning
+process.
 
-Samples :math:`(v^{(t)}, h^{(t)})` are guaranteed to be accurate samples of
-:math:`p(v,h)` as :math:`t \rightarrow \infty`. Since each parameter update
-would require running this chain to convergence, learning algorithms for RBMs
-tend to use different tricks to efficiently sample from :math:`p(v,h)`.
 
-Contrastive Divergence
-----------------------
+Contrastive Divergence (CD-k)
+-----------------------------
 
 Contrastive Divergence uses two tricks to speed up the sampling process:
 
-* since we eventually want :math:`p(v) \approx p_T(v)` (the true, underlying
-  distribution of the data), initialize the Markov chain with a training
-  example. This should help speed up convergence of the chain.
+* since we eventually want :math:`p(x) \approx p_T(x)` (the true, underlying
+  distribution of the data), we initialize the Markov chain with a training
+  example.
   
-* do not wait for the chain to converge: samples are obtained after k-steps of
-  Gibbs sampling. In pratice, :math:`k=1` has been shown to work surprisingly
-  well.
+* CD does not wait for the chain to converge. Samples are obtained after only
+  k-steps of Gibbs sampling. In pratice, :math:`k=1` has been shown to work
+  surprisingly well.
+
 
 Persistent CD
 -------------
 
 Persistent CD [Tieleman08]_ uses another approximation for sampling from
-:math:`p(v,h)`.  It relies on a single Markov chain, which has a persistent
+:math:`p(x,h)`.  It relies on a single Markov chain, which has a persistent
 state. For each parameter update, we extract new samples by simply running the
 chain for k-steps. The state of the chain is then preserved for subsequent updates.
 
@@ -159,10 +220,3 @@ The general intuition is that if parameter updates are small enough compared
 to the mixing rate of the chain, the Markov chain should be able to "catch up"
 to changes in the model.
 
-
-References
-++++++++++
-
-.. [Bengio09] Y. Bengio, `Learning deep architectures for AI <http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/239>`_, Foundations and Trends in Machine Learning 1(2) pages 1-127.
-
-.. [Tieleman08] T. Tieleman, `Training restricted boltzmann machines using approximations to the likelihood gradient`, ICML 2008.
