@@ -8,6 +8,7 @@ import theano
 import time
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
+from theano import shared, function
 
 import gzip
 import cPickle
@@ -90,7 +91,7 @@ class SigmoidalLayer(object):
 
         :type rng: numpy.random.RandomState
         :param rng: a random number generator used to initialize weights
-        :type input: theano.tensor.dmatrix
+        :type input: theano.tensor.matrix
         :param input: a symbolic tensor of shape (n_examples, n_in)
         :type n_in: int
         :param n_in: dimensionality of input
@@ -119,7 +120,7 @@ class RBM(object):
     """
 
     @classmethod
-    def new(cls, input=None, n_visible=784, n_hidden=500,
+    def new(cls, input=None, n_visible=None, n_hidden=None,
             W=None, hbias=None, vbias=None,
             numpy_rng=None, theano_rng=None):
         """ 
@@ -159,17 +160,19 @@ class RBM(object):
 
         if hbias is None:
             # theano shared variables for hidden biases
-            hbias = theano.shared(value=numpy.zeros(n_hidden), name='hbias')
+            hbias = theano.shared(value=numpy.zeros(n_hidden,
+                dtype=theano.config.floatX), name='hbias')
             params.append(hbias)
 
         if vbias is None:
             # theano shared variables for visible biases
-            vbias = theano.shared(value=numpy.zeros(n_visible), name='vbias')
+            vbias = theano.shared(value=numpy.zeros(n_visible,
+                dtype=theano.config.floatX), name='vbias')
             params.append(vbias)
 
         if input is None:
             # initialize input layer for standalone RBM or layer0 of DBN
-            input = T.dmatrix('input')
+            input = T.matrix('input')
 
         if theano_rng is None:
             theano_rng = RandomStreams(numpy_rng.randint(2**30))
@@ -408,6 +411,8 @@ class DBN(DeepLayerwiseModel):
             self.rbm_layers.append(RBM.new(input=input,
                 W=sigmoid_layer.W,
                 hbias=sigmoid_layer.b,
+                n_visible = input_len,
+                n_hidden = n_hid,
                 numpy_rng=rng,
                 theano_rng=theano_rng))
 
@@ -423,12 +428,12 @@ class DBN(DeepLayerwiseModel):
             input = self.sigmoid_layers[-1].output
         
         # We now need to add a logistic layer on top of the MLP
-        self.logistic_regressor = LogisticRegression(input = intput,
+        self.logistic_regressor = LogisticRegression(input = input,
                 n_in = input_len, n_out = n_classes)
 
         self.params.extend(self.logistic_regressor.params)
 
-    def pretraining_functions(self, train_set_x, batch_size, lr, k=1):
+    def pretraining_functions(self, train_set_x, batch_size, learning_rate, k=1):
         if k!=1:
             raise NotImplementedError()
         index   = T.lscalar()    # index to a [mini]batch 
@@ -438,7 +443,7 @@ class DBN(DeepLayerwiseModel):
 
         # TODO: return some cost to look at
         return [function([index], [], 
-                updates = rbm.cd_updates(lr=lr),
+                updates = rbm.cd_updates(lr=learning_rate),
                 givens = {self.x: train_set_x[batch_begin:batch_end]})
                 for rbm in self.rbm_layers]
 
@@ -458,8 +463,8 @@ def load_mnist(filename):
 
     return n_train_examples, datasets
 
-def dbn_main(learning_rate=0.1,
-        pretraining_epochs = 20,
+def dbn_main(finetune_lr = 0.1,
+        pretraining_epochs = 1,
         pretrain_lr = 0.1,
         training_epochs = 1000,
         batch_size = 20,
@@ -487,21 +492,19 @@ def dbn_main(learning_rate=0.1,
     print "Creating a Deep Belief Network"
     deep_model = DBN(
             input_len=28*28,
-            hidden_layers_sizes = [1000, 1000, 1000],
+            hidden_layers_sizes = [50, 150, 100],
             n_classes=10,
             rng = numpy.random.RandomState(1234))
 
-    return
     ####
     #### Phase 1: Pre-training
     ####
     print "Pretraining (unsupervised learning) ..."
 
-    pretrain_functions = deep_model.pretrain_functions(
+    pretrain_functions = deep_model.pretraining_functions(
             batch_size=batch_size,
-            train_set_x=train_set_x,
+            train_set_x=train_valid_test[0][0],
             learning_rate=pretrain_lr,
-            corruption_levels=[ 0.2, 0.2, 0.2],
             )
 
     start_time = time.clock()  
@@ -509,9 +512,12 @@ def dbn_main(learning_rate=0.1,
         # go through pretraining epochs 
         print 'Pre-training layer %i'% layer_idx
         for i in xrange(pretraining_epochs * n_train_examples / batch_size):
-            layer_fn(i)
+            #print layer_idx, i,pretraining_epochs * n_train_examples / batch_size
+            pretrain_fn(i)
     end_time = time.clock()
     print 'Pretraining took %f minutes' %((end_time - start_time)/60.)
+
+    return
 
     print "Fine tuning (supervised learning) ..."
     train_fn, valid_scores, test_scores =\
@@ -647,7 +653,7 @@ if 0:
         if input == None : 
             # we use a matrix because we expect a minibatch of several examples,
             # each example being a row
-            self.x = T.dmatrix(name = 'input') 
+            self.x = T.matrix(name = 'input') 
         else:
             self.x = input
         # Equation (1)
