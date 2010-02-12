@@ -88,16 +88,16 @@ class RBM(object):
         # the `scan op`. For a more comprehensive description of scan see 
         # http://deeplearning.net/software/theano/library/scan.html .
         
-        def gibbs_1(v0_sample):
+        def gibbs_1(v0_sample, W, hbias, vbias):
             ''' This function implements one Gibbs step '''
 
             # compute the activation of the hidden units given a sample of the
             # vissibles
-            h0_mean = T.nnet.sigmoid(T.dot(v0_sample, self.W) + self.hbias)
+            h0_mean = T.nnet.sigmoid(T.dot(v0_sample, W) + hbias)
             # get a sample of the hiddens given their activation
             h0_sample = self.theano_rng.binomial(h0_mean.shape, 1, h0_mean)
             # compute the activation of the visible given the hidden sample
-            v1_mean = T.nnet.sigmoid(T.dot(h0_sample, self.W.T) + self.vbias)
+            v1_mean = T.nnet.sigmoid(T.dot(h0_sample, W.T) + vbias)
             # get a sample of the visible given their activation
             v1_act = self.theano_rng.binomial(v1_mean.shape, 1, v1_mean)
             return [v1_act, v1_mean]
@@ -125,7 +125,7 @@ class RBM(object):
         v_samples, v_means = theano.scan( fn = gibbs_1, 
                                           sequences      = [], 
                                           initial_states = [v_sample, v_mean],
-                                          non_sequences  = [], 
+                                          non_sequences  = self.params, 
                                           outputs_taps   = outputs_taps,
                                           n_steps        = k)
         return v_means[-1], v_samples[-1]
@@ -169,8 +169,10 @@ class RBM(object):
         # using this parameter is because the gradient should not try to 
         # propagate through the gibs chain
         gparams = T.grad(cost, self.params, consider_constant = [chain_end_sample])
-        
-        return (cost, chain_end_sample,) + tuple(gparams)
+       
+        cross_entropy_error = T.mean(T.sum( visible*T.log(chain_end_sample) + 
+                        (1 - visible)*T.log(1-chain_end_sample), axis = 1))
+        return (cross_entropy_error, chain_end_sample,) + tuple(gparams)
 
     def cd_updates(self, lr, visible=None, persistent=None, steps = 1):
         """
@@ -242,7 +244,8 @@ def test_RBM(learning_rate=0.1, training_epochs = 20,
            updates = rbm.cd_updates(learning_rate, steps = 10), 
            givens = { 
              x: train_set_x[index*batch_size:(index+1)*batch_size],
-             y: train_set_y[index*batch_size:(index+1)*batch_size]}
+             y: train_set_y[index*batch_size:(index+1)*batch_size]},
+            mode = 'DEBUG_MODE'
              )
 
     start_time = time.clock()  
