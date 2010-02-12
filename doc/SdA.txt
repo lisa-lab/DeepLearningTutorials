@@ -8,6 +8,11 @@ Stacked Denoising Autoencoders (SdA)
   and :doc:`mlp`. Additionally it uses the following Theano functions
   and concepts : TODO
 
+.. note::
+    The code for this section is available for download `here`_.
+
+.. _here: http://deeplearning.net/tutorial/code/SdA.py
+
 
 The Stacked Denoising Autoencoder (SdA) is an extension of the stacked 
 autoencoder [Bengio07]_ and it was introduced in [Vincent08]_. We will start the 
@@ -102,11 +107,11 @@ autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
           # the output of uniform if converted using asarray to dtype 
           # theano.config.floatX so that the code is runable on GPU
           initial_W = numpy.asarray( numpy.random.uniform( \
-              low = -numpy.sqrt(6./(n_visible+n_hidden)), \
-              high = numpy.sqrt(6./(n_visible+n_hidden)), \
-              size = (n_visible, n_hidden)), dtype = theano.config.floatX)
+                low  = -numpy.sqrt(6./(n_visible+n_hidden)), \
+                high = numpy.sqrt(6./(n_visible+n_hidden)), \
+                size = (n_visible, n_hidden)), dtype = theano.config.floatX)
           initial_b       = numpy.zeros(n_hidden)
-          initial_b_prime= numpy.zeros(n_visible)
+          initial_b_prime = numpy.zeros(n_visible)
      
     
           # theano shared variables for weights and biases
@@ -127,11 +132,11 @@ signal:
 
 .. code-block:: python
 
-    self.y    = T.nnet.sigmoid(T.dot(self.x, self.W      ) + self.b)
-    self.z    = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
+    self.y = T.nnet.sigmoid(T.dot(self.x, self.W      ) + self.b)
+    self.z = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
     # note : we sum over the size of a data point; if we are using minibatches,
     #        L will  be a vector, with one entry per example in minibatch 
-    self.L    = - T.sum( self.x*T.log(self.z) + (1-self.x)*T.log(1-self.z), axis=1 ) 
+    self.L = - T.sum( self.x*T.log(self.z) + (1-self.x)*T.log(1-self.z), axis=1 ) 
     # note : L is now a vector, where each element is the cross-entropy cost 
     #        of the reconstruction of the corresponding example of the 
     #        minibatch. We need to compute the average of all these to get 
@@ -283,15 +288,15 @@ The final denoising autoencoder class becomes :
               # the output of uniform if converted using asarray to dtype 
               # theano.config.floatX so that the code is runable on GPU
               initial_W = numpy.asarray( numpy.random.uniform( \
-                  low = -numpy.sqrt(6./(n_hidden+n_visible)), \
-                  high = numpy.sqrt(6./(n_hidden+n_visible)), \
-                  size = (n_visible, n_hidden)), dtype = theano.config.floatX)
-              initial_b       = numpy.zeros(n_hidden)
+                    low  = -numpy.sqrt(6./(n_hidden+n_visible)), \
+                    high = numpy.sqrt(6./(n_hidden+n_visible)), \
+                    size = (n_visible, n_hidden)), dtype = theano.config.floatX)
+              initial_b = numpy.zeros(n_hidden)
     
     
               # theano shared variables for weights and biases
-              self.W       = theano.shared(value = initial_W,       name = "W")
-              self.b       = theano.shared(value = initial_b,       name = "b")
+              self.W = theano.shared(value = initial_W,       name = "W")
+              self.b = theano.shared(value = initial_b,       name = "b")
     
  
           initial_b_prime= numpy.zeros(n_visible)
@@ -399,7 +404,7 @@ representations of intermediate layers of the MLP.
         :param pretrain_lr: learning rate used during pre-trainnig stage
 
         :param finetune_lr: learning rate used during finetune stage
- 
+        """
         self.layers             = []
         self.pretrain_functions = []
         self.params             = []
@@ -410,12 +415,12 @@ representations of intermediate layers of the MLP.
 
 
         # allocate symbolic variables for the data
-        index   = T.lscalar()    # index to a [mini]batch 
-        self.x  = T.matrix('x')  # the data is presented as rasterized images
-        self.y  = T.ivector('y') # the labels are presented as 1D vector of 
+        index  = T.lscalar()    # index to a [mini]batch 
+        self.x = T.matrix('x')  # the data is presented as rasterized images
+        self.y = T.ivector('y') # the labels are presented as 1D vector of 
                                  # [int] labels
 
-       """
+       
 
 ``self.layers`` will store the sigmoid layers of the MLP facade, while
 ``self.pretrain_function`` will store  compiled Theano function to train 
