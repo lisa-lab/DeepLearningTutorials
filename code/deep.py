@@ -119,8 +119,7 @@ class RBM(object):
     *** WRITE THE ENERGY FUNCTION  USE SAME LETTERS AS VARIABLE NAMES IN CODE
     """
 
-    @classmethod
-    def new(cls, input=None, n_visible=None, n_hidden=None,
+    def __init__(self, input=None, n_visible=None, n_hidden=None,
             W=None, hbias=None, vbias=None,
             numpy_rng=None, theano_rng=None):
         """ 
@@ -174,58 +173,74 @@ class RBM(object):
             # initialize input layer for standalone RBM or layer0 of DBN
             input = T.matrix('input')
 
+        # setup theano random number generator
         if theano_rng is None:
             theano_rng = RandomStreams(numpy_rng.randint(2**30))
 
-        return cls(input, W, hbias, vbias, params, theano_rng)
-
-    def __init__(self, input, W, hbias, vbias, params, Trng):
-
-        # setup theano random number generator
         self.visible = self.input = input
         self.W = W
         self.hbias = hbias
         self.vbias = vbias
-        self.theano_rng = Trng 
+        self.theano_rng = theano_rng 
         self.params = params
         self.hidden_mean = T.nnet.sigmoid(T.dot(input, W)+hbias)
-        self.hidden_sample = Trng.binomial(self.hidden_mean.shape, 1, self.hidden_mean)
+        self.hidden_sample = theano_rng.binomial(self.hidden_mean.shape, 1, self.hidden_mean)
 
-    def gibbs_1(self, v_sample):
-        # quick change of names internally: v_sample -> v0_sample
-        v0_sample = v_sample; del v_sample
-
-        h0_mean = T.nnet.sigmoid(T.dot(v0_sample, self.W) + self.hbias)
-        h0_sample = self.theano_rng.binomial(h0_mean.shape, 1, h0_mean)
-        v1_mean = T.nnet.sigmoid(T.dot(h0_sample, self.W.T) + self.vbias)
-        v1_act = self.theano_rng.binomial(v1_mean.shape, 1, v1_mean)
-        return v1_mean, v1_act
-
-    def gibbs_k(self, k):
-        def gibbs_steps(v_sample):
-            v0_sample = v_sample; del v_sample
-            h0_mean = T.nnet.sigmoid(T.dot(v0_sample, self.W) + self.hbias)
-            h0_sample = self.theano_rng.binomial(h0_mean.shape, 1, h0_mean)
-            v1_mean = T.nnet.sigmoid(T.dot(h0_sample, self.W.T) + self.vbias)
-            v1_act = self.theano_rng.binomial(v1_mean.shape, 1, v1_mean)
+    def gibbs_k(self, v_sample, k):
+        ''' This function implements k steps of Gibbs sampling '''
  
-            def gibbs_step(v_sample_tm1, v_mean_tm1 ):
-                h_mean_t   = T.nnet.sigmoid(T.dot(v_sample_tm1, self.W) + self.hbias)
-                h_sample_t = self.theano_rng.binomial(h_mean_t.shape, 1, h_mean_t)
-                v_mean_t   = T.nnet.sigmoid(T.dot(h_sample_t, self.W.T) + self.vbias)
-                v_sample_t = self.theano_rng.binomial(v_mean_t.shape, 1, v_mean_t)
-                return v_sample_t, v_mean_t
+        # We compute the visible after k steps of Gibbs by iterating 
+        # over ``gibs_1`` for k times; this can be done in Theano using
+        # the `scan op`. For a more comprehensive description of scan see 
+        # http://deeplearning.net/software/theano/library/scan.html .
+        
+        def gibbs_1(v0_sample, W, hbias, vbias):
+            ''' This function implements one Gibbs step '''
 
-            v_samples, v_means = scan(gibbs_step, [], [v1_act, v1_mean],[], \
-                                                                n_steps = k-1)
-            return v_means[-1], v_samples[-1]
+            # compute the activation of the hidden units given a sample of the
+            # vissibles
+            h0_mean = T.nnet.sigmoid(T.dot(v0_sample, W) + hbias)
+            # get a sample of the hiddens given their activation
+            h0_sample = self.theano_rng.binomial(h0_mean.shape, 1, h0_mean)
+            # compute the activation of the visible given the hidden sample
+            v1_mean = T.nnet.sigmoid(T.dot(h0_sample, W.T) + vbias)
+            # get a sample of the visible given their activation
+            v1_act = self.theano_rng.binomial(v1_mean.shape, 1, v1_mean)
+            return [v1_act, v1_mean]
+
+       
+       
+        # Because we require as output two values, namely the mean field
+        # approximation of the visible and the sample obtained after k steps, 
+        # scan needs to know the shape of those two outputs. Scan takes 
+        # this information from the variables containing the initial state
+        # of the outputs. Since we do not need a initial state of ``v_mean``
+        # we provide a dummy one used only to get the correct shape 
+        v_mean = T.zeros_like(v_sample)
+        
+        # ``outputs_taps`` is an argument of scan which describes at each
+        # time step what past values of the outputs the function applied 
+        # recursively needs. This is given in the form of a dictionary, 
+        # where the keys are outputs indexes, and values are a list of 
+        # of the offsets used  by the corresponding outputs
+        # In our case the function ``gibbs_1`` applied recursively, requires
+        # at time k the past value k-1 for the first output (index 0) and
+        # no past value of the second output
+        outputs_taps = { 0 : [-1], 1 : [] }
+
+        v_samples, v_means = theano.scan( fn = gibbs_1, 
+                                          sequences      = [], 
+                                          initial_states = [v_sample, v_mean],
+                                          non_sequences  = [self.W, self.hbias, self.vbias], 
+                                          outputs_taps   = outputs_taps,
+                                          n_steps        = k)
+        return v_means[-1], v_samples[-1]
 
     def free_energy(self, v_sample):
         h_mean = T.nnet.sigmoid(T.dot(v_sample, self.W) + self.hbias)
-        #TODO: make sure log(sigmoid) is optimized to something stable!
-        return -T.sum(T.log(1.0001-h_mean)) - T.sum(T.dot(v_sample, self.vbias))
+        return -T.sum(T.log(1-h_mean)) - T.sum(T.dot(v_sample, self.vbias))
 
-    def cd(self, visible=None, persistent=None, step = None):
+    def cd(self, visible = None, persistent = None, steps = 1):
         """
         Return a 5-tuple of values related to contrastive divergence: (cost,
         end-state of negative-phase chain, gradient on weights, gradient on
@@ -235,10 +250,10 @@ class RBM(object):
         If persistent is None, it defaults to self.input
 
         CD aka CD1 - cd()
-        CD-10      - cd(step=gibbs_k(10))
+        CD-10      - cd(steps=10)
         PCD        - cd(persistent=shared(numpy.asarray(initializer)))
         PCD-k      - cd(persistent=shared(numpy.asarray(initializer)),
-                        step=gibbs_k(10))
+                        steps=10)
         """
         if visible is None:
             visible = self.input
@@ -246,20 +261,30 @@ class RBM(object):
         if visible is None:
             raise TypeError('visible argument is required when self.input is None')
 
-        if step is None:
-            step = self.gibbs_1
+        if steps is None:
+            steps = self.gibbs_1
 
         if persistent is None:
             chain_start = visible
         else:
             chain_start = persistent
-        chain_end_mean, chain_end_sample = step(chain_start)
+        chain_end_mean, chain_end_sample = self.gibbs_k(chain_start, steps)
 
-        cost = self.free_energy(visible) - self.free_energy(chain_end_sample)
+        free_energy_delta = self.free_energy(visible) - self.free_energy(chain_end_sample)
 
-        return (cost, chain_end_sample,) + tuple(T.grad(cost, [self.W, self.hbias, self.vbias]))
+        # we will return all of these regardless of what is in self.params
+        all_params = [self.W, self.hbias, self.vbias]
 
-    def cd_updates(self, lr, visible=None, persistent=None, step = None):
+        gparams = T.grad(free_energy_delta, all_params, 
+                consider_constant = [chain_end_sample])
+
+        cross_entropy = T.mean(T.sum(
+            visible*T.log(chain_end_mean) + (1 - visible)*T.log(1-chain_end_mean),
+            axis = 1))
+
+        return (cross_entropy, chain_end_sample,) + tuple(gparams)
+
+    def cd_updates(self, lr, visible = None, persistent = None, steps = 1):
         """
         Return the learning updates for the RBM parameters that are shared variables.
 
@@ -270,11 +295,12 @@ class RBM(object):
         :param lr: [scalar] learning rate for contrastive divergence learning
         :param visible: see `cd_grad`
         :param persistent: see `cd_grad`
-        :param step: see `cd_grad`
+        :param steps: see `cd_grad`
 
         """
 
-        cost, chain_end, gW, ghbias, gvbias = self.cd(visible, persistent, step)
+        cross_entropy, chain_end, gW, ghbias, gvbias = self.cd(visible,
+                persistent, steps)
 
         updates = {}
         if self.W in self.params:
@@ -408,7 +434,7 @@ class DBN(DeepLayerwiseModel):
             sigmoid_layer = SigmoidalLayer(rng, input, input_len, n_hid)
             self.sigmoid_layers.append(sigmoid_layer)
 
-            self.rbm_layers.append(RBM.new(input=input,
+            self.rbm_layers.append(RBM(input=input,
                 W=sigmoid_layer.W,
                 hbias=sigmoid_layer.b,
                 n_visible = input_len,
