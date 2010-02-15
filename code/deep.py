@@ -2,7 +2,7 @@
 Draft of DBN, DAA, SDAA, RBM tutorial code
 
 """
-
+import sys
 import numpy 
 import theano
 import time
@@ -12,6 +12,8 @@ from theano import shared, function
 
 import gzip
 import cPickle
+import pylearn.io.image_tiling
+import PIL
 
 # NNET STUFF
 
@@ -208,6 +210,10 @@ class RBM(object):
             v1_act = self.theano_rng.binomial(v1_mean.shape, 1, v1_mean)
             return [v1_act, v1_mean]
 
+
+        # DEBUGGING TO DO ALL WITHOUT SCAN
+        if k == 1:
+            return gibbs_1(v_sample, self.W, self.hbias, self.vbias)
        
        
         # Because we require as output two values, namely the mean field
@@ -237,8 +243,10 @@ class RBM(object):
         return v_means[-1], v_samples[-1]
 
     def free_energy(self, v_sample):
-        h_mean = T.nnet.sigmoid(T.dot(v_sample, self.W) + self.hbias)
-        return -T.sum(T.log(1-h_mean)) - T.sum(T.dot(v_sample, self.vbias))
+        wx_b = T.dot(v_sample, self.W) + self.hbias
+        vbias_term = T.sum(T.dot(v_sample, self.vbias))
+        return -T.sum(T.log(1+T.exp(wx_b))) - vbias_term
+        return T.sum(T.log(T.nnet.sigmoid(-wx_b))) - vbias_term
 
     def cd(self, visible = None, persistent = None, steps = 1):
         """
@@ -268,8 +276,11 @@ class RBM(object):
             chain_start = visible
         else:
             chain_start = persistent
+
         chain_end_mean, chain_end_sample = self.gibbs_k(chain_start, steps)
 
+        #print >> sys.stderr, "WARNING: DEBUGGING with wrong FREE ENERGY"
+        #free_energy_delta = - self.free_energy(chain_end_sample)
         free_energy_delta = self.free_energy(visible) - self.free_energy(chain_end_sample)
 
         # we will return all of these regardless of what is in self.params
@@ -303,11 +314,11 @@ class RBM(object):
                 persistent, steps)
 
         updates = {}
-        if self.W in self.params:
+        if hasattr(self.W, 'value'):
             updates[self.W] = self.W - lr * gW
-        if self.hbias in self.params:
+        if hasattr(self.hbias, 'value'):
             updates[self.hbias] = self.hbias - lr * ghbias
-        if self.vbias in self.params:
+        if hasattr(self.vbias, 'value'):
             updates[self.vbias] = self.vbias - lr * gvbias
         if persistent:
             #if persistent is a shared var, then it means we should use
@@ -318,10 +329,6 @@ class RBM(object):
 # DEEP MODELS 
 
 class DeepLayerwiseModel(object):
-
-    def layerwise_pretrain(self, layer_fns, pretrain_amounts):
-        ## Pre-train layer-wise 
-        return dict(duration=end_time-start_time)
 
     def finetune(self, datasets, lr, batch_size):
 
@@ -467,11 +474,27 @@ class DBN(DeepLayerwiseModel):
         batch_begin = (index % n_train_batches) * batch_size
         batch_end = batch_begin+batch_size
 
-        # TODO: return some cost to look at
-        return [function([index], [], 
-                updates = rbm.cd_updates(lr=learning_rate),
-                givens = {self.x: train_set_x[batch_begin:batch_end]})
-                for rbm in self.rbm_layers]
+        print 'TRAIN_SET X', train_set_x.value.shape
+        rval = []
+        for rbm in self.rbm_layers:
+            # N.B. these cd() samples are independent from the
+            # samples used for learning
+            outputs = list(rbm.cd())[0:2]
+            outputs.append(rbm.input)
+            outputs.append(train_set_x[batch_begin:batch_end])
+            outputs.append(batch_begin)
+            outputs.append(batch_end)
+            rval.append(function([index], outputs, 
+                    updates = rbm.cd_updates(lr=learning_rate),
+                    givens = {self.x: train_set_x[batch_begin:batch_end]}))
+            if rbm is self.rbm_layers[0]:
+                f = rval[-1]
+                AA=len(outputs)
+                for implicit_out in f.maker.env.outputs[len(outputs):]:
+                    print 'UPDATE ???'
+                    theano.printing.debugprint(implicit_out, file=sys.stdout)
+                
+        return rval
 
 def load_mnist(filename):
     f = gzip.open(filename,'rb')
@@ -490,7 +513,7 @@ def load_mnist(filename):
     return n_train_examples, datasets
 
 def dbn_main(finetune_lr = 0.1,
-        pretraining_epochs = 1,
+        pretraining_epochs = 10,
         pretrain_lr = 0.1,
         training_epochs = 1000,
         batch_size = 20,
@@ -538,12 +561,24 @@ def dbn_main(finetune_lr = 0.1,
         # go through pretraining epochs 
         print 'Pre-training layer %i'% layer_idx
         for i in xrange(pretraining_epochs * n_train_examples / batch_size):
-            #print layer_idx, i,pretraining_epochs * n_train_examples / batch_size
-            pretrain_fn(i)
+            outstuff = pretrain_fn(i)
+            xe, negsample, input_i = outstuff[:3]
+            print (layer_idx, i,
+                    pretraining_epochs * n_train_examples / batch_size,
+                    float(xe),
+                    'Wmin', deep_model.rbm_layers[0].W.value.min(),
+                    'Wmax', deep_model.rbm_layers[0].W.value.max(),
+                    'vmin', deep_model.rbm_layers[0].vbias.value.min(),
+                    'vmax', deep_model.rbm_layers[0].vbias.value.max(),
+                    'x>0.3', (input_i>0.3).sum(),
+                    )
+            if i % 1000 == 0:
+                PIL.Image.fromarray(
+                    pylearn.io.image_tiling.tile_raster_images(negsample, (28,28), (10,10),
+                            tile_spacing=(1,1))).save('img_%i_%i.png'%(layer_idx,i))
     end_time = time.clock()
     print 'Pretraining took %f minutes' %((end_time - start_time)/60.)
 
-    return
 
     print "Fine tuning (supervised learning) ..."
     train_fn, valid_scores, test_scores =\
@@ -610,8 +645,24 @@ def dbn_main(finetune_lr = 0.1,
                      finetune_status['test_score']*100.))
     print ('The code ran for %f minutes' % ((finetune_status['duration'])/60.))
 
+def rbm_main():
+    rbm = RBM(n_visible=20, n_hidden=30,
+            numpy_rng = numpy.random.RandomState(34))
+
+    cd_updates = rbm.cd_updates(lr=0.25)
+
+    print cd_updates
+
+    f = function([rbm.input], [],
+            updates={rbm.W:cd_updates[rbm.W]})
+
+    theano.printing.debugprint(f.maker.env.outputs[0],
+            file=sys.stdout)
+
+
 if __name__ == '__main__':
     dbn_main()
+    #rbm_main()
 
 
 if 0:
