@@ -263,12 +263,12 @@ class dA(object):
     self.params = [ self.W, self.b, self.b_prime ]
 
 
-class DeepNetwork()
-   def pretrain( dataset )
-   def finetune()
+#class DeepNetwork:
+#   def pretrain( dataset )
+#   def finetune()
 
 
-class SdA():
+class SdA(object):
     """Stacked denoising auto-encoder class (SdA)
 
     A stacked denoising autoencoder model is obtained by stacking several
