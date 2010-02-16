@@ -1,7 +1,8 @@
-"""
-This tutorial introduces restricted boltzmann machines (RBM) using Theano.
+"""This tutorial introduces restricted boltzmann machines (RBM) using Theano.
 
-Description of RBM : TODO
+Boltzmann Machines (BMs) are a particular form of energy-based model which
+contain hidden variables. Restricted Boltzmann Machines further restrict BMs 
+to those without visible-visible and hidden-hidden connections. 
 """
 
 
@@ -14,14 +15,130 @@ import cPickle
 
 from theano.tensor.shared_randomstreams import RandomStreams
 
-class RBM(object):
-    """
-    *** WRITE THE ENERGY FUNCTION  USE SAME LETTERS AS VARIABLE NAMES IN CODE
-    """
+# python library dealing with images
+import PIL.Image
 
-    def __init__(self, input=None, n_visible=784, n_hidden=500,
-            W=None, hbias=None, vbias=None,
-            numpy_rng=None):
+##### FUNCTION FOR PLOTTING SAMPLES / FILTERS for RBM 
+
+
+def scale_to_unit_interval(ndar,eps=1e-8):
+    """ Scales all values in the ndarray ndar to be between 0 and 1 """
+    ndar = ndar.copy()
+    ndar -= ndar.min()
+    ndar *= 1.0 / (ndar.max()+eps)
+    return ndar
+
+
+def tile_raster_images(X, img_shape, tile_shape,tile_spacing = (0,0), 
+              scale_rows_to_unit_interval = True, output_pixel_vals = True):
+    """
+    Transform an array with one flattened image per row, into an array in 
+    which images are reshaped and layed out like tiles on a floor.
+
+    This function is useful for visualizing datasets whose rows are images, 
+    and also columns of matrices for transforming those rows 
+    (such as the first layer of a neural net).
+
+    :type X: a 2-D ndarray or a tuple of 4 channels, elements of which can 
+    be 2-D ndarrays or None;
+    :param X: a 2-D array in which every row is a flattened image.
+
+    :type img_shape: tuple; (height, width)
+    :param img_shape: the original shape of each image
+
+    :type tile_shape: tuple; (rows, cols)
+    :param tile_shape: the number of images to tile (rows, cols)
+    
+    :param output_pixel_vals: if output should be pixel values (i.e. int8
+    values) or floats
+
+    :param scale_rows_to_unit_interval: if the values need to be scaled before
+    being plotted to [0,1] or not
+
+
+    :returns: array suitable for viewing as an image.  
+    (See:`PIL.Image.fromarray`.)
+    :rtype: a 2-d array with same dtype as X.
+
+    """
+ 
+    assert len(img_shape) == 2
+    assert len(tile_shape) == 2
+    assert len(tile_spacing) == 2
+
+    # The expression below can be re-written in a more C style as 
+    # follows : 
+    #
+    # out_shape    = [0,0]
+    # out_shape[0] = (img_shape[0]+tile_spacing[0])*tile_shape[0] -
+    #                tile_spacing[0]
+    # out_shape[1] = (img_shape[1]+tile_spacing[1])*tile_shape[1] -
+    #                tile_spacing[1]
+    out_shape = [(ishp + tsp) * tshp - tsp for ishp, tshp, tsp 
+                        in zip(img_shape, tile_shape, tile_spacing)]
+
+    if isinstance(X, tuple):
+        assert len(X) == 4
+        # Create an output numpy ndarray to store the image 
+        if output_pixel_vals:
+            out_array = numpy.zeros((out_shape[0], out_shape[1], 4), dtype='uint8')
+        else:
+            out_array = numpy.zeros((out_shape[0], out_shape[1], 4), dtype=X.dtype)
+
+        #colors default to 0, alpha defaults to 1 (opaque)
+        if output_pixel_vals:
+            channel_defaults = [0,0,0,255]
+        else:
+            channel_defaults = [0.,0.,0.,1.]
+
+        for i in xrange(4):
+            if X[i] is None:
+                # if channel is None, fill it with zeros of the correct 
+                # dtype
+                out_array[:,:,i] = numpy.zeros(out_shape,
+                        dtype='uint8' if output_pixel_vals else out_array.dtype
+                        )+channel_defaults[i]
+            else:
+                # use a recurrent call to compute the channel and store it 
+                # in the output
+                out_array[:,:,i] = tile_raster_images(X[i], img_shape, tile_shape, tile_spacing, scale_rows_to_unit_interval, output_pixel_vals)
+        return out_array
+
+    else:
+        # if we are dealing with only one channel 
+        H, W = img_shape
+        Hs, Ws = tile_spacing
+
+        # generate a matrix to store the output
+        out_array = numpy.zeros(out_shape, dtype='uint8' if output_pixel_vals else X.dtype)
+
+
+        for tile_row in xrange(tile_shape[0]):
+            for tile_col in xrange(tile_shape[1]):
+                if tile_row * tile_shape[1] + tile_col < X.shape[0]:
+                    if scale_rows_to_unit_interval:
+                        # if we should scale values to be between 0 and 1 
+                        # do this by calling the `scale_to_unit_interval`
+                        # function
+                        this_img = scale_to_unit_interval(X[tile_row * tile_shape[1] + tile_col].reshape(img_shape))
+                    else:
+                        this_img = X[tile_row * tile_shape[1] + tile_col].reshape(img_shape)
+                    # add the slice to the corresponding position in the 
+                    # output array
+                    out_array[
+                        tile_row * (H+Hs):tile_row*(H+Hs)+H,
+                        tile_col * (W+Ws):tile_col*(W+Ws)+W
+                        ] \
+                        = this_img * (255 if output_pixel_vals else 1)
+        return out_array
+
+
+
+class RBM(object):
+    """Restricted Boltzmann Machine (RBM)  """
+    def __init__(self, input=None, n_visible=784, n_hidden=500, \
+        W = None, hbias = None, vbias = None, numpy_rng = None, 
+        theano_rng = None):
         """ 
         RBM constructor. Defines the parameters of the model along with
         basic operations for inferring hidden from visible (and vice-versa), 
@@ -30,182 +147,171 @@ class RBM(object):
         :param input: None for standalone RBMs or symbolic variable if RBM is
         part of a larger graph.
 
-        :param n_visible: number of visible units (necessary when W or vbias is None)
+        :param n_visible: number of visible units
 
-        :param n_hidden: number of hidden units (necessary when W or hbias is None)
+        :param n_hidden: number of hidden units
 
-        :param W: weights to use for the RBM.  None means that a shared variable will be
-        created with a randomly chosen matrix of size (n_visible, n_hidden).
+        :param W: None for standalone RBMs or symbolic variable pointing to a
+        shared weight matrix in case RBM is part of a DBN network; in a DBN,
+        the weights are shared between RBMs and layers of a MLP
 
-        :param hbias: ***
+        :param hbias: None for standalone RBMs or symbolic variable pointing 
+        to a shared hidden units bias vector in case RBM is part of a 
+        different network
 
-        :param vbias: ***
-
-        :param numpy_rng: random number generator (necessary when W is None)
-
+        :param vbias: None for standalone RBMs or a symbolic variable 
+        pointing to a shared visible units bias
         """
-        
-        params = []
-        if W is None:
-            # choose initial values for weight matrix of RBM 
-            initial_W = numpy.asarray(
-                    numpy_rng.uniform( \
-                        low=-numpy.sqrt(6./(n_hidden+n_visible)), \
-                        high=numpy.sqrt(6./(n_hidden+n_visible)), \
-                        size=(n_visible, n_hidden)), \
-                    dtype=theano.config.floatX)
-            W = theano.shared(value=initial_W, name='W')
-            params.append(W)
 
-        if hbias is None:
-            # theano shared variables for hidden biases
-            hbias = theano.shared(value=numpy.zeros(n_hidden), name='hbias')
-            params.append(hbias)
+        self.n_visible = n_visible
+        self.n_hidden  = n_hidden
 
-        if vbias is None:
-            # theano shared variables for visible biases
-            vbias = theano.shared(value=numpy.zeros(n_visible), name='vbias')
-            params.append(vbias)
 
-        if input is None:
-            # initialize input layer for standalone RBM or layer0 of DBN
-            input = T.dmatrix('input')
+        if W is None : 
+           # W is initialized with `initial_W` which is uniformely sampled
+           # from -6./sqrt(n_visible+n_hidden) and 6./sqrt(n_hidden+n_visible)
+           # the output of uniform if converted using asarray to dtype 
+           # theano.config.floatX so that the code is runable on GPU
+           initial_W = numpy.asarray( numpy.random.uniform( 
+                     low = -numpy.sqrt(6./(n_hidden+n_visible)), 
+                     high = numpy.sqrt(6./(n_hidden+n_visible)), 
+                     size = (n_visible, n_hidden)), 
+                     dtype = theano.config.floatX)
+           # theano shared variables for weights and biases
+           W = theano.shared(value = initial_W, name = 'W')
 
-        self.input = input
-        self.W = W
-        self.hbias = hbias
-        self.vbias = vbias
-        self.theano_rng = Trng = RandomStreams()
-        self.params = params
-        self.hidden_mean = T.nnet.sigmoid(T.dot(input, W)+hbias)
-        self.hidden_sample = Trng.binomial(self.hidden_mean.shape, 1, self.hidden_mean)
+        if hbias is None :
+           # create shared variable for hidden units bias
+           hbias = theano.shared(value = numpy.zeros(n_hidden, 
+                               dtype = theano.config.floatX), name='hbias')
 
-    def gibbs_k(self, v_sample, k):
-        ''' This function implements k steps of Gibbs sampling '''
+        if vbias is None :
+            # create shared variable for visible units bias
+            vbias = theano.shared(value =numpy.zeros(n_visible, 
+                                dtype = theano.config.floatX),name='vbias')
+
+        if numpy_rng is None:    
+            # create a number generator 
+            numpy_rng = numpy.random.RandomState(1234)
+
+        if theano_rng is None : 
+            theano_rng = RandomStreams(numpy_rng.randint(2**30))
+
+
+        # initialize input layer for standalone RBM or layer0 of DBN
+        self.input = input if input else T.dmatrix('input')
+
+        self.W          = W
+        self.hbias      = hbias
+        self.vbias      = vbias
+        self.theano_rng = theano_rng
+        # **** WARNING: It is not a good idea to put things in this list 
+        # other than shared variables created in this function.
+        self.params     = [self.W, self.hbias, self.vbias]
+        self.batch_size = self.input.shape[0]
+
+
+    def gibbs_1(self, v0_sample):
+        ''' This function implements one step of Gibbs sampling '''
+        # compute the activation of the hidden units given a sample of the
+        # vissibles
+        h0_mean = T.nnet.sigmoid(T.dot(v0_sample, self.W) + self.hbias)
+        # get a sample of the hiddens given their activation
+        h0_sample = self.theano_rng.binomial(size = h0_mean.shape, n = 1, prob = h0_mean)
+        # compute the activation of the visible given the hidden sample
+        v1_mean = T.nnet.sigmoid(T.dot(h0_sample, self.W.T) + self.vbias)
+        # get a sample of the visible given their activation
+        v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,prob = v1_mean)
+        return [v1_mean, v1_sample]
  
-        # We compute the visible after k steps of Gibbs by iterating 
-        # over ``gibs_1`` for k times; this can be done in Theano using
-        # the `scan op`. For a more comprehensive description of scan see 
-        # http://deeplearning.net/software/theano/library/scan.html .
-        
-        def gibbs_1(v0_sample, W, hbias, vbias):
-            ''' This function implements one Gibbs step '''
-
-            # compute the activation of the hidden units given a sample of the
-            # vissibles
-            h0_mean = T.nnet.sigmoid(T.dot(v0_sample, W) + hbias)
-            # get a sample of the hiddens given their activation
-            h0_sample = self.theano_rng.binomial(h0_mean.shape, 1, h0_mean)
-            # compute the activation of the visible given the hidden sample
-            v1_mean = T.nnet.sigmoid(T.dot(h0_sample, W.T) + vbias)
-            # get a sample of the visible given their activation
-            v1_act = self.theano_rng.binomial(v1_mean.shape, 1, v1_mean)
-            return [v1_act, v1_mean]
-
-       
-       
-        # Because we require as output two values, namely the mean field
-        # approximation of the visible and the sample obtained after k steps, 
-        # scan needs to know the shape of those two outputs. Scan takes 
-        # this information from the variables containing the initial state
-        # of the outputs. Since we do not need a initial state of ``v_mean``
-        # we provide a dummy one used only to get the correct shape 
-        v_mean = T.zeros_like(v_sample)
-        
-        # ``outputs_taps`` is an argument of scan which describes at each
-        # time step what past values of the outputs the function applied 
-        # recursively needs. This is given in the form of a dictionary, 
-        # where the keys are outputs indexes, and values are a list of 
-        # of the offsets used  by the corresponding outputs
-        # In our case the function ``gibbs_1`` applied recursively, requires
-        # at time k the past value k-1 for the first output (index 0) and
-        # no past value of the second output
-        outputs_taps = { 0 : [-1], 1 : [] }
-
-        v_samples, v_means = theano.scan( fn = gibbs_1, 
-                                          sequences      = [], 
-                                          initial_states = [v_sample, v_mean],
-                                          non_sequences  = self.params, 
-                                          outputs_taps   = outputs_taps,
-                                          n_steps        = k)
-        return v_means[-1], v_samples[-1]
-
+ 
     def free_energy(self, v_sample):
-        h_mean = T.nnet.sigmoid(T.dot(v_sample, self.W) + self.hbias)
-        #TODO: make sure log(sigmoid) is optimized to something stable!
-        return -T.sum(T.log(1.0001-h_mean)) - T.sum(T.dot(v_sample, self.vbias))
+        ''' Function to compute the free energy '''
+        wx_b = T.dot(v_sample, self.W) + self.hbias
+        vbias_term = T.sum(T.dot(v_sample, self.vbias))
+        hidden_term = T.sum(T.log(1+T.exp(wx_b)))
+        return -hidden_term - vbias_term
 
-    def cd(self, visible=None, persistent=None, steps = 1):
-        """
-        Return a 5-tuple of values related to contrastive divergence: (cost,
-        end-state of negative-phase chain, gradient on weights, gradient on
-        hidden bias, gradient on visible bias)
+    def cd(self, lr = 0.1, persistent=None):
+        """ This functions implements one step of CD-1
 
-        If visible is None, it defaults to self.input
+        :param lr: learning rate used to train the RBM
+
+        Return a tuple of values describing a CD step. The first value 
+        in the tuple is the reconstruction cross-entropy cost, a proxy 
+        to what CD tries to minimize, while the second is an update 
+        dictionary. The dictionary contains the update rules for weights
+        and biases but also an update of the shared variable used to store
+        the persistent chain, if one is used.
+        
+        Note that the reconstruction cross-entropy cost is just
+        a proxy of what CD actually tries to minimize, do not confuse the 
+        two.
+
         If persistent is None, it defaults to self.input
 
         CD aka CD1 - cd()
-        CD-10      - cd(steps=10)
         PCD        - cd(persistent=shared(numpy.asarray(initializer)))
-        PCD-k      - cd(persistent=shared(numpy.asarray(initializer)),
-                        steps=10)
         """
-        if visible is None:
-            visible = self.input
-
-        if visible is None:
-            raise TypeError('visible argument is required when self.input is None')
 
         if persistent is None:
-            chain_start = visible
+            chain_start = self.input
         else:
             chain_start = persistent
-        chain_end_mean, chain_end_sample = self.gibbs_k(chain_start, steps)
 
-        cost = self.free_energy(visible) - self.free_energy(chain_end_sample)
-        
-        # Compute the gradient of the cost with respect to the parameters
-        # Note the use of argument ``consider_constant``. The reason for 
-        # using this parameter is because the gradient should not try to 
-        # propagate through the gibs chain
-        gparams = T.grad(cost, self.params, consider_constant = [chain_end_sample])
-       
-        cross_entropy_error = T.mean(T.sum( visible*T.log(chain_end_sample) + 
-                        (1 - visible)*T.log(1-chain_end_sample), axis = 1))
-        return (cross_entropy_error, chain_end_sample,) + tuple(gparams)
 
-    def cd_updates(self, lr, visible=None, persistent=None, steps = 1):
-        """
-        Return the learning updates for the RBM parameters that are shared variables.
+        # define the graph for positive phase
+        ph_act    = T.dot(chain_start, self.W) + self.hbias
+        ph_mean   = T.nnet.sigmoid(ph_act)
+        ph_sample = self.theano_rng.binomial(size = ph_mean.shape, n = 1,
+                                                         prob = ph_mean)
 
-        Also returns an update for the persistent if it is a shared variable.
+        # define the graph for the negative phase
+        nv_act    = T.dot(ph_sample, self.W.T) + self.vbias
+        nv_mean   = T.nnet.sigmoid(nv_act)
+        nv_sample = self.theano_rng.binomial(size = nv_mean.shape, n = 1,
+                                                         prob = nv_mean)
+        nh_act    = T.dot(nv_sample, self.W) + self.hbias
+        nh_mean   = T.nnet.sigmoid(nh_act)
+        nh_sample = self.theano_rng.binomial(size = nh_mean.shape, n = 1,
+                                                         prob = nh_mean)
 
-        These updates are returned as a dictionary.
+        g_vbias = T.sum( self.input - nv_mean, axis = 0)/self.batch_size
+        g_hbias = T.sum( ph_mean    - nh_mean, axis = 0)/self.batch_size
+        g_W = T.dot(ph_mean.T, self.input   )/ self.batch_size - \
+              T.dot(nh_mean.T, nv_mean      )/ self.batch_size
 
-        :param lr: [scalar] learning rate for contrastive divergence learning
-        :param visible: see `cd_grad`
-        :param persistent: see `cd_grad`
-        :param step: see `cd_grad`
+        gparams = [g_W.T, g_hbias, g_vbias]
+        cross_entropy = T.mean(T.sum( self.input*T.log(nv_mean) 
+                       + (1 - self.input)*T.log(1-nv_mean), axis = 1))
 
-        """
-
-        cost, chain_end, gW, ghbias, gvbias = self.cd(visible, persistent, steps)
-
+        # constructs the update dictionary
         updates = {}
-        if self.W in self.params:
-            updates[self.W] = self.W - lr * gW
-        if self.hbias in self.params:
-            updates[self.hbias] = self.hbias - lr * ghbias
-        if self.vbias in self.params:
-            updates[self.vbias] = self.vbias - lr * gvbias
+        for gparam, param in zip(gparams, self.params):
+           updates[param] = param + gparam * lr
+
         if persistent:
-            #if persistent is a shared var, then it means we should use
-            updates[persistent] = chain_end
+            # Note that this works only if persistent is a shared variable
+            updates[persistent] = nv_sample
 
-        return updates
 
-def test_RBM(learning_rate=0.1, training_epochs = 20, 
-        dataset='mnist.pkl.gz'):
+        return (cross_entropy, updates)
+
+
+def test_rbm( learning_rate=0.1, training_epochs = 15, \
+                            dataset='mnist.pkl.gz'):
+    """
+    Demonstrate ***
+
+    This is demonstrated on MNIST.
+
+    :param learning_rate: learning rate used for training the RBM 
+
+    :param training_eqpochs: number of epochs used for training
+
+    :param dataset: path the the pickled dataset
+
+    """
 
     # Load the dataset 
     f = gzip.open(dataset,'rb')
@@ -219,8 +325,8 @@ def test_RBM(learning_rate=0.1, training_epochs = 20,
         shared_y = theano.shared(numpy.asarray(data_y, dtype=theano.config.floatX))
         return shared_x, T.cast(shared_y, 'int32')
 
-    print '... loading data'
     train_set_x, train_set_y = shared_dataset(train_set)
+    test_set_x,  test_set_y  = shared_dataset(test_set)
 
     batch_size = 20    # size of the minibatch
 
@@ -230,39 +336,87 @@ def test_RBM(learning_rate=0.1, training_epochs = 20,
     # allocate symbolic variables for the data
     index = T.lscalar()    # index to a [mini]batch 
     x     = T.matrix('x')  # the data is presented as rasterized images
-    y     = T.ivector('y') # the labels are presented as 1D vector of 
-                                 # [int] labels
 
-    print '... making model'
+
+    rng        = numpy.random.RandomState(123)
+    theano_rng = RandomStreams( rng.randint(2**30))
+
     # construct the RBM class
-    rbm = RBM(input = x, n_visible=28*28, n_hidden=500, numpy_rng=
-            numpy.random.RandomState(234234))
-    cost = rbm.cd(steps = 10 )[0]
+    rbm = RBM( input = x, n_visible=28*28, \
+               n_hidden = 500,numpy_rng = rng, theano_rng = theano_rng)
 
-    print '... compiling train function'
-    train_rbm = theano.function([index], rbm.cd(steps = 10)[0], 
-           updates = rbm.cd_updates(learning_rate, steps = 10), 
-           givens = { 
-             x: train_set_x[index*batch_size:(index+1)*batch_size],
-             y: train_set_y[index*batch_size:(index+1)*batch_size]},
-            mode = 'DEBUG_MODE'
-             )
+    # get the cost and the gradient corresponding to one step of CD
+    (cross_entropy, updates) = rbm.cd()
 
+    train_rbm = theano.function([index], cross_entropy, 
+           updates = updates, 
+           givens = { x: train_set_x[index*batch_size:(index+1)*batch_size]})
+
+    plotting_time = 0.
     start_time = time.clock()  
     # go through training epochs 
     for epoch in xrange(training_epochs):
         # go through the training set
         c = []
         for batch_index in xrange(n_train_batches):
-            c += [ train_rbm(batch_index) ]
-            print 'batch ', c[-1]
-        print 'Training epoch %d '%epoch, numpy.mean(c)
- 
+           c += [ train_rbm(batch_index) ]
+        print 'Training epoch %d, average cross-entropy reconstruction cost '%epoch, numpy.mean(c)
+        plotting_start = time.clock()
+        #           Plot filters after each training epoch
+        # Construct image from the weight matrix 
+        image = PIL.Image.fromarray(tile_raster_images( X = rbm.W.value.T,
+                 img_shape = (28,28),tile_shape = (10,10), 
+                 tile_spacing=(1,1)))
+        image.save('filters_at_epoch_%i.png'%epoch) 
+        plotting_stop = time.clock()
+        plotting_time += (plotting_stop - plotting_start)
     end_time = time.clock()
 
-    print ('Training took %f minutes' %((end_time-start_time)/60.))
+    pretraining_time = (end_time - start_time) - plotting_time
+
+    print ('Training took %f minutes' %(pretraining_time/60.))
+
+   
+    # Sampling the RBM
+
+    # Initialize the persistent chain with some sample from the test 
+
+    # find out the number of test samples  
+    number_of_test_samples = test_set_x.value.shape[0]
+
+    # pick two initial starting points randomly 
+    sample = rng.randint(number_of_test_samples-20)
+
+    # initialize 20 persistent chains in parallel over which we will loop
+    persistent_chain = theano.shared( test_set_x.value[sample:sample+20])
+
+    # the sample at the end of the channel is returned by ``gibbs_1`` as 
+    # its second output; note that this is computed as a binomial draw, 
+    # therefore it is formed of ints (0 and 1) and therefore needs to 
+    # be converted to the same dtype as ``persistent_chain``
+    chain_step_sample = T.cast(rbm.gibbs_1(persistent_chain)[1], dtype =
+                                                    theano.config.floatX)
+    # construct the function that implements our persistent chain 
+    sample_fn = theano.function([], chain_step_sample, 
+                      updates = { persistent_chain:chain_step_sample })
+
+    # sample the RBM, plotting every `plot_every`-th sample; do this 
+    # until you plot at least `n_samples`
+    n_samples = 10
+    plot_every = 1000
+
+    for idx in xrange(n_samples):
+        # do `plot_every` intermediate samplings of which we do not care
+        for jdx in  xrange(plot_every):
+            sample_fn()
+        # construct image
+        image = PIL.Image.fromarray(tile_raster_images( 
+                                         X          = persistent_chain.value,
+                                         img_shape  = (28,28),
+                                         tile_shape = (10,10),
+                                         tile_spacing = (1,1) ) )
+        print ' ... plotting sample ', idx
+        image.save('sample_%i_step_%i.png'%(idx,idx*jdx))
 
 if __name__ == '__main__':
-    test_RBM()
-
-
+   test_rbm() 

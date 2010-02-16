@@ -509,7 +509,7 @@ def dbn_main(finetune_lr = 0.01,
         pretraining_epochs = 10,
         pretrain_lr = 0.1,
         training_epochs = 1000,
-        batch_size = 2,
+        batch_size = 20,
         mnist_file='mnist.pkl.gz'):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer perceptron
@@ -534,9 +534,9 @@ def dbn_main(finetune_lr = 0.01,
     print "Creating a Deep Belief Network"
     deep_model = DBN(
             input_len=28*28,
-            hidden_layers_sizes = [50, 150, 100],
+            hidden_layers_sizes = [500, 150, 100],
             n_classes=10,
-            rng = numpy.random.RandomState(1234))
+            rng = numpy.random.RandomState())
 
     ####
     #### Phase 1: Pre-training
@@ -557,7 +557,7 @@ def dbn_main(finetune_lr = 0.01,
             outstuff = pretrain_fn(i)
             xe, negsample = outstuff[:2]
             print (layer_idx, i,
-                    pretraining_epochs * n_train_examples / batch_size,
+                    n_train_examples / batch_size,
                     float(xe),
                     'Wmin', deep_model.rbm_layers[0].W.value.min(),
                     'Wmax', deep_model.rbm_layers[0].W.value.max(),
