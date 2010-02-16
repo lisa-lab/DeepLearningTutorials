@@ -107,10 +107,13 @@ class LogisticRegression(object):
         Note: we use the mean instead of the sum so that
         the learning rate is less dependent on the batch size
         """
+        # y.shape[0] is the number of examples n in the minibatch
+        # T.arange(y.shape[0]) is a vector containing [0,1,2,... n-1]
+        # T.log(self.p_y_given_x) is a matrix L with one row per example and one column per class
+        # L[T.arange(y.shape[0]),y] is a vector v containing [L[0,y[0]], L[1,y[1]], L[2,y[2]], ..., L[n-1,y[n-1]]]
+        # and T.mean(L[T.arange(y.shape[0]),y]) is the mean (across minibatch examples) of the elements in v,
+        # i.e., the mean log-likelihood across the minibatch.
         return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
-
-
-
 
 
     def errors(self, y):
