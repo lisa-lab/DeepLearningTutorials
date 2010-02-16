@@ -208,7 +208,7 @@ class RBM(object):
             v1_mean = T.nnet.sigmoid(T.dot(h0_sample, W.T) + vbias)
             # get a sample of the visible given their activation
             v1_act = self.theano_rng.binomial(v1_mean.shape, 1, v1_mean)
-            return [v1_act, v1_mean]
+            return [v1_mean, v1_act]
 
 
         # DEBUGGING TO DO ALL WITHOUT SCAN
@@ -234,7 +234,7 @@ class RBM(object):
         # no past value of the second output
         outputs_taps = { 0 : [-1], 1 : [] }
 
-        v_samples, v_means = theano.scan( fn = gibbs_1, 
+        v_means, v_samples = theano.scan( fn = gibbs_1, 
                                           sequences      = [], 
                                           initial_states = [v_sample, v_mean],
                                           non_sequences  = [self.W, self.hbias, self.vbias], 
@@ -245,8 +245,8 @@ class RBM(object):
     def free_energy(self, v_sample):
         wx_b = T.dot(v_sample, self.W) + self.hbias
         vbias_term = T.sum(T.dot(v_sample, self.vbias))
-        return -T.sum(T.log(1+T.exp(wx_b))) - vbias_term
-        return T.sum(T.log(T.nnet.sigmoid(-wx_b))) - vbias_term
+        hidden_term = T.sum(T.log(1+T.exp(wx_b)))
+        return -hidden_term - vbias_term
 
     def cd(self, visible = None, persistent = None, steps = 1):
         """
@@ -328,63 +328,7 @@ class RBM(object):
 
 # DEEP MODELS 
 
-class DeepLayerwiseModel(object):
-
-    def finetune(self, datasets, lr, batch_size):
-
-        # unpack the various datasets
-        (train_set_x, train_set_y) = datasets[0]
-        (valid_set_x, valid_set_y) = datasets[1]
-        (test_set_x, test_set_y) = datasets[2]
-
-        # compute number of minibatches for training, validation and testing
-        assert train_set_x.value.shape[0] % batch_size == 0
-        assert valid_set_x.value.shape[0] % batch_size == 0
-        assert test_set_x.value.shape[0] % batch_size == 0
-        n_train_batches = train_set_x.value.shape[0] / batch_size
-        n_valid_batches = valid_set_x.value.shape[0] / batch_size
-        n_test_batches  = test_set_x.value.shape[0]  / batch_size
-
-        index   = T.lscalar()    # index to a [mini]batch 
-        target = self.y
-
-        train_index = index % n_train_batches
-
-        classifier = self.logistic_regressor
-        cost = classifier.negative_log_likelihood(target)
-        # compute the gradients with respect to the model parameters
-        gparams = T.grad(cost, self.params)
-
-        # compute list of fine-tuning updates
-        updates = [(param, param - gparam*finetune_lr)
-                for param,gparam in zip(self.params, gparams)]
-
-        train_fn = theano.function([index], cost, 
-                updates = updates,
-                givens = {
-                  self.x : train_set_x[train_index*batch_size:(train_index+1)*batch_size],
-                  target : train_set_y[train_index*batch_size:(train_index+1)*batch_size]})
-
-        test_score_i = theano.function([index], classifier.errors(target),
-                 givens = {
-                   self.x: test_set_x[index*batch_size:(index+1)*batch_size],
-                   target: test_set_y[index*batch_size:(index+1)*batch_size]})
-
-        valid_score_i = theano.function([index], classifier.errors(target),
-                givens = {
-                   self.x: valid_set_x[index*batch_size:(index+1)*batch_size],
-                   target: valid_set_y[index*batch_size:(index+1)*batch_size]})
-
-        def test_scores():
-            return [test_score_i(i) for i in xrange(n_test_batches)]
-
-        def valid_scores():
-            return [valid_score_i(i) for i in xrange(n_valid_batches)]
-
-        return train_fn, valid_scores, test_scores
-
-
-class DBN(DeepLayerwiseModel):
+class DBN(object):
     """
     *** WHAT IS A DBN?
     """
@@ -480,21 +424,70 @@ class DBN(DeepLayerwiseModel):
             # N.B. these cd() samples are independent from the
             # samples used for learning
             outputs = list(rbm.cd())[0:2]
-            outputs.append(rbm.input)
-            outputs.append(train_set_x[batch_begin:batch_end])
-            outputs.append(batch_begin)
-            outputs.append(batch_end)
             rval.append(function([index], outputs, 
                     updates = rbm.cd_updates(lr=learning_rate),
                     givens = {self.x: train_set_x[batch_begin:batch_end]}))
             if rbm is self.rbm_layers[0]:
                 f = rval[-1]
                 AA=len(outputs)
-                for implicit_out in f.maker.env.outputs[len(outputs):]:
-                    print 'UPDATE ???'
+                for i, implicit_out in enumerate(f.maker.env.outputs): #[len(outputs):]:
+                    print 'OUTPUT ', i
                     theano.printing.debugprint(implicit_out, file=sys.stdout)
                 
         return rval
+
+    def finetune(self, datasets, lr, batch_size):
+
+        # unpack the various datasets
+        (train_set_x, train_set_y) = datasets[0]
+        (valid_set_x, valid_set_y) = datasets[1]
+        (test_set_x, test_set_y) = datasets[2]
+
+        # compute number of minibatches for training, validation and testing
+        assert train_set_x.value.shape[0] % batch_size == 0
+        assert valid_set_x.value.shape[0] % batch_size == 0
+        assert test_set_x.value.shape[0] % batch_size == 0
+        n_train_batches = train_set_x.value.shape[0] / batch_size
+        n_valid_batches = valid_set_x.value.shape[0] / batch_size
+        n_test_batches  = test_set_x.value.shape[0]  / batch_size
+
+        index   = T.lscalar()    # index to a [mini]batch 
+        target = self.y
+
+        train_index = index % n_train_batches
+
+        classifier = self.logistic_regressor
+        cost = classifier.negative_log_likelihood(target)
+        # compute the gradients with respect to the model parameters
+        gparams = T.grad(cost, self.params)
+
+        # compute list of fine-tuning updates
+        updates = [(param, param - gparam*finetune_lr)
+                for param,gparam in zip(self.params, gparams)]
+
+        train_fn = theano.function([index], cost, 
+                updates = updates,
+                givens = {
+                  self.x : train_set_x[train_index*batch_size:(train_index+1)*batch_size],
+                  target : train_set_y[train_index*batch_size:(train_index+1)*batch_size]})
+
+        test_score_i = theano.function([index], classifier.errors(target),
+                 givens = {
+                   self.x: test_set_x[index*batch_size:(index+1)*batch_size],
+                   target: test_set_y[index*batch_size:(index+1)*batch_size]})
+
+        valid_score_i = theano.function([index], classifier.errors(target),
+                givens = {
+                   self.x: valid_set_x[index*batch_size:(index+1)*batch_size],
+                   target: valid_set_y[index*batch_size:(index+1)*batch_size]})
+
+        def test_scores():
+            return [test_score_i(i) for i in xrange(n_test_batches)]
+
+        def valid_scores():
+            return [valid_score_i(i) for i in xrange(n_valid_batches)]
+
+        return train_fn, valid_scores, test_scores
 
 def load_mnist(filename):
     f = gzip.open(filename,'rb')
@@ -512,11 +505,11 @@ def load_mnist(filename):
 
     return n_train_examples, datasets
 
-def dbn_main(finetune_lr = 0.1,
+def dbn_main(finetune_lr = 0.01,
         pretraining_epochs = 10,
         pretrain_lr = 0.1,
         training_epochs = 1000,
-        batch_size = 20,
+        batch_size = 2,
         mnist_file='mnist.pkl.gz'):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer perceptron
@@ -562,7 +555,7 @@ def dbn_main(finetune_lr = 0.1,
         print 'Pre-training layer %i'% layer_idx
         for i in xrange(pretraining_epochs * n_train_examples / batch_size):
             outstuff = pretrain_fn(i)
-            xe, negsample, input_i = outstuff[:3]
+            xe, negsample = outstuff[:2]
             print (layer_idx, i,
                     pretraining_epochs * n_train_examples / batch_size,
                     float(xe),
@@ -570,15 +563,23 @@ def dbn_main(finetune_lr = 0.1,
                     'Wmax', deep_model.rbm_layers[0].W.value.max(),
                     'vmin', deep_model.rbm_layers[0].vbias.value.min(),
                     'vmax', deep_model.rbm_layers[0].vbias.value.max(),
-                    'x>0.3', (input_i>0.3).sum(),
+                    #'x>0.3', (input_i>0.3).sum(),
                     )
+            sys.stdout.flush()
             if i % 1000 == 0:
                 PIL.Image.fromarray(
                     pylearn.io.image_tiling.tile_raster_images(negsample, (28,28), (10,10),
-                            tile_spacing=(1,1))).save('img_%i_%i.png'%(layer_idx,i))
+                            tile_spacing=(1,1))).save('samples_%i_%i.png'%(layer_idx,i))
+
+                PIL.Image.fromarray(
+                    pylearn.io.image_tiling.tile_raster_images(
+                        deep_model.rbm_layers[0].W.value.T,
+                        (28,28), (10,10),
+                        tile_spacing=(1,1))).save('filters_%i_%i.png'%(layer_idx,i))
     end_time = time.clock()
     print 'Pretraining took %f minutes' %((end_time - start_time)/60.)
 
+    return
 
     print "Fine tuning (supervised learning) ..."
     train_fn, valid_scores, test_scores =\
