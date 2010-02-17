@@ -186,7 +186,10 @@ following log-likelihood gradients for an RBM with binary units:
     \frac {\partial{log p(v)}} {\partial c_i} &=
        - sigm(W_i \cdot x^{(i)}) + E_v[p(h_i|v)] \\
     \frac {\partial{log p(v)}} {\partial b_j} &=
-       - x^{(i)} + E_v[p(v_j|h)]
+       - x^{(i)}_j + E_v[p(v_j|h)]
+
+For a more detailed derivation of these equations, we refer the reader to the
+following `page <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/DBNEquations>`_.
 
 .. note::
     We will be updating the tutorial shortly, such that the gradients are
@@ -348,37 +351,55 @@ corresponding sigmoidal layer of a MLP network.
         self.batch_size = self.input.shape[0]
 
 
-Next step is to define a function which defines the symbolic graph associated
-with a single step of Gibbs sampling. Since we are going to use only CD-1 in
-this tutorial we need to implement just one step of Gibbs sampling. The
-following function does this by:
+Next step is to define functions which defines the symbolic graph associated
+with Eqs. :eq:`rbm_propup` - :eq:`rbm_propdown`. The code is as follows:
 
-* inferring the activation probabilities of the hidden units, given the
-  state `v0_sample` of the visibles (Eq. :eq:`rbm_propup`)
-* sampling the hidden units
-* inferring the activation probabilities of the visible units, given the state
-  `h0_sample` of the hidden units (Eqs. :eq:`rbm_propdown`)
-* sampling the visible units
+.. code-block:: python
+
+    def sample_h_given_v(self, v0_sample):
+        ''' This function infers state of hidden units given visible units '''
+        # compute the activation of the hidden units given a sample of the visibles
+        h1_mean = T.nnet.sigmoid(T.dot(v0_sample, self.W) + self.hbias)
+        # get a sample of the hiddens given their activation
+        h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, prob = h1_mean)
+        return [h1_mean, h1_sample]
+
+    def sample_v_given_h(self, h0_sample):
+        ''' This function infers state of visible units given hidden units '''
+        # compute the activation of the visible given the hidden sample
+        v1_mean = T.nnet.sigmoid(T.dot(h0_sample, self.W.T) + self.vbias)
+        # get a sample of the visible given their activation
+        v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,prob = v1_mean)
+        return [v1_mean, v1_sample]
+
+We can then use these functions to define the symbolic graph for a Gibbs
+sampling step. We define two functions:
+
+* ``gibbs_vhv`` which performs a step of Gibbs sampling starting from the
+  visible units. As we shall see, this will be useful for sampling from the
+  RBM.
+
+* ``gibbs_hvh`` which performs a step of Gibbs sampling starting from the hidden units. 
+  This function will be useful for performing CD and PCD updates.
 
 The code is as follows:
 
 .. code-block:: python
 
-    def gibbs_1(self, v0_sample):
-        ''' This function implements one step of Gibbs sampling '''
-        # compute the activation of the hidden units given a sample of the
-        # vissibles
-        h0_mean = T.nnet.sigmoid(T.dot(v0_sample, self.W) + self.hbias)
-        # get a sample of the hiddens given their activation
-        h0_sample = self.theano_rng.binomial(size = h0_mean.shape, n = 1, 
-                                                            prob = h0_mean)
-        # compute the activation of the visible given the hidden sample
-        v1_mean = T.nnet.sigmoid(T.dot(h0_sample, self.W.T) + self.vbias)
-        # get a sample of the visible given their activation
-        v1_sample = self.theano_rng.binomial(size = v1_mean.shape, n = 1, 
-                                                            prob = v1_mean)
-        return [v1_mean, v1_sample]
+    def gibbs_hvh(self, h0_sample):
+        ''' This function implements one step of Gibbs sampling, 
+            starting from the hidden state'''
+        v1_mean, v1_sample = self.sample_v_given_h(h0_sample)
+        h1_mean, h1_sample = self.sample_h_given_v(v1_sample)
+        return [v1_mean, v1_sample, h1_mean, h1_sample]
  
+    def gibbs_vhv(self, v0_sample):
+        ''' This function implements one step of Gibbs sampling, 
+            starting from the visible state'''
+        h1_mean, h1_sample = self.sample_h_given_v(v0_sample)
+        v1_mean, v1_sample = self.sample_v_given_h(h1_sample)
+        return [h1_mean, h1_sample, v1_mean, v1_sample]
+
 
 We then add a ``cd`` method, whose purpose is to generate the symbolic
 gradients for CD-1 and PCD-1 updates.
@@ -386,31 +407,21 @@ gradients for CD-1 and PCD-1 updates.
 .. code-block:: python
 
     def cd(self, lr = 0.1, persistent=None):
-        """ This functions implements one step of CD-1
+        """ This functions implements one step of CD-1 """
 
-        :param lr: learning rate used to train the RBM
+        # compute positive phase
+        ph_mean, ph_sample = self.sample_h_given_v(self.input)
 
-        Return a tuple of values describing a CD step. The first value 
-        in the tuple is the reconstruction cross-entropy cost, a proxy 
-        to what CD tries to minimize, while the second is an update 
-        dictionary. The dictionary contains the update rules for weights
-        and biases but also an update of the shared variable used to store
-        the persistent chain, if one is used.
-        
-        Note that the reconstruction cross-entropy cost is just
-        a proxy of what CD actually tries to minimize, do not confuse the 
-        two.
-
-        If persistent is None, it defaults to self.input
-
-        CD aka CD1 - cd()
-        PCD        - cd(persistent=shared(numpy.asarray(initializer)))
-        """
-
+        # decide how to initialize persistent chain:
+        # for CD, we use the newly generate hidden sample
+        # for PCD, we initialize from the old state of the chain
         if persistent is None:
-            chain_start = self.input
+            chain_start = ph_sample
         else:
             chain_start = persistent
+
+        # perform actual negative phase
+        [nv_mean, nv_sample, nh_mean, nh_sample] = self.gibbs_hvh(chain_start)
 
 
 Note that ``cd`` takes as argument a variable called ``persistent``. While this
@@ -419,32 +430,15 @@ this little trick allows us to use the same code to implement both CD and PCD.
 To use PCD, ``persistent`` should refer to a shared variable which contains the
 state of the Gibbs chain from the previous iteration.
 
-If ``persistent`` is ``None``, we initialize the input with a standard
-``dmatrix``, which will eventually map to a training example.  Given that we
-know the starting point of the chain, we can then compute the values
-of the visible and hidden units in both the positive and negative phases.
-These are requires to compute the gradient of Eq. :eq:`rbm_grad`.
+If ``persistent`` is ``None``, we initialize the Gibbs chain with the hidden
+sample generated during the positive phase. Once we have established the
+starting point of the chain, we can then compute the values of the visible and
+hidden units in both the positive and negative phases. These are required to
+compute the gradients of Eq. :eq:`rbm_grad`.
 
 .. code-block:: python
 
-
-        # define the graph for positive phase
-        ph_act    = T.dot(chain_start, self.W) + self.hbias
-        ph_mean   = T.nnet.sigmoid(ph_act)
-        ph_sample = self.theano_rng.binomial(size = ph_mean.shape, n = 1,
-                                                         prob = ph_mean)
-
-        # define the graph for the negative phase
-        nv_act    = T.dot(ph_sample, self.W.T) + self.vbias
-        nv_mean   = T.nnet.sigmoid(nv_act)
-        nv_sample = self.theano_rng.binomial(size = nv_mean.shape, n = 1,
-                                                         prob = nv_mean)
-        nh_act    = T.dot(nv_sample, self.W) + self.hbias
-        nh_mean   = T.nnet.sigmoid(nh_act)
-        nh_sample = self.theano_rng.binomial(size = nh_mean.shape, n = 1,
-                                                         prob = nh_mean)
-
-
+        # determine gradients on RBM parameters
         g_vbias = T.sum( self.input - nv_mean, axis = 0)/self.batch_size
         g_hbias = T.sum( ph_mean    - nh_mean, axis = 0)/self.batch_size
         g_W = T.dot(ph_mean.T, self.input   )/ self.batch_size - \
@@ -452,17 +446,11 @@ These are requires to compute the gradient of Eq. :eq:`rbm_grad`.
 
         gparams = [g_W.T, g_hbias, g_vbias]
 
-Finally, we compute the reconstruction cross-entropy cost. This can be 
-seen as a proxy to the function minimized by CD (see [BengioDelalleau09]_).
-While this value is not used anywhere, it is a good indication that the RBM is
-learning.  We also construct the updates dictionary containing the parameter
+Finally, we construct the updates dictionary containing the parameter
 updates. In case of PCD, these should also update the shared variable
 containing the state of the Gibbs chain.
 
 .. code-block:: python
-
-        cross_entropy = T.mean(T.sum( self.input*T.log(nv_mean) 
-                       + (1 - self.input)*T.log(1-nv_mean), axis = 1))
 
         # constructs the update dictionary
         updates = {}
@@ -471,10 +459,10 @@ containing the state of the Gibbs chain.
 
         if persistent:
             # Note that this works only if persistent is a shared variable
-            updates[persistent] = nv_sample
+            updates[persistent] = T.cast(nh_sample, dtype=theano.config.floatX)
 
 
-        return (cross_entropy, updates)
+        return updates
 
 We now have all the necessary ingredients to start training our network.
 
@@ -494,13 +482,16 @@ been shown to lead to a better generative model ([Tieleman]_).
 .. code-block:: python
 
     for epoch in xrange(training_epochs):
+
         # go through the training set
         c = []
         for batch_index in xrange(n_train_batches):
-           c += [ train_rbm(batch_index) ]
-        print 'Training epoch %d, average cross-entropy reconstruction cost '%epoch, numpy.mean(c)
+           train_rbm(batch_index)
+
+        print 'Training epoch %d '%epoch
+
+        # Plot filters after each training epoch
         plotting_start = time.clock()
-        #           Plot filters after each training epoch
         # Construct image from the weight matrix 
         image = PIL.Image.fromarray(tile_raster_images( X = rbm.W.value.T,
                  img_shape = (28,28),tile_shape = (10,10), 
@@ -508,15 +499,14 @@ been shown to lead to a better generative model ([Tieleman]_).
         image.save('filters_at_epoch_%i.png'%epoch) 
         plotting_stop = time.clock()
         plotting_time += (plotting_stop - plotting_start)
+
     end_time = time.clock()
 
     pretraining_time = (end_time - start_time) - plotting_time
 
     print ('Training took %f minutes' %(pretraining_time/60.))
 
-
-
-Once the RBM is trained, we can then use the ``gibbs_1`` function to implement
+Once the RBM is trained, we can then use the ``gibbs_vhv`` function to implement
 the Gibbs chain required for sampling. We initialize the Gibbs chain starting
 from test examples (although we could as well pick it from the training set)
 in order to speed up convergence and avoid problems with random
@@ -524,18 +514,18 @@ initialization.
 
 .. code-block:: python
 
-    # Sampling the RBM
-
-    # Initialize the persistent chain with some sample from the test 
+    #################################
+    #     Sampling from the RBM     #
+    #################################
 
     # find out the number of test samples  
     number_of_test_samples = test_set_x.value.shape[0]
 
-    # pick one randomly
+    # pick two initial starting points randomly 
     sample = rng.randint(number_of_test_samples-20)
 
-    # initialize 20 persistent chains in parallel
-    persistent_chain = theano.shared( test_set_x.value[sample:sample+20])
+    # Initialize the persistent chain with some sample from the test 
+    persistent_vis_chain = theano.shared(test_set_x.value[sample:sample+20])
 
 Next we create the 20 persistent chains in paralel to get our
 samples. To do so, we compile a theano function which performs one Gibbs step
@@ -545,15 +535,20 @@ samples at every 1000 step.
 
 .. code-block:: python
 
+    # define one step of Gibbs sampling (mf = mean-field)
+    [hid_mf, hid_sample, vis_mf, vis_sample] =  rbm.gibbs_vhv(persistent_vis_chain)
+
     # the sample at the end of the channel is returned by ``gibbs_1`` as 
     # its second output; note that this is computed as a binomial draw, 
     # therefore it is formed of ints (0 and 1) and therefore needs to 
-    # be converted to the same dtype as ``persistent_chain``
-    chain_step_sample = T.cast(rbm.gibbs_1(persistent_chain)[1], dtype =
-                                                    theano.config.floatX)
+    # be converted to the same dtype as ``persistent_vis_chain``
+    vis_sample = T.cast(vis_sample, dtype=theano.config.floatX)
+
     # construct the function that implements our persistent chain 
-    sample_fn = theano.function([], chain_step_sample, 
-                      updates = { persistent_chain:chain_step_sample })
+    # we generate the "mean field" activations for plotting and the actual samples for
+    # reinitializing the state of our persistent chain
+    sample_fn = theano.function([], [vis_mf, vis_sample],
+                      updates = { persistent_vis_chain:vis_sample})
 
     # sample the RBM, plotting every `plot_every`-th sample; do this 
     # until you plot at least `n_samples`
@@ -563,10 +558,11 @@ samples at every 1000 step.
     for idx in xrange(n_samples):
         # do `plot_every` intermediate samplings of which we do not care
         for jdx in  xrange(plot_every):
-            sample_fn()
+            vis_mf, vis_sample = sample_fn()
+
         # construct image
         image = PIL.Image.fromarray(tile_raster_images( 
-                                         X          = persistent_chain.value,
+                                         X          = vis_mf,
                                          img_shape  = (28,28),
                                          tile_shape = (10,10),
                                          tile_spacing = (1,1) ) )
@@ -577,14 +573,44 @@ samples at every 1000 step.
 Results
 +++++++
 
-Training took 20.862 minutes for 15 epochs with a learning rate 0.1 .
-The pictures below shows the filters after 15 epochs : 
+Training took 16.45 minutes for 15 epochs with a learning rate 0.1.
+The pictures below show the filters after 15 epochs : 
 
-.. image:: images/filters_at_epoch_14.png
+.. figure:: images/filters_at_epoch_0.png
+    :align: center
+       
+    Filters obtained after 1st epoch.
+
+.. figure:: images/filters_at_epoch_14.png
     :align: center
 
+    Filters obtained after 15th epoch.
 
+Here are the samples generated by the RBM after training. Each set of two lines
+represents a mini-batch of negative particles (samples from independent Gibbs
+chain). 1000 steps of Gibbs sampling were taken between each of those sets of particles.
 
+.. figure:: images/sample_0_step_0.png
+    :align: center
 
+   
+.. figure:: images/sample_1_step_999.png
+    :align: center
 
+   
+.. figure:: images/sample_2_step_1998.png
+    :align: center
 
+   
+.. figure:: images/sample_3_step_2997.png
+    :align: center
+
+   
+.. figure:: images/sample_4_step_3996.png
+    :align: center
+
+.. COMMENT .. figure:: images/sample_5_step_4995.png
+.. COMMENT .. figure:: images/sample_6_step_5994.png
+.. COMMENT .. figure:: images/sample_7_step_6993.png
+.. COMMENT .. figure:: images/sample_8_step_7992.png
+.. COMMENT .. figure:: images/sample_9_step_8991.png
