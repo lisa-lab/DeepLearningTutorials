@@ -36,7 +36,7 @@ The purely supervised learning algorithms are meant to be read in order:
 The unsupervised and semi-supervised learning algorithms are here (the auto-encoders can be read independently of the RBM/DBN thread):
 
   * :ref:`Auto Encoders, Stacked Auto Encoders, and Stacked Denoising Auto-Encoders <SdA>` - easy steps into unsupervised pre-training for deep nets
-  * :ref:`Restricted Boltzmann Machines` - single layer generative RBM model
+  * :ref:`Restricted Boltzmann Machines <rbm>` - single layer generative RBM model
   * :ref:`Deep Belief Networks` - unsupervised generative pre-training of stacked RBMs followed by supervised fine-tuning
 
 .. _Theano: http://deeplearning.net/software/theano

@@ -16,6 +16,5 @@ Contents
    lenet
    SdA
    rbm
-   dbn
-   dae
+   utilities
    references
