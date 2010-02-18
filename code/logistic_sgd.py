@@ -107,11 +107,11 @@ class LogisticRegression(object):
         Note: we use the mean instead of the sum so that
         the learning rate is less dependent on the batch size
         """
-        # y.shape[0] is the number of examples n in the minibatch
-        # T.arange(y.shape[0]) is a vector containing [0,1,2,... n-1]
-        # T.log(self.p_y_given_x) is a matrix L with one row per example and one column per class
-        # L[T.arange(y.shape[0]),y] is a vector v containing [L[0,y[0]], L[1,y[1]], L[2,y[2]], ..., L[n-1,y[n-1]]]
-        # and T.mean(L[T.arange(y.shape[0]),y]) is the mean (across minibatch examples) of the elements in v,
+        # y.shape[0] is (symbolically) the number of rows in y, i.e., number of examples (call it n) in the minibatch
+        # T.arange(y.shape[0]) is a symbolic vector which will contain [0,1,2,... n-1]
+        # T.log(self.p_y_given_x) is a matrix of Log-Probabilities (call it LP) with one row per example and one column per class
+        # LP[T.arange(y.shape[0]),y] is a vector v containing [LP[0,y[0]], LP[1,y[1]], LP[2,y[2]], ..., LP[n-1,y[n-1]]]
+        # and T.mean(LP[T.arange(y.shape[0]),y]) is the mean (across minibatch examples) of the elements in v,
         # i.e., the mean log-likelihood across the minibatch.
         return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
@@ -240,7 +240,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000, mnist_pkl_gz='mnis
       epoch = epoch + 1
       for minibatch_index in xrange(n_train_batches):
 
-        cost_ij = train_model(minibatch_index)
+        minibatch_avg_cost = train_model(minibatch_index)
         # iteration number
         iter = epoch * n_train_batches + minibatch_index
 
