@@ -8,7 +8,8 @@ Classifying MNIST digits using Logistic Regression
 
 .. note::
     This sections assumes familiarity with the following Theano
-    concepts: `shared variables`_ , `basic arithmetic ops`_ , `T.grad`_ .
+    concepts: `shared variables`_ , `basic arithmetic ops`_ , `T.grad`_ ,
+    `floatX`_. If you intend to run the code on GPU also read `GPU`_.
 
 .. note::
     The code for this section is available for download `here`_.
@@ -20,6 +21,10 @@ Classifying MNIST digits using Logistic Regression
 .. _basic arithmetic ops: http://deeplearning.net/software/theano/tutorial/adding.html#adding-two-scalars
 
 .. _T.grad: http://deeplearning.net/software/theano/tutorial/examples.html#computing-gradients
+
+.. _floatX: http://deeplearning.net/software/theano/library/config.html#config.floatX
+
+.. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html 
 
 In this section, we show how Theano can be used to implement the most basic
 classifier: the logistic regression. We start off with a quick primer of the
@@ -56,8 +61,8 @@ The code to do this in Theano is the following:
 
   # generate symbolic variables for input (x and y represent a
   # minibatch)
-  x = T.fmatrix()
-  y = T.lvector()
+  x = T.fmatrix('x')
+  y = T.lvector('y')
 
   # allocate shared variables model params
   b = theano.shared(numpy.zeros((10,)))
@@ -69,7 +74,7 @@ The code to do this in Theano is the following:
 
   # compiled Theano function that returns the vector of class-membership
   # probabilities
-  get_p_y_given_x = theano.function( x, p_y_given_x)
+  get_p_y_given_x = theano.function( inputs = [x], outputs = p_y_given_x)
 
   # print the probability of some example represented by x_value 
   # x_value is not a symbolic variable but a numpy array describing the
@@ -81,7 +86,7 @@ The code to do this in Theano is the following:
   y_pred = T.argmax(p_y_given_x)
 
   # compiled theano function that returns this value
-  classify = theano.function(x, y_pred)
+  classify = theano.function( inputs = [x], outputs = y_pred)
 
 
 We first start by allocating symbolic variables for the inputs :math:`x,y`.
@@ -112,7 +117,7 @@ section will thus cover how to learn the optimal parameters.
 
 
 .. note::
-    For a complete list of Theano ops, see: `list of ops <http://www.pylearn.org/theano/indexes/oplist.html>`_
+    For a complete list of Theano ops, see: `list of ops <http://deeplearning.net/software/theano/library/tensor/basic.html#basic-tensor-functionality>`_
 
 
 Defining a Loss Function
@@ -168,12 +173,18 @@ similar to what we have covered so far, and should be self explanatory.
 
         def __init__(self, input, n_in, n_out):
             """ Initialize the parameters of the logistic regression
+
+            :type input: theano.tensor.TensorType
             :param input: symbolic variable that describes the input of the 
-            architecture (e.g., one minibatch of input images)
+                          architecture (e.g., one minibatch of input images)
+
+            :type n_in: int
             :param n_in: number of input units, the dimension of the space in 
-            which the datapoint lies
+                         which the datapoint lies
+
+            :type n_out: int
             :param n_out: number of output units, the dimension of the space in 
-            which the target lies
+                          which the target lies
             """ 
 
             # initialize with 0 the weights W as a matrix of shape (n_in, n_out) 
@@ -203,10 +214,10 @@ similar to what we have covered so far, and should be self explanatory.
 
 
             :param y: corresponds to a vector that gives for each example the
-            correct label;
+                      correct label;
 
             Note: we use the mean instead of the sum so that
-            the learning rate is less dependent on the batch size
+                  the learning rate is less dependent on the batch size
             """
             return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
@@ -283,7 +294,9 @@ follows:
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
-    train_model = theano.function([minibatch_offset], cost, updates = updates,
+    train_model = theano.function( inputs = [minibatch_offset], 
+            outputs = cost, 
+            updates = updates,
             givens={
                 x:train_set_x[minibatch_offset:minibatch_offset+batch_size],
                 y:train_set_y[minibatch_offset:minibatch_offset+batch_size]})
@@ -344,12 +357,14 @@ the other from the validation set.
 
 .. code-block:: python
 
-    test_model = theano.function([minibatch_offset], classifier.errors(y),
+    test_model = theano.function( inputs = [minibatch_offset], 
+            outputs = classifier.errors(y),
             givens={
                 x:test_set_x[minibatch_offset:minibatch_offset+batch_size],
                 y:test_set_y[minibatch_offset:minibatch_offset+batch_size]})
 
-    validate_model =theano.function([minibatch_offset], classifier.errors(y),
+    validate_model =theano.function( inputs = [minibatch_offset], 
+            outputs = classifier.errors(y),
             givens={
                 x:valid_set_x[minibatch_offset:minibatch_offset+batch_size],
                 y:valid_set_y[minibatch_offset:minibatch_offset+batch_size]})

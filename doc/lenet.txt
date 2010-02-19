@@ -5,8 +5,28 @@ Convolutional Neural Networks (LeNet)
 
 .. note::
     This section assumes the reader has already read through :doc:`logreg` and
-    :doc:`mlp`. Additionally, it uses the following new Theano functions and
-    concepts: TODO
+    :doc:`mlp`. Additionally, it uses the following new Theano functions and concepts:
+    `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, 
+    `floatX`_, `downsample`_ , `conv2d`_, `dimshuffle`_. If you intend to run the
+    code on GPU also read `GPU`_.
+
+.. _T.tanh: http://deeplearning.net/software/theano/tutorial/examples.html?highlight=tanh
+
+.. _shared variables: http://deeplearning.net/software/theano/tutorial/examples.html#using-shared-variables
+
+.. _basic arithmetic ops: http://deeplearning.net/software/theano/tutorial/adding.html#adding-two-scalars
+
+.. _T.grad: http://deeplearning.net/software/theano/tutorial/examples.html#computing-gradients
+
+.. _floatX: http://deeplearning.net/software/theano/library/config.html#config.floatX
+
+.. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html 
+
+.. _downsample: http://deeplearning.net/software/theano/library/tensor/signal/downsample.html
+
+.. _conv2d: http://deeplearning.net/software/theano/library/tensor/signal/conv.html#module-conv
+
+.. _dimshuffle: http://deeplearning.net/software/theano/library/tensor/basic.html#tensor._tensor_py_operators.dimshuffle
 
 .. note::
     The code for this section is available for download `here`_.
@@ -163,11 +183,8 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
         from theano.tensor.nnet import conv
         rng = numpy.random.RandomState(23455)
 
-        # create type corresponding to 4D tensor
-        dtensor4D = T.TensorType('float64', [False]*4)
-
         # instantiate 4D tensor for input
-        input = dtensor4D(name='input')
+        input = T.Tensor4(name = 'input')
 
         # initialize shared variable for weights.
         w_shp = (2, 3, 9, 9)
@@ -193,6 +210,27 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
         conv_out = conv.conv2d(input, w)
 
         # build symbolic expression to add bias and apply activation function, i.e. produce neural net layer output
+        # A few words on ``dimshuffle`` : 
+        #   ``dimshuffle`` is a powerful tool in reshaping a tensor;
+        #   what it allows you to do is to shuffle dimension around 
+        #   but also to insert new ones along which the tensor will be 
+        #   broadcastable;
+        #   dimshuffle('x', 2, 'x', 0, 1)
+        #   This will work on 3d tensors whith no broadcastable
+        #   dimensions. The first dimension will be broadcastable,
+        #   then we will have the third dimension of the input tensor as
+        #   the second of the resulting tensor, etc. If the tensor has
+        #   shape (20, 30, 40), the resulting tensor will have dimensions
+        #   (1, 40, 1, 20, 30). (AxBxC tensor is mapped to 1xCx1xAxB tensor)
+        #   More examples:
+        #    dimshuffle('x') -> make a 0d (scalar) into a 1d vector
+        #    dimshuffle(0, 1) -> identity
+        #    dimshuffle(1, 0) -> inverts the first and second dimensions
+        #    dimshuffle('x', 0) -> make a row out of a 1d vector (N to 1xN)
+        #    dimshuffle(0, 'x') -> make a column out of a 1d vector (N to Nx1)
+        #    dimshuffle(2, 0, 1) -> AxBxC to CxAxB
+        #    dimshuffle(0, 'x', 1) -> AxB to Ax1xB
+        #    dimshuffle(1, 'x', 0) -> AxB to Bx1xA
         output = T.nnet.sigmoid(conv_out + b.dimshuffle('x', 0, 'x', 'x'))
 
         # create theano function to compute filtered images
@@ -331,7 +369,7 @@ the figure below shows a graphical depiction of a LeNet model.
 
 The lower-layers are composed to alternating convolution and max-pooling
 layers. The upper-layers however are fully-connected and correspond to a
-traditional MLP (sigmoidal layer + logistic regression). The input to the
+traditional MLP (hidden layer + logistic regression). The input to the
 first fully-connected layer is the set of all features maps at the layer
 below. 
 
@@ -354,16 +392,21 @@ layer.
         def __init__(self, rng, input, filter_shape, image_shape, poolsize=(2,2)):
             """
             Allocate a LeNetConvPoolLayer with shared variable internal parameters.
+
             :type rng: numpy.random.RandomState
             :param rng: a random number generator used to initialize weights
+
             :type input: theano.tensor.dtensor4
             :param input: symbolic image tensor, of shape image_shape
+
             :type filter_shape: tuple or list of length 4
             :param filter_shape: (number of filters, num input feature maps,
                                   filter height,filter width)
+
             :type image_shape: tuple or list of length 4
             :param image_shape: (batch size, num input feature maps,
                                  image height, image width)
+
             :type poolsize: tuple or list of length 2
             :param poolsize: the downsampling (pooling) factor (#rows,#cols)
             """
@@ -402,53 +445,14 @@ layer.
 Notice that when initializing the weight values, the fan-in is determined by
 the size of the receptive fields and the number of input feature maps.
 
-Below, the SigmoidalLayer class emulates the behavior of a typical hidden
-layer in an MLP. The user should be familiar with this code by now.
-
-.. code-block:: python
-
-    class SigmoidalLayer(object):
-        def __init__(self, rng, input, n_in, n_out):
-            """
-            Typical hidden layer of a MLP: units are fully-connected and have
-            sigmoidal activation function. Weight matrix W is of shape (n_in,n_out)
-            and the bias vector b is of shape (n_out,).
-
-            Hidden unit activation is given by: sigmoid(dot(input,W) + b)
-
-            :type rng: numpy.random.RandomState
-            :param rng: a random number generator used to initialize weights
-            :type input: theano.tensor.dmatrix
-            :param input: a symbolic tensor of shape (n_examples, n_in)
-            :type n_in: int
-            :param n_in: dimensionality of input
-            :type n_out: int
-            :param n_out: number of hidden units
-            """
-            self.input = input
-
-            W_values = numpy.asarray( rng.uniform( \
-                  low = -numpy.sqrt(6./(n_in+n_out)), \
-                  high = numpy.sqrt(6./(n_in+n_out)), \
-                  size = (n_in, n_out)), dtype = theano.config.floatX)
-            self.W = theano.shared(value = W_values)
-
-            b_values = numpy.zeros((n_out,), dtype= theano.config.floatX)
-            self.b = theano.shared(value= b_values)
-
-            self.output = T.tanh(T.dot(input, self.W) + self.b)
-            self.params = [self.W, self.b]
-
-
-Finally, using the LogisticRegression class defined in :doc:`logreg`, we can
+Finally, using the LogisticRegression class defined in :doc:`logreg` and 
+the HiddenLayer class defined in :doc:`mlp` , we can
 instantiate the network as follows.
 
 .. code-block:: python
 
     learning_rate = 0.1
     rng = numpy.random.RandomState(23455)
-
-    train_batches, valid_batches, test_batches = load_dataset(dataset)
 
     ishape = (28,28)     # this is the size of MNIST images
     batch_size = 20    # sized of the minibatch
@@ -487,8 +491,9 @@ instantiate the network as follows.
     layer2_input = layer1.output.flatten(2)
 
     # construct a fully-connected sigmoidal layer
-    layer2 = SigmoidalLayer(rng, input=layer2_input, 
-                            n_in=50*4*4, n_out=500)
+    layer2 = HiddenLayer(rng, input=layer2_input, 
+                         n_in=50*4*4, n_out=500,
+                         activation = T.tanh    )
 
     # classify the values of the fully-connected sigmoidal layer
     layer3 = LogisticRegression(input=layer2.output, n_in=500, n_out=10)

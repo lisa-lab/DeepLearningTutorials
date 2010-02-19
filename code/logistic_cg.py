@@ -37,13 +37,10 @@ References:
 __docformat__ = 'restructedtext en'
 
 
-import numpy, cPickle, gzip
-
-import time
+import numpy, time, cPickle, gzip
 
 import theano
 import theano.tensor as T
-import theano.tensor.nnet
 
 
 class LogisticRegression(object):
@@ -61,14 +58,17 @@ class LogisticRegression(object):
     def __init__(self, input, n_in, n_out):
         """ Initialize the parameters of the logistic regression
 
+        :type input: theano.tensor.TensorType
         :param input: symbolic variable that describes the input of the 
-        architecture ( one minibatch)
+                      architecture ( one minibatch)
 
+        :type n_in: int
         :param n_in: number of input units, the dimension of the space in 
-        which the datapoint lies
+                     which the datapoint lies
 
+        :type n_out: int
         :param n_out: number of output units, the dimension of the space in 
-        which the target lies
+                      which the target lies
 
         """ 
 
@@ -103,9 +103,9 @@ class LogisticRegression(object):
             \frac{1}{|\mathcal{D}|}\sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
                 \ell (\theta=\{W,b\}, \mathcal{D}) 
 
-
+        :type y: theano.tensor.TensorType
         :param y: corresponds to a vector that gives for each example the
-        :correct label
+                  correct label
         """
         return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
@@ -116,6 +116,10 @@ class LogisticRegression(object):
     def errors(self, y):
         """Return a float representing the number of errors in the minibatch 
         over the total number of examples of the minibatch 
+
+        :type y: theano.tensor.TensorType
+        :param y: corresponds to a vector that gives for each example
+                  the correct label
         """
 
         # check if y has same dimension of y_pred 
@@ -141,24 +145,45 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='mnist.pkl.gz' ):
 
     This is demonstrated on MNIST.
     
+    :type n_epochs: int
     :param n_epochs: number of epochs to run the optimizer 
 
+    :type mnist_pkl_gz: string
     :param mnist_pkl_gz: the path of the mnist training file from 
-    http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz
+                         http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz
 
     """
+    #############
+    # LOAD DATA #
+    #############
+    print '... loading data'
 
     # Load the dataset 
     f = gzip.open(mnist_pkl_gz,'rb')
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
-
     def shared_dataset(data_xy):
+        """ Function that loads the dataset into shared variables
+        
+        The reason we store our dataset in shared variables is to allow 
+        Theano to copy it into the GPU memory (when code is run on GPU). 
+        Since copying data into the GPU is slow, copying a minibatch everytime
+        is needed (the default behaviour if the data is not in a shared 
+        variable) would lead to a large decrease in performance.
+        """
         data_x, data_y = data_xy
         shared_x = theano.shared(numpy.asarray(data_x, dtype=theano.config.floatX))
         shared_y = theano.shared(numpy.asarray(data_y, dtype=theano.config.floatX))
+        # When storing data on the GPU it has to be stored as floats
+        # therefore we will store the labels as ``floatX`` as well
+        # (``shared_y`` does exactly that). But during our computations
+        # we need them as ints (we use labels as index, and if they are 
+        # floats it doesn't make sense) therefore instead of returning 
+        # ``shared_y`` we will have to cast it to int. This little hack
+        # lets ous get around this issue
         return shared_x, T.cast(shared_y, 'int32')
+
 
     test_set_x,  test_set_y  = shared_dataset(test_set)
     valid_set_x, valid_set_y = shared_dataset(valid_set)
@@ -174,6 +199,13 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='mnist.pkl.gz' ):
     ishape     = (28,28) # this is the size of MNIST images
     n_in       = 28*28   # number of input units
     n_out      = 10      # number of output units
+
+
+    ######################
+    # BUILD ACTUAL MODEL #
+    ###################### 
+    print '... building the model'
+
     # allocate symbolic variables for the data
     minibatch_offset = T.lscalar() # offset to the start of a [mini]batch 
     x = T.matrix()   # the data is presented as rasterized images
@@ -250,6 +282,10 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='mnist.pkl.gz' ):
             test_loses = [test_model(i*batch_size) for i in xrange(n_test_batches)]
             validation_scores[1] = numpy.mean(test_loses)
 
+    ###############
+    # TRAIN MODEL #
+    ###############
+ 
     # using scipy conjugate gradient optimizer 
     import scipy.optimize
     print ("Optimizing using scipy.optimize.fmin_cg...")

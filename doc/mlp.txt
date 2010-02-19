@@ -10,7 +10,8 @@ Multilayer Perceptron
     This section assumes the reader has already read through :doc:`logreg`.
     Additionally, it uses the following new Theano functions and concepts:
     `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, 
-    :ref:`L1_L2_regularization`.
+    :ref:`L1_L2_regularization`, `floatX`_. If you intend to run the
+    code on GPU also read `GPU`_.
 
 .. note::
     The code for this section is available for download `here`_.
@@ -24,6 +25,10 @@ Multilayer Perceptron
 .. _basic arithmetic ops: http://deeplearning.net/software/theano/tutorial/adding.html#adding-two-scalars
 
 .. _T.grad: http://deeplearning.net/software/theano/tutorial/examples.html#computing-gradients
+
+.. _floatX: http://deeplearning.net/software/theano/library/config.html#config.floatX
+
+.. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html 
 
 
 The next architecture we are going to present using Theano is the single-hidden
@@ -92,45 +97,43 @@ cover this in the tutorial !
 Going from logistic regression to MLP
 +++++++++++++++++++++++++++++++++++++
 
-This tutorial will focus on a single-layer MLP.  The parameters of the model are
-therefore :math:`W^{(1)},b^{(1)}` for the hidden layer and
-:math:`W^{(2)},b^{(2)}` for the output layer. These parameters need to be
-declared as shared variables (as it was done for the logistic regression) :
-
-.. code-block:: python
-
-        # n_in is the dimension of an input vector.
-        # n_hidden is the hidden layer dimension.
-        # n_out is the number of outputs, which is also the number of classes here.
-        # `W1` is initialized with `W1_values` which is uniformly sampled in the
-        # interval from -sqrt(6/(n_in+n_hidden)) and sqrt(6/(n_in+n_hidden))
-        # (those values are chosen so that when the input is roughly uniform in [-1,1],
-        # magnitudes are preserved for activations going upward and for gradients
-        # going downward).
-        # The output of the uniform random number generator is converted using asarray 
-        # to dtype theano.config.floatX so that the code is runnable on GPU.
-        W1_values = numpy.asarray( numpy.random.uniform( \
-              low = -numpy.sqrt(6/(n_in+n_hidden)), high = numpy.sqrt(6/(n_in+n_hidden)), \
-              size = (n_in, n_hidden)), dtype = theano.config.floatX)
-        # `W2` is initialized with `W2_values` which are similarly sampled from the
-        # interval between -sqrt(6/(n_hidden+n_out)) and sqrt(6/(n_hidden+n_out)).
-        # The output of uniform if converted using asarray to dtype 
-        # theano.config.floatX so that the code is runable on GPU
-        W2_values = numpy.asarray( numpy.random.uniform( 
-              low = numpy.sqrt(6/(n_hidden+n_out)), high= numpy.sqrt(6/(n_hidden+n_out)),\
-              size= (n_hidden, n_out)), dtype = theano.config.floatX)
-
-        W1 = theano.shared( value = W1_values )
-        b1 = theano.shared( value = numpy.zeros((n_hidden,), 
-                                                dtype= theano.config.floatX))
-        W2 = theano.shared( value = W2_values )
-        b2 = theano.shared( value = numpy.zeros((n_out,), 
-                                                dtype= theano.config.floatX))
+This tutorial will focus on a single-layer MLP. We start off by
+implementing a class that will represent any given hidden layer. To 
+construct the MLP we will then only need to throw a logistic regression
+layer on top.
 
 
+.. code-block:: python 
+
+  class HiddenLayer(object):
+    def __init__(self, rng, input, n_in, n_out):
+        """
+        Typical hidden layer of a MLP: units are fully-connected and have
+        sigmoidal activation function. Weight matrix W is of shape (n_in,n_out)
+        and the bias vector b is of shape (n_out,).
+        
+        Hidden unit activation is given by: sigmoid(dot(input,W) + b)
+
+        :type rng: numpy.random.RandomState
+        :param rng: a random number generator used to initialize weights
+
+        :type input: theano.tensor.dmatrix
+        :param input: a symbolic tensor of shape (n_examples, n_in)
+
+        :type n_in: int
+        :param n_in: dimensionality of input
+
+        :type n_out: int
+        :param n_out: number of hidden units
+
+        :type activation: theano.Op or function
+        :param activation: Non linearity to be applied in the hidden 
+                              layer
+        """
+        self.input = input
 
 
-The initial values for the weights of a layer :math:`i` should be uniformly
+The initial values for the weights of a hidden layer :math:`i` should be uniformly
 sampled from the interval
 :math:`[-\sqrt{\frac{6}{fan_{in}+fan_{out}}},\sqrt{\frac{6}{fan_{in}+fan_{out}}}]`, where 
 :math:`fan_{in}` is the number of units in the :math:`(i-1)`-th layer,
@@ -140,40 +143,121 @@ regime of its activation function where information can easily be propagated
 both upward (activations flowing from inputs to outputs) and backward
 (gradients flowing from outputs to inputs).
 
-Afterwards, we define (symbolically) the hidden layer as follows:
+.. code-block:: python 
+
+        # `W` is initialized with `W_values` which is uniformely sampled
+        # from -6./sqrt(n_in+n_hidden) and 6./sqrt(n_in+n_hidden)
+        # the output of uniform if converted using asarray to dtype 
+        # theano.config.floatX so that the code is runable on GPU
+        W_values = numpy.asarray( rng.uniform( \
+              low = -numpy.sqrt(6./(n_in+n_out)), \
+              high = numpy.sqrt(6./(n_in+n_out)), \
+              size = (n_in, n_out)), dtype = theano.config.floatX)
+        self.W = theano.shared(value = W_values)
+
+        b_values = numpy.zeros((n_out,), dtype= theano.config.floatX)
+        self.b = theano.shared(value= b_values)
+
+Note that we used a given non linear function as the activation function of the hidden layer. By default this is ``tanh``, but in many cases we might want
+to use something else.
+
+.. code-block:: python 
+
+        self.output = activation(T.dot(input, self.W) + self.b)
+        # parameters of the model
+        self.params = [self.W, self.b]
+
+If you look into theory this class implements the graph that computes
+the hidden layer value :math:`h(x) = \Phi(x) = s(b^{(1)} + W^{(1)} x)`.
+If you give this as input to the ``LogisticRegression`` class,
+implemented in the previous tutorial :doc:`logreg`, you get the output
+of the MLP. You can see this in the following short implementation of 
+the ``MLP`` class : 
 
 .. code-block:: python
 
-        # symbolic expression computing the values of the hidden layer
-        hidden = T.tanh(T.dot(input, W1)+ b1)
+  class MLP(object):
+    """Multi-Layer Perceptron Class
+
+    A multilayer perceptron is a feedforward artificial neural network model 
+    that has one layer or more of hidden units and nonlinear activations. 
+    Intermidiate layers usually have as activation function thanh or the 
+    sigmoid function (defined here by a ``HiddenLayer`` class)  while the 
+    top layer is a softamx layer (defined here by a ``LogisticRegression`` 
+    class). 
+    """
 
 
-Note that we used :math:`tanh` as the activation function of the hidden layer.
-The `hidden` layer is then fed to the logistic regression layer by calling:
 
-.. code-block:: python
+    def __init__(self, rng, input, n_in, n_hidden, n_out):
+        """Initialize the parameters for the multilayer perceptron
 
-        # symbolic expression computing the values of the top layer 
-        p_y_given_x= T.nnet.softmax(T.dot(hidden, W2)+b2)
+        :type rng: numpy.random.RandomState
+        :param rng: a random number generator used to initialize weights
 
-        # compute prediction as class whose probability is maximal in 
-        # symbolic form
-        y_pred = T.argmax( p_y_given_x, axis =1)
- 
+        :type input: theano.tensor.TensorType
+        :param input: symbolic variable that describes the input of the 
+        architecture (one minibatch)
+
+        :type n_in: int
+        :param n_in: number of input units, the dimension of the space in 
+        which the datapoints lie
+
+        :type n_hidden: int
+        :param n_hidden: number of hidden units 
+
+        :type n_out: int
+        :param n_out: number of output units, the dimension of the space in 
+        which the labels lie
+
+        """
+
+        # Since we are dealing with a one hidden layer MLP, this will 
+        # translate into a Hidden Layer connected to the LogisticRegression
+        # layer
+        self.hiddenLayer = HiddenLayer(rng = rng, input = input, 
+                                 n_in = n_in, n_out = n_hidden,
+                                 activation = T.tanh)
+
+        # The logistic regression layer gets as input the hidden units 
+        # of the hidden layer
+        self.logRegressionLayer = LogisticRegression( 
+                                    input = self.hiddenLayer.output,
+                                    n_in  = n_hidden,
+                                    n_out = n_out)
+
 
 In this tutorial we will also use L1 and L2 regularization (see
 :ref:`L1_L2_regularization`). For this, we need to compute the L1 norm and the squared L2
 norm of the weights :math:`W^{(1)}, W^{(2)}`.
 
-.. code-block:: python
+.. code-block:: python 
 
         # L1 norm ; one regularization option is to enforce L1 norm to 
         # be small 
-        L1 = abs(W1).sum() + abs(W2).sum()
+        self.L1 = abs(self.hiddenLayer.W).sum() \
+                + abs(self.logRegressionLayer.W).sum()
 
         # square of L2 norm ; one regularization option is to enforce 
         # square of L2 norm to be small
-        L2_sqr = (W1**2).sum() + (W2**2).sum()
+        self.L2_sqr = (self.hiddenLayer.W**2).sum() \
+                    + (self.logRegressionLayer.W**2).sum()
+
+        # negative log likelihood of the MLP is given by the negative 
+        # log likelihood of the output of the model, computed in the 
+        # logistic regression layer
+        self.negative_log_likelihood = self.logRegressionLayer.negative_log_likelihood
+        # same holds for the function computing the number of errors
+        self.errors = self.logRegressionLayer.errors
+
+        # the parameters of the model are the parameters of the two layer it is
+        # made out of
+        self.params = self.hiddenLayer.params + self.logRegressionLayer.params
+
+
+
+
+
 
 
 As before, we train this model using stochastic gradient descent with
@@ -194,22 +278,30 @@ The code that computes the new cost is:
 
 We then update the parameters of the model using the gradient. This code is
 almost identical to the one for logistic regression. Only the number of
-parameters differ.
+parameters differ. To get around this ( and write code that could work 
+for any number of parameters) we will use the list of parameters that 
+we created with the model ``params`` and parse it, computing a gradient
+at each step.
 
 .. code-block:: python
 
-    # compute the gradient of cost with respect to theta = (W1, b1, W2, b2) 
-    g_W1 = T.grad(cost, W1)
-    g_b1 = T.grad(cost, b1)
-    g_W2 = T.grad(cost, W2)
-    g_b2 = T.grad(cost, b2)
+    # compute the gradient of cost with respect to theta (sotred in params)
+    # the resulting gradients will be stored in a list gparams
+    gparams = []
+    for param in classifier.params:
+        gparam  = T.grad(cost, param)
+        gparams.append(gparam)
+
 
     # specify how to update the parameters of the model as a dictionary
-    updates = \
-        { W1: W1 - learning_rate*g_W1 \
-        , b1: b1 - learning_rate*g_b1 \
-        , W2: W2 - learning_rate*g_W2 \
-        , b2: b2 - learning_rate*g_b2 }
+    updates = {}
+    # given two list the zip A = [ a1,a2,a3,a4] and B = [b1,b2,b3,b4] of 
+    # same length, zip generates a list C of same size, where each element
+    # is a pair formed from the two lists : 
+    #    C = [ (a1,b1), (a2,b2), (a3,b3) , (a4,b4) ] 
+    for param, gparam in zip(classifier.params, gparams):
+        updates[param] = param - learning_rate*gparam
+
 
     # compiling a theano function `train_model` that returns the cost, but 
     # in the same time updates the parameter of the model based on the rules 
@@ -237,7 +329,7 @@ The user can then run the code by calling :
 
 The output one should expect is of the form :
 
-.. code-block:: bash
+.. code-block:: bash 
 
   Optimization complete with best validation score of 2.08%, with test performance 2.18%
   The code ran for 55.57 minutes

@@ -19,9 +19,6 @@
  computed as the cross-entropy : 
       - \sum_{k=1}^d[ x_k \log z_k + (1-x_k) \log( 1-z_k)]
 
- For X iteration of the main program loop it takes *** minutes on an 
- Intel Core i7 and *** minutes on GPU (NVIDIA GTX 285 graphics processor).
-
 
  References :
    - P. Vincent, H. Larochelle, Y. Bengio, P.A. Manzagol: Extracting and 
@@ -33,239 +30,16 @@
 
 """
 
-import numpy 
+import numpy, time, cPickle, gzip 
+
 import theano
-import time
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-import gzip
-import cPickle
+from logistic_sgd import LogisticRegression, load_data
+from mlp import HiddenLayer
+from dA import dA
 
-
-class LogisticRegression(object):
-    """Multi-class Logistic Regression Class
-
-    The logistic regression is fully described by a weight matrix :math:`W` 
-    and bias vector :math:`b`. Classification is done by projecting data 
-    points onto a set of hyperplanes, the distance to which is used to 
-    determine a class membership probability. 
-    """
-
-    def __init__(self, input, n_in, n_out):
-        """ Initialize the parameters of the logistic regression
-        :param input: symbolic variable that describes the input of the 
-                      architecture (one minibatch)
-        :type n_in: int
-        :param n_in: number of input units, the dimension of the space in 
-                     which the datapoints lie
-        :type n_out: int
-        :param n_out: number of output units, the dimension of the space in 
-                      which the labels lie
-        """ 
-
-        # initialize with 0 the weights W as a matrix of shape (n_in, n_out) 
-        self.W = theano.shared( value=numpy.zeros((n_in,n_out),
-                                            dtype = theano.config.floatX) )
-        # initialize the baises b as a vector of n_out 0s
-        self.b = theano.shared( value=numpy.zeros((n_out,), 
-                                            dtype = theano.config.floatX) )
-        # compute vector of class-membership probabilities in symbolic form
-        self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W)+self.b)
-        
-        # compute prediction as class whose probability is maximal in 
-        # symbolic form
-        self.y_pred=T.argmax(self.p_y_given_x, axis=1)
-
-        # list of parameters for this layer
-        self.params = [self.W, self.b]
-
-    def negative_log_likelihood(self, y):
-        """Return the mean of the negative log-likelihood of the prediction
-        of this model under a given target distribution.
-        :param y: corresponds to a vector that gives for each example the
-                  correct label
-        Note: we use the mean instead of the sum so that
-        the learning rate is less dependent on the batch size
-        """
-        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
-
-    def errors(self, y):
-        """Return a float representing the number of errors in the minibatch 
-        over the total number of examples of the minibatch ; zero one
-        loss over the size of the minibatch
-        """
-        # check if y has same dimension of y_pred 
-        if y.ndim != self.y_pred.ndim:
-            raise TypeError('y should have the same shape as self.y_pred', 
-                ('y', target.type, 'y_pred', self.y_pred.type))
-
-        # check if y is of the correct datatype        
-        if y.dtype.startswith('int'):
-            # the T.neq operator returns a vector of 0s and 1s, where 1
-            # represents a mistake in prediction
-            return T.mean(T.neq(self.y_pred, y))
-        else:
-            raise NotImplementedError()
-
-
-class SigmoidalLayer(object):
-    def __init__(self, rng, input, n_in, n_out):
-        """
-        Typical hidden layer of a MLP: units are fully-connected and have
-        sigmoidal activation function. Weight matrix W is of shape (n_in,n_out)
-        and the bias vector b is of shape (n_out,).
-        
-        Hidden unit activation is given by: sigmoid(dot(input,W) + b)
-
-        :type rng: numpy.random.RandomState
-        :param rng: a random number generator used to initialize weights
-        :type input: theano.tensor.dmatrix
-        :param input: a symbolic tensor of shape (n_examples, n_in)
-        :type n_in: int
-        :param n_in: dimensionality of input
-        :type n_out: int
-        :param n_out: number of hidden units
-        """
-        self.input = input
-
-        W_values = numpy.asarray( rng.uniform( \
-              low = -numpy.sqrt(6./(n_in+n_out)), \
-              high = numpy.sqrt(6./(n_in+n_out)), \
-              size = (n_in, n_out)), dtype = theano.config.floatX)
-        self.W = theano.shared(value = W_values)
-
-        b_values = numpy.zeros((n_out,), dtype= theano.config.floatX)
-        self.b = theano.shared(value= b_values)
-
-        self.output = T.nnet.sigmoid(T.dot(input, self.W) + self.b)
-        self.params = [self.W, self.b]
-
-
-
-class dA(object):
-  """Denoising Auto-Encoder class (dA) 
-
-  A denoising autoencoders tries to reconstruct the input from a corrupted 
-  version of it by projecting it first in a latent space and reprojecting 
-  it afterwards back in the input space. Please refer to Vincent et al.,2008
-  for more details. If x is the input then equation (1) computes a partially
-  destroyed version of x by means of a stochastic mapping q_D. Equation (2) 
-  computes the projection of the input into the latent space. Equation (3) 
-  computes the reconstruction of the input, while equation (4) computes the 
-  reconstruction error.
-  
-  .. math::
-
-    \tilde{x} ~ q_D(\tilde{x}|x)                                         (1)
-
-    y = s(W \tilde{x} + b)                                               (2)
-
-    x = s(W' y  + b')                                                    (3)
-
-    L(x,z) = -sum_{k=1}^d [x_k \log z_k + (1-x_k) \log( 1-z_k)]          (4)
-
-  """
-
-  def __init__(self, n_visible= 784, n_hidden= 500, corruption_level = 0.1,\
-               input = None, shared_W = None, shared_b = None):
-    """
-    Initialize the dA class by specifying the number of visible units (the 
-    dimension d of the input ), the number of hidden units ( the dimension 
-    d' of the latent or hidden space ) and the corruption level. The 
-    constructor also receives symbolic variables for the input, weights and 
-    bias. Such a symbolic variables are useful when, for example the input is 
-    the result of some computations, or when weights are shared between the 
-    dA and an MLP layer. When dealing with SdAs this always happens,
-    the dA on layer 2 gets as input the output of the dA on layer 1, 
-    and the weights of the dA are used in the second stage of training 
-    to construct an MLP.
-    
-    :param n_visible: number of visible units
-
-    :param n_hidden:  number of hidden units
-
-    :param input:     a symbolic description of the input or None 
-
-    :param corruption_level: the corruption mechanism picks up randomly this 
-    fraction of entries of the input and turns them to 0
-    
-    
-    """
-    self.n_visible = n_visible
-    self.n_hidden  = n_hidden
-    
-    # create a Theano random generator that gives symbolic random values
-    theano_rng = RandomStreams()
-    
-    if shared_W != None and shared_b != None : 
-        self.W = shared_W
-        self.b = shared_b
-    else:
-        # initial values for weights and biases
-        # note : W' was written as `W_prime` and b' as `b_prime`
-
-        # W is initialized with `initial_W` which is uniformely sampled
-        # from -6./sqrt(n_visible+n_hidden) and 6./sqrt(n_hidden+n_visible)
-        # the output of uniform if converted using asarray to dtype 
-        # theano.config.floatX so that the code is runable on GPU
-        initial_W = numpy.asarray( numpy.random.uniform( \
-              low = -numpy.sqrt(6./(n_hidden+n_visible)), \
-              high = numpy.sqrt(6./(n_hidden+n_visible)), \
-              size = (n_visible, n_hidden)), dtype = theano.config.floatX)
-        initial_b       = numpy.zeros(n_hidden, dtype = theano.config.floatX)
-    
-    
-        # theano shared variables for weights and biases
-        self.W       = theano.shared(value = initial_W,       name = "W")
-        self.b       = theano.shared(value = initial_b,       name = "b")
-    
- 
-    initial_b_prime= numpy.zeros(n_visible)
-    # tied weights, therefore W_prime is W transpose
-    self.W_prime = self.W.T 
-    self.b_prime = theano.shared(value = initial_b_prime, name = "b'")
-
-    # if no input is given, generate a variable representing the input
-    if input == None : 
-        # we use a matrix because we expect a minibatch of several examples,
-        # each example being a row
-        self.x = T.dmatrix(name = 'input') 
-    else:
-        self.x = input
-    # Equation (1)
-    # keep 90% of the inputs the same and zero-out randomly selected subset of 10% of the inputs
-    # note : first argument of theano.rng.binomial is the shape(size) of 
-    #        random numbers that it should produce
-    #        second argument is the number of trials 
-    #        third argument is the probability of success of any trial
-    #
-    #        this will produce an array of 0s and 1s where 1 has a 
-    #        probability of 1 - ``corruption_level`` and 0 with
-    #        ``corruption_level``
-    self.tilde_x  = theano_rng.binomial( self.x.shape,  1,  1 - corruption_level) * self.x
-    # Equation (2)
-    # note  : y is stored as an attribute of the class so that it can be 
-    #         used later when stacking dAs. 
-    self.y   = T.nnet.sigmoid(T.dot(self.tilde_x, self.W      ) + self.b)
-    # Equation (3)
-    self.z   = T.nnet.sigmoid(T.dot(self.y, self.W_prime) + self.b_prime)
-    # Equation (4)
-    # note : we sum over the size of a datapoint; if we are using minibatches,
-    #        L will  be a vector, with one entry per example in minibatch
-    self.L = - T.sum( self.x*T.log(self.z) + (1-self.x)*T.log(1-self.z), axis=1 ) 
-    # note : L is now a vector, where each element is the cross-entropy cost 
-    #        of the reconstruction of the corresponding example of the 
-    #        minibatch. We need to compute the average of all these to get 
-    #        the cost of the minibatch
-    self.cost = T.mean(self.L)
-
-    self.params = [ self.W, self.b, self.b_prime ]
-
-
-#class DeepNetwork:
-#   def pretrain( dataset )
-#   def finetune()
 
 
 class SdA(object):
@@ -279,44 +53,44 @@ class SdA(object):
     the dAs are only used to initialize the weights.
     """
 
-    def __init__(self, train_set_x, train_set_y, batch_size, n_ins, 
-                 hidden_layers_sizes, n_outs, 
-                 corruption_levels, rng, pretrain_lr, finetune_lr):
+    def __init__(self, numpy_rng, theano_rng = None, n_ins = 784, 
+                 hidden_layers_sizes = [500,500], n_outs = 10, 
+                 corruption_levels = [0.1, 0.1]):
         """ This class is made to support a variable number of layers. 
 
-        :param train_set_x: symbolic variable pointing to the training dataset 
+        :type numpy_rng: numpy.random.RandomState
+        :param numpy_rng: numpy random number generator used to draw initial 
+                    weights
 
-        :param train_set_y: symbolic variable pointing to the labels of the
-        training dataset
+        :type theano_rng: theano.tensor.shared_randomstreams.RandomStreams
+        :param theano_rng: Theano random generator; if None is given one is 
+                           generated based on a seed drawn from `rng`
 
+        :type n_ins: int
         :param n_ins: dimension of the input to the sdA
 
+        :type n_layers_sizes: list of ints
         :param n_layers_sizes: intermidiate layers size, must contain 
-        at least one value
+                               at least one value
 
+        :type n_outs: int
         :param n_outs: dimension of the output of the network
-
+        
+        :type corruption_levels: list of float
         :param corruption_levels: amount of corruption to use for each 
-        layer
-
-        :param rng: numpy random number generator used to draw initial weights
-
-        :param pretrain_lr: learning rate used during pre-trainnig stage
-
-        :param finetune_lr: learning rate used during finetune stage
+                                  layer
         """
         
-        self.layers             = []
-        self.pretrain_functions = []
-        self.params             = []
-        self.n_layers           = len(hidden_layers_sizes)
+        self.sigmoid_layers = []
+        self.dA_layers      = []
+        self.params         = []
+        self.n_layers       = len(hidden_layers_sizes)
 
-        if len(hidden_layers_sizes) < 1 :
-            raiseException (' You must have at least one hidden layer ')
+        assert self.n_layers > 0
 
-
+        if not theano_rng:
+            theano_rng = RandomStreams(numpy_rng.randint(2**30))
         # allocate symbolic variables for the data
-        index   = T.lscalar()    # index to a [mini]batch 
         self.x  = T.matrix('x')  # the data is presented as rasterized images
         self.y  = T.ivector('y') # the labels are presented as 1D vector of 
                                  # [int] labels
@@ -325,10 +99,11 @@ class SdA(object):
         # are shared with a different denoising autoencoders 
         # We will first construct the SdA as a deep multilayer perceptron,
         # and when constructing each sigmoidal layer we also construct a 
-        # denoising autoencoder that shares weights with that layer, and 
-        # compile a training function for that denoising autoencoder
-
-
+        # denoising autoencoder that shares weights with that layer 
+        # During pretraining we will train these autoencoders (which will
+        # lead to chainging the weights of the MLP as well)
+        # During finetunining we will finish training the SdA by doing 
+        # stochastich gradient descent on the MLP
 
         for i in xrange( self.n_layers ):
             # construct the sigmoidal layer
@@ -346,156 +121,247 @@ class SdA(object):
             if i == 0 : 
                 layer_input = self.x
             else:
-                layer_input = self.layers[-1].output
+                layer_input = self.sigmoid_layers[-1].output
 
-            layer = SigmoidalLayer(rng, layer_input, input_size, 
-                                   hidden_layers_sizes[i] )
-            # add the layer to the 
-            self.layers += [layer]
-            self.params += layer.params
+            sigmoid_layer = HiddenLayer(rng   = numpy_rng, 
+                                           input = layer_input, 
+                                           n_in  = input_size, 
+                                           n_out = hidden_layers_sizes[i],
+                                           activation = T.nnet.sigmoid)
+            # add the layer to our list of layers 
+            self.sigmoid_layers.append(sigmoid_layer)
+            # its arguably a philosophical question...
+            # but we are going to only declare that the parameters of the 
+            # sigmoid_layers are parameters of the StackedDAA
+            # the visible biases in the dA are parameters of those
+            # dA, but not the SdA
+            self.params.extend(sigmoid_layer.params)
         
             # Construct a denoising autoencoder that shared weights with this
             # layer
-            dA_layer = dA(input_size, hidden_layers_sizes[i], \
-                          corruption_level = corruption_levels[0],\
-                          input = layer_input, \
-                          shared_W = layer.W, shared_b = layer.b)
-        
-            # Construct a function that trains this dA
-            # compute gradients of layer parameters
-            gparams = T.grad(dA_layer.cost, dA_layer.params)
-            # compute the list of updates
-            updates = {}
-            for param, gparam in zip(dA_layer.params, gparams):
-                updates[param] = param - gparam * pretrain_lr
-            
-            # create a function that trains the dA
-            update_fn = theano.function([index], dA_layer.cost, \
-                  updates = updates,
-                  givens = { 
-                     self.x : train_set_x[index*batch_size:(index+1)*batch_size]})
-            # collect this function into a list
-            self.pretrain_functions += [update_fn]
+            dA_layer = dA(numpy_rng = numpy_rng, theano_rng = theano_rng, input = layer_input, 
+                          n_visible = input_size, 
+                          n_hidden  = hidden_layers_sizes[i],  
+                          W = sigmoid_layer.W, bhid = sigmoid_layer.b)
+            self.dA_layers.append(dA_layer)        
 
         
         # We now need to add a logistic layer on top of the MLP
         self.logLayer = LogisticRegression(\
-                         input = self.layers[-1].output,\
+                         input = self.sigmoid_layers[-1].output,\
                          n_in = hidden_layers_sizes[-1], n_out = n_outs)
 
-        self.params += self.logLayer.params
+        self.params.extend(self.logLayer.params)
         # construct a function that implements one step of finetunining
 
-        # compute the cost, defined as the negative log likelihood 
-        cost = self.logLayer.negative_log_likelihood(self.y)
+        # compute the cost for second phase of training, 
+        # defined as the negative log likelihood 
+        self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
         # compute the gradients with respect to the model parameters
-        gparams = T.grad(cost, self.params)
-        # compute list of updates
-        updates = {}
-        for param,gparam in zip(self.params, gparams):
-            updates[param] = param - gparam*finetune_lr
-            
-        self.finetune = theano.function([index], cost, 
-                updates = updates,
-                givens = {
-                  self.x : train_set_x[index*batch_size:(index+1)*batch_size],
-                  self.y : train_set_y[index*batch_size:(index+1)*batch_size]} )
-
         # symbolic variable that points to the number of errors made on the
         # minibatch given by self.x and self.y
-
         self.errors = self.logLayer.errors(self.y)
 
+    def pretraining_functions(self, train_set_x, batch_size):
+        ''' Generates a list of functions, each of them implementing one 
+        step in trainnig the dA corresponding to the layer with same index.
+        The function will require as input the minibatch index, and to train
+        a dA you just need to iterate, calling the corresponding function on 
+        all minibatch indexes.
+
+        :type train_set_x: theano.tensor.TensorType
+        :param train_set_x: Shared variable that contains all datapoints used
+                            for training the dA
+
+        :type batch_size: int
+        :param batch_size: size of a [mini]batch
+
+        :type learning_rate: float
+        :param learning_rate: learning rate used during training for any of 
+                              the dA layers
+        '''
+
+        # index to a [mini]batch
+        index            = T.lscalar('index')   # index to a minibatch
+        corruption_level = T.scalar('corruption')    # amount of corruption to use
+        learning_rate    = T.scalar('lr')    # learning rate to use
+        # number of batches
+        n_batches = train_set_x.value.shape[0] / batch_size
+        # begining of a batch, given `index`
+        batch_begin = index * batch_size
+        # ending of a batch given `index`
+        batch_end = batch_begin+batch_size
+
+        pretrain_fns = []
+        for dA in self.dA_layers:
+            # get the cost and the updates list
+            cost,updates = dA.get_cost_updates( corruption_level, learning_rate)
+            # compile the theano function    
+            fn = theano.function( inputs = [index, 
+                              theano.Param(corruption_level, default = 0.2),
+                              theano.Param(learning_rate, default = 0.1)], 
+                    outputs = cost, 
+                    updates = updates,
+                    givens  = {self.x :train_set_x[batch_begin:batch_end]})
+            # append `fn` to the list of functions
+            pretrain_fns.append(fn)
+
+        return pretrain_fns
+ 
+
+    def build_finetune_functions(self, datasets, batch_size, learning_rate):
+        '''Generates a function `train` that implements one step of 
+        finetuning, a function `validate` that computes the error on 
+        a batch from the validation set, and a function `test` that 
+        computes the error on a batch from the testing set
+
+        :type datasets: list of pairs of theano.tensor.TensorType
+        :param datasets: It is a list that contain all the datasets;  
+                         the has to contain three pairs, `train`, 
+                         `valid`, `test` in this order, where each pair
+                         is formed of two Theano variables, one for the 
+                         datapoints, the other for the labels
+
+        :type batch_size: int
+        :param batch_size: size of a minibatch
+
+        :type learning_rate: float
+        :param learning_rate: learning rate used during finetune stage
+        '''
+
+        (train_set_x, train_set_y) = datasets[0]
+        (valid_set_x, valid_set_y) = datasets[1]
+        (test_set_x , test_set_y ) = datasets[2]
+
+        # compute number of minibatches for training, validation and testing
+        n_valid_batches = valid_set_x.value.shape[0] / batch_size
+        n_test_batches  = test_set_x.value.shape[0]  / batch_size
+
+        index   = T.lscalar('index')    # index to a [mini]batch 
+
+        # compute the gradients with respect to the model parameters
+        gparams = T.grad(self.finetune_cost, self.params)
+
+        # compute list of fine-tuning updates
+        updates = {}
+        for param, gparam in zip(self.params, gparams):
+            updates[param] = param - gparam*learning_rate
+
+        train_fn = theano.function(inputs = [index], 
+              outputs =   self.finetune_cost, 
+              updates = updates,
+              givens  = {
+                self.x : train_set_x[index*batch_size:(index+1)*batch_size],
+                self.y : train_set_y[index*batch_size:(index+1)*batch_size]})
+
+        test_score_i = theano.function([index], self.errors,
+                 givens = {
+                   self.x: test_set_x[index*batch_size:(index+1)*batch_size],
+                   self.y: test_set_y[index*batch_size:(index+1)*batch_size]})
+
+        valid_score_i = theano.function([index], self.errors,
+              givens = {
+                 self.x: valid_set_x[index*batch_size:(index+1)*batch_size],
+                 self.y: valid_set_y[index*batch_size:(index+1)*batch_size]})
+
+        # Create a function that scans the entire validation set
+        def valid_score():
+            return [valid_score_i(i) for i in xrange(n_valid_batches)]
+
+        # Create a function that scans the entire test set
+        def test_score():
+            return [test_score_i(i) for i in xrange(n_test_batches)]
+
+        return train_fn, valid_score, test_score
 
 
-def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 20, \
-                            pretrain_lr = 0.1, training_epochs = 1000, \
-                            dataset='mnist.pkl.gz'):
+
+
+
+
+def test_SdA( finetune_lr = 0.1, pretraining_epochs = 2, \
+              pretrain_lr = 0.1, training_epochs = 1000, \
+              dataset='mnist.pkl.gz'):
     """
-    Demonstrate stochastic gradient descent optimization for a multilayer 
-    perceptron
+    Demonstrates how to train and test a stochastic denoising autoencoder.
 
     This is demonstrated on MNIST.
 
+    :type learning_rate: float
     :param learning_rate: learning rate used in the finetune stage 
     (factor for the stochastic gradient)
 
+    :type pretraining_epochs: int
     :param pretraining_epochs: number of epoch to do pretraining
 
+    :type pretrain_lr: float
     :param pretrain_lr: learning rate to be used during pre-training
 
+    :type n_iter: int
     :param n_iter: maximal number of iterations ot run the optimizer 
 
+    :type dataset: string
     :param dataset: path the the pickled dataset
 
     """
 
-    # Load the dataset 
-    f = gzip.open(dataset,'rb')
-    train_set, valid_set, test_set = cPickle.load(f)
-    f.close()
+    datasets = load_data(dataset)
 
+    train_set_x, train_set_y = datasets[0]
+    valid_set_x, valid_set_y = datasets[1]
+    test_set_x , test_set_y  = datasets[2]
 
-    def shared_dataset(data_xy):
-        data_x, data_y = data_xy
-        shared_x = theano.shared(numpy.asarray(data_x, dtype=theano.config.floatX))
-        shared_y = theano.shared(numpy.asarray(data_y, dtype=theano.config.floatX))
-        return shared_x, T.cast(shared_y, 'int32')
-
-    test_set_x, test_set_y = shared_dataset(test_set)
-    valid_set_x, valid_set_y = shared_dataset(valid_set)
-    train_set_x, train_set_y = shared_dataset(train_set)
 
     batch_size = 20    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size
-    n_valid_batches = valid_set_x.value.shape[0] / batch_size
-    n_test_batches  = test_set_x.value.shape[0]  / batch_size
 
-    # allocate symbolic variables for the data
-    index   = T.lscalar()    # index to a [mini]batch 
- 
-
-
+    # numpy random generator
+    numpy_rng = numpy.random.RandomState(123)
+    print '... building the model'
     # construct the stacked denoising autoencoder class
-    classifier = SdA( train_set_x=train_set_x, train_set_y = train_set_y,\
-                      batch_size = batch_size, n_ins=28*28, \
-                      hidden_layers_sizes = [1000, 1000, 1000], n_outs=10, \
-                      corruption_levels = [ 0.2, 0.2, 0.2],\
-                      rng = numpy.random.RandomState(1234),\
-                      pretrain_lr = pretrain_lr, finetune_lr = learning_rate )
+    sda = SdA( numpy_rng = numpy_rng, n_ins = 28*28, 
+                      hidden_layers_sizes = [100,100,100],
+                      n_outs = 10)
+    
 
+    #########################
+    # PRETRAINING THE MODEL #
+    #########################
+    print '... getting the pretraining functions'
+    pretraining_fns = sda.pretraining_functions( 
+                                        train_set_x   = train_set_x, 
+                                        batch_size    = batch_size ) 
 
+    print '... pre-training the model'
     start_time = time.clock()  
     ## Pre-train layer-wise 
-    for i in xrange(classifier.n_layers):
+    for i in xrange(sda.n_layers):
         # go through pretraining epochs 
         for epoch in xrange(pretraining_epochs):
             # go through the training set
+            c = []
             for batch_index in xrange(n_train_batches):
-                c = classifier.pretrain_functions[i](batch_index)
-            print 'Pre-training layer %i, epoch %d, cost '%(i,epoch),c
+                c.append( pretraining_fns[i](index = batch_index, 
+                         corruption = 0.2, lr = pretrain_lr ) )
+            print 'Pre-training layer %i, epoch %d, cost '%(i,epoch),numpy.mean(c)
  
     end_time = time.clock()
 
     print ('Pretraining took %f minutes' %((end_time-start_time)/60.))
-    # Fine-tune the entire model
+    
+    ########################
+    # FINETUNING THE MODEL #
+    ########################
 
+    # get the training, validation and testing function for the model
+    print '... getting the finetuning functions'
+    train_fn, validate_model, test_model = sda.build_finetune_functions ( 
+                datasets = datasets, batch_size = batch_size, 
+                learning_rate = finetune_lr) 
 
-    # create a function to compute the mistakes that are made by the model
-    # on the validation set, or testing set
-    test_model = theano.function([index], classifier.errors,
-             givens = {
-               classifier.x: test_set_x[index*batch_size:(index+1)*batch_size],
-               classifier.y: test_set_y[index*batch_size:(index+1)*batch_size]})
-
-    validate_model = theano.function([index], classifier.errors,
-            givens = {
-               classifier.x: valid_set_x[index*batch_size:(index+1)*batch_size],
-               classifier.y: valid_set_y[index*batch_size:(index+1)*batch_size]})
-
-
+    print '... finetunning the model'
     # early-stopping parameters
     patience              = 10000 # look as this many examples regardless
     patience_increase     = 2.    # wait this much longer when a new best is 
@@ -521,12 +387,12 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 20, \
       epoch = epoch + 1
       for minibatch_index in xrange(n_train_batches):
 
-        cost_ij = classifier.finetune(minibatch_index)
+        minibatch_avg_cost = train_fn(minibatch_index)
         iter    = epoch * n_train_batches + minibatch_index
 
         if (iter+1) % validation_frequency == 0: 
             
-            validation_losses = [validate_model(i) for i in xrange(n_valid_batches)]
+            validation_losses = validate_model()
             this_validation_loss = numpy.mean(validation_losses)
             print('epoch %i, minibatch %i/%i, validation error %f %%' % \
                    (epoch, minibatch_index+1, n_train_batches, \
@@ -546,7 +412,7 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 20, \
                 best_iter = iter
 
                 # test it on the test set
-                test_losses = [test_model(i) for i in xrange(n_test_batches)]
+                test_losses = test_model()
                 test_score = numpy.mean(test_losses)
                 print(('     epoch %i, minibatch %i/%i, test error of best '
                       'model %f %%') % 
@@ -570,6 +436,6 @@ def sgd_optimization_mnist( learning_rate=0.1, pretraining_epochs = 20, \
 
 
 if __name__ == '__main__':
-    sgd_optimization_mnist()
+    test_SdA()
 
 

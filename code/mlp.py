@@ -17,22 +17,65 @@ References:
     - textbooks: "Pattern Recognition and Machine Learning" - 
                  Christopher M. Bishop, section 5
 
-TODO: recommended preprocessing, lr ranges, regularization ranges (explain 
-      to do lr first, then add regularization)
-
 """
 __docformat__ = 'restructedtext en'
 
 
-import numpy, cPickle, gzip
-
+import numpy, time, cPickle, gzip
 
 import theano
 import theano.tensor as T
 
-import time 
 
-import theano.tensor.nnet
+from logistic_sgd import LogisticRegression, load_data
+
+
+class HiddenLayer(object):
+    def __init__(self, rng, input, n_in, n_out, activation = T.tanh):
+        """
+        Typical hidden layer of a MLP: units are fully-connected and have
+        sigmoidal activation function. Weight matrix W is of shape (n_in,n_out)
+        and the bias vector b is of shape (n_out,).
+
+        NOTE : The nonlinearity used here is tanh
+        
+        Hidden unit activation is given by: tanh(dot(input,W) + b)
+
+        :type rng: numpy.random.RandomState
+        :param rng: a random number generator used to initialize weights
+
+        :type input: theano.tensor.dmatrix
+        :param input: a symbolic tensor of shape (n_examples, n_in)
+
+        :type n_in: int
+        :param n_in: dimensionality of input
+
+        :type n_out: int
+        :param n_out: number of hidden units
+
+        :type activation: theano.Op or function
+        :param activation: Non linearity to be applied in the hidden 
+                              layer
+        """
+        self.input = input
+
+        # `W` is initialized with `W_values` which is uniformely sampled
+        # from -6./sqrt(n_in+n_hidden) and 6./sqrt(n_in+n_hidden)
+        # the output of uniform if converted using asarray to dtype 
+        # theano.config.floatX so that the code is runable on GPU
+        W_values = numpy.asarray( rng.uniform( \
+              low = -numpy.sqrt(6./(n_in+n_out)), \
+              high = numpy.sqrt(6./(n_in+n_out)), \
+              size = (n_in, n_out)), dtype = theano.config.floatX)
+        self.W = theano.shared(value = W_values)
+
+        b_values = numpy.zeros((n_out,), dtype= theano.config.floatX)
+        self.b = theano.shared(value= b_values)
+
+        self.output = activation(T.dot(input, self.W) + self.b)
+        # parameters of the model
+        self.params = [self.W, self.b]
+
 
 class MLP(object):
     """Multi-Layer Perceptron Class
@@ -40,153 +83,109 @@ class MLP(object):
     A multilayer perceptron is a feedforward artificial neural network model 
     that has one layer or more of hidden units and nonlinear activations. 
     Intermidiate layers usually have as activation function thanh or the 
-    sigmoid function  while the top layer is a softamx layer. 
+    sigmoid function (defined here by a ``SigmoidalLayer`` class)  while the 
+    top layer is a softamx layer (defined here by a ``LogisticRegression`` 
+    class). 
     """
 
 
 
-    def __init__(self, input, n_in, n_hidden, n_out):
+    def __init__(self, rng, input, n_in, n_hidden, n_out):
         """Initialize the parameters for the multilayer perceptron
 
+        :type rng: numpy.random.RandomState
+        :param rng: a random number generator used to initialize weights
+
+        :type input: theano.tensor.TensorType
         :param input: symbolic variable that describes the input of the 
         architecture (one minibatch)
 
+        :type n_in: int
         :param n_in: number of input units, the dimension of the space in 
         which the datapoints lie
 
+        :type n_hidden: int
         :param n_hidden: number of hidden units 
 
+        :type n_out: int
         :param n_out: number of output units, the dimension of the space in 
         which the labels lie
 
         """
 
-        # initialize the parameters theta = (W1,b1,W2,b2) ; note that this 
-        # example contains only one hidden layer, but one can have as many 
-        # layers as he/she wishes, making the network deeper. The only 
-        # problem making the network deep this way is during learning, 
-        # backpropagation being unable to move the network from the starting
-        # point towards; this is where pre-training helps, giving a good 
-        # starting point for backpropagation, but more about this in the 
-        # other tutorials
-        
-        # `W1` is initialized with `W1_values` which is uniformely sampled
-        # from -6./sqrt(n_in+n_hidden) and 6./sqrt(n_in+n_hidden)
-        # the output of uniform if converted using asarray to dtype 
-        # theano.config.floatX so that the code is runable on GPU
-        W1_values = numpy.asarray( numpy.random.uniform( \
-                low  = -numpy.sqrt(6./(n_in+n_hidden)), \
-                high = numpy.sqrt(6./(n_in+n_hidden)), \
-                size = (n_in, n_hidden)), dtype = theano.config.floatX)
-        # `W2` is initialized with `W2_values` which is uniformely sampled 
-        # from -6./sqrt(n_hidden+n_out) and 6./sqrt(n_hidden+n_out)
-        # the output of uniform if converted using asarray to dtype 
-        # theano.config.floatX so that the code is runable on GPU
-        W2_values = numpy.asarray( numpy.random.uniform( 
-                low  = -numpy.sqrt(6./(n_hidden+n_out)), \
-                high = numpy.sqrt(6./(n_hidden+n_out)),\
-                size = (n_hidden, n_out)), dtype = theano.config.floatX)
+        # Since we are dealing with a one hidden layer MLP, this will 
+        # translate into a TanhLayer connected to the LogisticRegression
+        # layer; this can be replaced by a SigmoidalLayer, or a layer 
+        # implementing any other nonlinearity
+        self.hiddenLayer = HiddenLayer(rng = rng, input = input, 
+                                 n_in = n_in, n_out = n_hidden,
+                                 activation = T.tanh)
 
-        self.W1 = theano.shared( value = W1_values )
-        self.b1 = theano.shared( value = numpy.zeros((n_hidden,), 
-                                                dtype= theano.config.floatX))
-        self.W2 = theano.shared( value = W2_values )
-        self.b2 = theano.shared( value = numpy.zeros((n_out,), 
-                                                dtype= theano.config.floatX))
+        # The logistic regression layer gets as input the hidden units 
+        # of the hidden layer
+        self.logRegressionLayer = LogisticRegression( 
+                                    input = self.hiddenLayer.output,
+                                    n_in  = n_hidden,
+                                    n_out = n_out)
 
-        # symbolic expression computing the values of the hidden layer
-        self.hidden = T.tanh(T.dot(input, self.W1)+ self.b1)
-
-        # symbolic expression computing the values of the top layer 
-        self.p_y_given_x = T.nnet.softmax(T.dot(self.hidden, self.W2)+self.b2)
-
-        # compute prediction as class whose probability is maximal in 
-        # symbolic form
-        self.y_pred = T.argmax( self.p_y_given_x, axis =1)
-        
         # L1 norm ; one regularization option is to enforce L1 norm to 
         # be small 
-        self.L1 = abs(self.W1).sum() + abs(self.W2).sum()
+        self.L1 = abs(self.hiddenLayer.W).sum() \
+                + abs(self.logRegressionLayer.W).sum()
 
         # square of L2 norm ; one regularization option is to enforce 
         # square of L2 norm to be small
-        self.L2_sqr = (self.W1**2).sum() + (self.W2**2).sum()
+        self.L2_sqr = (self.hiddenLayer.W**2).sum() \
+                    + (self.logRegressionLayer.W**2).sum()
+
+        # negative log likelihood of the MLP is given by the negative 
+        # log likelihood of the output of the model, computed in the 
+        # logistic regression layer
+        self.negative_log_likelihood = self.logRegressionLayer.negative_log_likelihood
+        # same holds for the function computing the number of errors
+        self.errors = self.logRegressionLayer.errors
+
+        # the parameters of the model are the parameters of the two layer it is
+        # made out of
+        self.params = self.hiddenLayer.params + self.logRegressionLayer.params
 
 
-
-    def negative_log_likelihood(self, y):
-        """Return the mean of the negative log-likelihood of the prediction
-        of this model under a given target distribution.
-
-        .. math::
-
-            \frac{1}{|\mathcal{D}|}\mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
-            \frac{1}{|\mathcal{D}|}\sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
-                \ell (\theta=\{W,b\}, \mathcal{D}) 
-
-
-        :param y: corresponds to a vector that gives for each example the
-        :correct label
-        """
-        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
-
-
-
-
-    def errors(self, y):
-        """Return a float representing the number of errors in the minibatch 
-        over the total number of examples of the minibatch 
-        """
-
-        # check if y has same dimension of y_pred 
-        if y.ndim != self.y_pred.ndim:
-            raise TypeError('y should have the same shape as self.y_pred', 
-                ('y', target.type, 'y_pred', self.y_pred.type))
-        # check if y is of the correct datatype        
-        if y.dtype.startswith('int'):
-            # the T.neq operator returns a vector of 0s and 1s, where 1
-            # represents a mistake in prediction
-            return T.mean(T.neq(self.y_pred, y))
-        else:
-            raise NotImplementedError()
-
-
-
-def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
-                            L2_reg = 0.0001, n_epochs=1000):
+def test_mlp( learning_rate=0.01, L1_reg = 0.00, L2_reg = 0.0001, n_epochs=1000,
+            dataset = 'mnist.pkl.gz'):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer 
     perceptron
 
     This is demonstrated on MNIST.
 
+    :type learning_rate: float
     :param learning_rate: learning rate used (factor for the stochastic 
     gradient
 
+    :type L1_reg: float
     :param L1_reg: L1-norm's weight when added to the cost (see 
     regularization)
 
+    :type L2_reg: float
     :param L2_reg: L2-norm's weight when added to the cost (see 
     regularization)
  
+    :type n_epochs: int
     :param n_epochs: maximal number of epochs to run the optimizer 
 
+    :type dataset: string
+    :param dataset: the path of the MNIST dataset file from 
+                         http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz
+
+
    """
+    datasets = load_data(dataset)
 
-    # Load the dataset 
-    f = gzip.open('mnist.pkl.gz','rb')
-    train_set, valid_set, test_set = cPickle.load(f)
-    f.close()
+    train_set_x, train_set_y = datasets[0]
+    valid_set_x, valid_set_y = datasets[1]
+    test_set_x , test_set_y  = datasets[2]
 
-    def shared_dataset(data_xy):
-        data_x, data_y = data_xy
-        shared_x = theano.shared(numpy.asarray(data_x, dtype=theano.config.floatX))
-        shared_y = theano.shared(numpy.asarray(data_y, dtype=theano.config.floatX))
-        return shared_x, T.cast(shared_y, 'int32')
 
-    test_set_x,  test_set_y  = shared_dataset(test_set)
-    valid_set_x, valid_set_y = shared_dataset(valid_set)
-    train_set_x, train_set_y = shared_dataset(train_set)
 
     batch_size = 20    # size of the minibatch
 
@@ -195,15 +194,21 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
     n_valid_batches = valid_set_x.value.shape[0] / batch_size
     n_test_batches  = test_set_x.value.shape[0]  / batch_size
 
+    ######################
+    # BUILD ACTUAL MODEL #
+    ###################### 
+    print '... building the model'
+
     # allocate symbolic variables for the data
     index = T.lscalar()    # index to a [mini]batch 
     x     = T.matrix('x')  # the data is presented as rasterized images
     y     = T.ivector('y') # the labels are presented as 1D vector of 
                            # [int] labels
 
+    rng = numpy.random.RandomState(1234)
 
     # construct the MLP class
-    classifier = MLP( input=x, n_in=28*28, n_hidden = 500, n_out=10)
+    classifier = MLP( rng = rng, input=x, n_in=28*28, n_hidden = 500, n_out=10)
 
     # the cost we minimize during training is the negative log likelihood of 
     # the model plus the regularization terms (L1 and L2); cost is expressed
@@ -214,38 +219,49 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
 
     # compiling a Theano function that computes the mistakes that are made
     # by the model on a minibatch
-    test_model = theano.function([index], classifier.errors(y),
+    test_model = theano.function(inputs = [index], 
+            outputs = classifier.errors(y),
             givens={
                 x:test_set_x[index*batch_size:(index+1)*batch_size],
                 y:test_set_y[index*batch_size:(index+1)*batch_size]})
 
-    validate_model = theano.function([index], classifier.errors(y),
+    validate_model = theano.function(inputs = [index], 
+            outputs = classifier.errors(y),
             givens={
                 x:valid_set_x[index*batch_size:(index+1)*batch_size],
                 y:valid_set_y[index*batch_size:(index+1)*batch_size]})
 
-    # compute the gradient of cost with respect to theta = (W1, b1, W2, b2) 
-    g_W1 = T.grad(cost, classifier.W1)
-    g_b1 = T.grad(cost, classifier.b1)
-    g_W2 = T.grad(cost, classifier.W2)
-    g_b2 = T.grad(cost, classifier.b2)
+    # compute the gradient of cost with respect to theta (sotred in params)
+    # the resulting gradients will be stored in a list gparams
+    gparams = []
+    for param in classifier.params:
+        gparam  = T.grad(cost, param)
+        gparams.append(gparam)
+
 
     # specify how to update the parameters of the model as a dictionary
-    updates = \
-        { classifier.W1: classifier.W1 - learning_rate*g_W1 \
-        , classifier.b1: classifier.b1 - learning_rate*g_b1 \
-        , classifier.W2: classifier.W2 - learning_rate*g_W2 \
-        , classifier.b2: classifier.b2 - learning_rate*g_b2 }
+    updates = {}
+    # given two list the zip A = [ a1,a2,a3,a4] and B = [b1,b2,b3,b4] of 
+    # same length, zip generates a list C of same size, where each element
+    # is a pair formed from the two lists : 
+    #    C = [ (a1,b1), (a2,b2), (a3,b3) , (a4,b4) ] 
+    for param, gparam in zip(classifier.params, gparams):
+        updates[param] = param - learning_rate*gparam
 
     # compiling a Theano function `train_model` that returns the cost, but  
     # in the same time updates the parameter of the model based on the rules 
     # defined in `updates`
-    train_model =theano.function([index], cost, updates = updates,
+    train_model =theano.function( inputs = [index], outputs = cost, 
+            updates = updates,
             givens={
                 x:train_set_x[index*batch_size:(index+1)*batch_size],
                 y:train_set_y[index*batch_size:(index+1)*batch_size]})
 
- 
+    ###############
+    # TRAIN MODEL #
+    ###############
+    print '... training'
+
     # early-stopping parameters
     patience              = 10000 # look as this many examples regardless
     patience_increase     = 2     # wait this much longer when a new best is 
@@ -272,7 +288,7 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
       epoch = epoch + 1
       for minibatch_index in xrange(n_train_batches):
 
-        cost_ij = train_model(minibatch_index)
+        minibatch_avg_cost = train_model(minibatch_index)
         # iteration number
         iter = epoch * n_train_batches + minibatch_index
 
@@ -316,5 +332,5 @@ def sgd_optimization_mnist( learning_rate=0.01, L1_reg = 0.00, \
 
 
 if __name__ == '__main__':
-    sgd_optimization_mnist()
+    test_mlp()
 

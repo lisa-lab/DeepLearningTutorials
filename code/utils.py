@@ -1,47 +1,16 @@
-=============
-Miscellaneous
-=============
+""" This file contains different utility functions that are not connected 
+in anyway to the networks presented in the tutorials, but rather help in 
+processing the outputs into a more understandable way. 
 
-.. _how-to-plot:
-
-Plotting Samples and Filters
-++++++++++++++++++++++++++++
-
-.. note::
-    The code for this section is available for download `here`_.
-
-.. _here: http://deeplearning.net/tutorial/code/utils.py
+For example ``tile_raster_images`` helps in generating a easy to grasp 
+image from a set of samples or weights.
+"""
 
 
-To plot a sample, what we need to do is to take the visible units, which 
-are a flattened image (there is no 2D structure to the visible units,
-just a 1D string of nodes) and reshape it into a 2D image. The order in
-which the points from the 1D array go into the 2D image is given by the 
-order in which the inital MNIST images where converted into a 1D array.
-Lucky for us this is just a call of the ``numpy.reshape`` function.
-
-Plotting the weights is a bit more tricky. We have ``n_hidden`` hidden
-units, each of them corresponding to a column of the weight matrix. A 
-column has the same shape as the visible, where the weight corresponding 
-to the connection with visible unit `j` is at position `j`. Therefore,
-if we reshape every such column, using ``numpy.reshape``, we get a
-filter image that tells us how this hidden unit is influenced by 
-the input image.
-
-We need a utility function that takes a minibatch, or the weight matrix, 
-and converts each row ( for the weight matrix we do a transpose ) into a 
-2D image and then tile this images together.  Once we converted the
-minibatch or the weights in this image of tiles, we can use PIL to plot 
-and save. `PIL <http://www.pythonware.com/products/pil/>`_ is a standard 
-python libarary to deal with images.
-
-Tiling minibatches together is done for us by 
-``tile_raster_image`` function which we provide here. 
-
-.. code-block:: python
+import numpy
 
 
-  def scale_to_unit_interval(ndar,eps=1e-8):
+def scale_to_unit_interval(ndar,eps=1e-8):
     """ Scales all values in the ndarray ndar to be between 0 and 1 """
     ndar = ndar.copy()
     ndar -= ndar.min()
@@ -49,7 +18,7 @@ Tiling minibatches together is done for us by
     return ndar
 
 
-  def tile_raster_images(X, img_shape, tile_shape,tile_spacing = (0,0), 
+def tile_raster_images(X, img_shape, tile_shape,tile_spacing = (0,0), 
               scale_rows_to_unit_interval = True, output_pixel_vals = True):
     """
     Transform an array with one flattened image per row, into an array in 
@@ -151,5 +120,6 @@ Tiling minibatches together is done for us by
                         ] \
                         = this_img * (255 if output_pixel_vals else 1)
         return out_array
+
 
 
