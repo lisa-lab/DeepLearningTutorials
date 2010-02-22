@@ -562,29 +562,181 @@ samples at every 1000 step.
 
         # construct image
         image = PIL.Image.fromarray(tile_raster_images( 
-                                         X          = vis_mf,
-                                         img_shape  = (28,28),
-                                         tile_shape = (10,10),
+                                         X          = vis_mf, img_shape  = (28,28), tile_shape = (10,10),
                                          tile_spacing = (1,1) ) )
         print ' ... plotting sample ', idx
         image.save('sample_%i_step_%i.png'%(idx,idx*jdx))
 
 
+Tracking Progress
++++++++++++++++++
+
+RBMs are particularly tricky to train. Because of the partition function
+:math:`Z` of Eq. :eq:`energy1`, we cannot estimate the log-likelihood
+:math:`log(P(x))` during training. We therefore have no direct useful metric
+for choosing the optimal hyperparameters.
+
+Several options are available to the user.
+
+**Inspection of Negative Samples**
+
+Negative samples obtained during training can be visualized. As training
+progresses, we know that the model defined by the RBM becomes closer to the
+true underlying distribution, :math:`p_T(x)`. Negative samples should thus
+look like samples from the training set. Obviously bad hyperparameters can be
+discarded in this fashion.
+
+**Visual Inspection of Filters**
+
+The filters learnt by the model can be visualized. This amounts to plotting
+the weights of each unit as a gray-scale image (after reshaping to a square
+matrix). Filters should pick out strong features in the data. While it is not
+clear for an arbitrary dataset, what these features should look like, training
+on MNIST usually results in filters which act as stroke detectors, while
+training on natural images lead to Gabor like filters.
+
+**Proxies to Likelihood**  
+
+Other, more tractable functions can be used as a proxy to the likelihood.  When
+training an RBM with PCD, one can use pseudo-likelihood as the proxy.
+Pseudo-likelihood (PL) is much less expensive to compute, as it assumes that
+all bits are independent. Therefore,
+
+.. math::
+    PL(x) = \prod_i P(x_i | x_{-i}) \text{ and }\\
+    log PL(x) = \sum_i log P(x_i | x_{-i})
+
+Here :math:`x_{-i}` denotes the set of all bits of :math:`x` minus bit
+:math:`i`. The log-PL is therefore the sum of the log-probabilities of each
+bit :math:`x_i`, conditionned on the state of all other bits. For MNIST, this
+would involve summing over the 784 input dimensions, which remains rather
+expensive. For this reason, we use the following stochastic approximation to
+log-PL:
+
+.. math::
+    log PL(x) &\approx N \cdot log P(x_i | x_{-i}) \text{, where }
+    i \sim U(0,N),
+
+and :math:`N` is the number of visible units. In order to work with binary
+units, we further introduce the notation :math:`\tilde{x}_i` to refer to
+:math:`x` with bit-i being flipped (1->0, 0->1). The log-PL for an RBM with binary unit is
+then written as:
+
+.. math::
+    log PL(x) &\approx N \cdot log 
+       \frac {e^{-FE(x)}} {e^{-FE(x)} + e^{-FE(\tilde{x}_i)}} \\
+    &\approx N \cdot log[ sigm (FE(\tilde{x}_i) - FE(x)) ]
+
+We modify the `cd` function of the `RBM` class, to return this cost as well as
+the RBM updates. Notice that we modify the updates dictionary to increment the
+index of bit :math:`i`. This will result in bit i cycling over all possible
+values :math:`\{0,1,...,N\}`, from one update to another.
+
+.. code-block:: python
+
+    def cd(self, lr = 0.1, persistent=None):
+    
+        ...
+
+        ####################################################
+        # stochastic approximation to the pseudo-likelihood
+        ####################################################
+
+        # index of bit i in expression p(x_i | x_{-i})
+        bit_i_idx = theano.shared(value=0, name = 'bit_i_idx')
+
+        # binarize the input image by rounding to nearest integer
+        xi = T.iround(self.input)
+        # calculate free energy for the given bit configuration
+        fe_xi = self.free_energy(xi)
+        # flip bit x_i and preserve all other bits x_{-i}
+        xi_flip = T.setsubtensor(xi, 1-xi[:, bit_i_idx],
+                                 (slice(None,None,None),bit_i_idx))
+        # calculate free energy with bit flipped
+        fe_xi_flip = self.free_energy(xi_flip)
+
+        # equivalent to e^(-FE(x_i)) / (e^(-FE(x_i)) + e^(-FE(\tilde{x}_i)))
+        cost = self.n_visible * T.log(T.nnet.sigmoid(fe_xi_flip - fe_xi))
+
+        # increment bit_i_idx % number as part of updates
+        print type(self.n_visible)
+        updates[bit_i_idx] = (bit_i_idx + 1) % self.n_visible
+
+        return updates, cost
+
+
+The main training loop of the RBM is then modified to average this cost across
+a training epoch. We report the average log-PL over a training epoch.
+
+.. code-block:: python
+
+    def test_rbm( learning_rate=0.1, training_epochs = 15, dataset='mnist.pkl.gz'):
+
+        # get the cost and the gradient corresponding to one step of CD
+        updates, cost = rbm.cd(lr=learning_rate, persistent=persistent_chain)
+
+        ...
+
+        # go through training epochs
+        for epoch in xrange(training_epochs):
+
+            # go through the training set
+            mean_cost = []
+
+            for batch_index in xrange(n_train_batches):
+               mean_cost += [train_rbm(batch_index)]
+
+            print 'Training epoch %d, cost is '%epoch, numpy.mean(mean_cost)
+
+
+
 Results
 +++++++
 
-Training took 16.45 minutes for 15 epochs with a learning rate 0.1.
-The pictures below show the filters after 15 epochs : 
+We ran the code for learning rates in :math:`\{0.1,1e-2,1e-3,1e-4\}`. All
+learning rates except 1e-4 converged to near optimal values, epsilon away from
+0. We show the results for .01 as it achieved the best absolute results (even
+though this is in no way significant).
 
-.. figure:: images/filters_at_epoch_0.png
-    :align: center
-       
-    Filters obtained after 1st epoch.
+The output was the following:
+
+.. code-block:: bash
+
+    Using learning rate of  0.01
+    Training epoch 0, cost is  -1.06728418245
+    Training epoch 1, cost is  -2.00793186183e-07
+    Training epoch 2, cost is  -7.68665254548e-10
+    Training epoch 3, cost is  -1.56047685793e-08
+    Training epoch 4, cost is  -4.42882570337e-09
+    Training epoch 5, cost is  -9.87394378396e-13
+    Training epoch 6, cost is  -6.76010461785e-10
+    Training epoch 7, cost is  -1.22007408074e-11
+    Training epoch 8, cost is  -9.57370394861e-13
+    Training epoch 9, cost is  -7.85930732375e-13
+    Training epoch 10, cost is  -1.56340707433e-13
+    Training epoch 11, cost is  -8.05286460948e-12
+    Training epoch 12, cost is  -9.47734215993e-15
+    Training epoch 13, cost is  -1.47528843905e-14
+    Training epoch 14, cost is  -9.50189593559e-14
+    Training took 35.968667 minutes
+     ... plotting sample  0
+     ... plotting sample  1
+     ... plotting sample  2
+     ... plotting sample  3
+     ... plotting sample  4
+     ... plotting sample  5
+     ... plotting sample  6
+     ... plotting sample  7
+     ... plotting sample  8
+     ... plotting sample  9
+    return value 0
+
+The pictures below show the filters after 15 epochs : 
 
 .. figure:: images/filters_at_epoch_14.png
     :align: center
 
-    Filters obtained after 15th epoch.
+    Filters obtained after 15 epochs.
 
 Here are the samples generated by the RBM after training. Each set of two lines
 represents a mini-batch of negative particles (samples from independent Gibbs
@@ -608,9 +760,3 @@ chain). 1000 steps of Gibbs sampling were taken between each of those sets of pa
    
 .. figure:: images/sample_4_step_3996.png
     :align: center
-
-.. COMMENT .. figure:: images/sample_5_step_4995.png
-.. COMMENT .. figure:: images/sample_6_step_5994.png
-.. COMMENT .. figure:: images/sample_7_step_6993.png
-.. COMMENT .. figure:: images/sample_8_step_7992.png
-.. COMMENT .. figure:: images/sample_9_step_8991.png

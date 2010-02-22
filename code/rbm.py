@@ -10,6 +10,8 @@ import numpy, time, cPickle, gzip, PIL.Image
 
 import theano
 import theano.tensor as T
+import os
+
 from theano.tensor.shared_randomstreams import RandomStreams
 
 from utils import tile_raster_images
@@ -173,8 +175,31 @@ class RBM(object):
             # Note that this works only if persistent is a shared variable
             updates[persistent] = T.cast(nh_sample, dtype=theano.config.floatX)
 
+        ####################################################
+        # stochastic approximation to the pseudo-likelihood
+        ####################################################
 
-        return updates
+        # index of bit i in expression p(x_i | x_{\i})
+        bit_i_idx = theano.shared(value=0, name = 'bit_i_idx')
+
+        # binarize the input image by rounding to nearest integer
+        xi = T.iround(self.input)
+        # calculate free energy for the given bit configuration
+        fe_xi = self.free_energy(xi)
+        # flip bit x_i and preserve all other bits x_{\i}
+        xi_flip = T.setsubtensor(xi, 1-xi[:, bit_i_idx], 
+                                 (slice(None,None,None),bit_i_idx))
+        # calculate free energy with bit flipped
+        fe_xi_flip = self.free_energy(xi_flip)
+
+        # equivalent to e^(-FE(x_i)) / (e^(-FE(x_i)) + e^(-FE(x_{\i}))) 
+        cost = self.n_visible * T.log(T.nnet.sigmoid(fe_xi_flip - fe_xi))
+
+        # increment bit_i_idx % number as part of updates
+        print type(self.n_visible)
+        updates[bit_i_idx] = (bit_i_idx + 1) % self.n_visible
+
+        return updates, cost
 
 
 def test_rbm( learning_rate=0.1, training_epochs = 15, \
@@ -217,31 +242,35 @@ def test_rbm( learning_rate=0.1, training_epochs = 15, \
                n_hidden = 500,numpy_rng = rng, theano_rng = theano_rng)
 
     # get the cost and the gradient corresponding to one step of CD
-    updates = rbm.cd(lr=learning_rate, persistent=persistent_chain)
+    updates, cost = rbm.cd(lr=learning_rate, persistent=persistent_chain)
 
 
     #################################
     #     Training the RBM          #
     #################################
+    dirname = 'lr=%.5f'%learning_rate
+    os.makedirs(dirname)
+    os.chdir(dirname)
 
     # it is ok for a theano function to have no output
     # the purpose of train_rbm is solely to update the RBM parameters
-    train_rbm = theano.function([index], [],
+    train_rbm = theano.function([index], cost,
            updates = updates, 
            givens = { x: train_set_x[index*batch_size:(index+1)*batch_size]})
 
     plotting_time = 0.
     start_time = time.clock()  
 
+
     # go through training epochs 
     for epoch in xrange(training_epochs):
 
         # go through the training set
-        c = []
+        mean_cost = []
         for batch_index in xrange(n_train_batches):
-           train_rbm(batch_index)
+           mean_cost += [train_rbm(batch_index)]
 
-        print 'Training epoch %d '%epoch
+        print 'Training epoch %d, cost is '%epoch, numpy.mean(mean_cost)
 
         # Plot filters after each training epoch
         plotting_start = time.clock()
@@ -249,7 +278,7 @@ def test_rbm( learning_rate=0.1, training_epochs = 15, \
         image = PIL.Image.fromarray(tile_raster_images( X = rbm.W.value.T,
                  img_shape = (28,28),tile_shape = (10,10), 
                  tile_spacing=(1,1)))
-        image.save('filters_at_epoch_%i.png'%epoch) 
+        image.save('filters_at_epoch_%i.png'%epoch)
         plotting_stop = time.clock()
         plotting_time += (plotting_stop - plotting_start)
 
@@ -294,6 +323,7 @@ def test_rbm( learning_rate=0.1, training_epochs = 15, \
     plot_every = 1000
 
     for idx in xrange(n_samples):
+
         # do `plot_every` intermediate samplings of which we do not care
         for jdx in  xrange(plot_every):
             vis_mf, vis_sample = sample_fn()
@@ -308,4 +338,7 @@ def test_rbm( learning_rate=0.1, training_epochs = 15, \
         image.save('sample_%i_step_%i.png'%(idx,idx*jdx))
 
 if __name__ == '__main__':
-    test_rbm()
+    lr = numpy.float(os.sys.argv[1])
+    print 'Using learning rate of ', lr
+    print 'type of learning rate is ', type(lr)
+    test_rbm(learning_rate=lr)
