@@ -37,7 +37,7 @@ descent on the empirical log-likelihood of the training data:
 
 .. math::
     \mathcal{L}(\theta, \mathcal{D}) = \frac{1}{N} \sum_{x^{(i)} \in
-    \mathcal{D}} log\ p(x^{(i)}).
+    \mathcal{D}} \log\ p(x^{(i)}).
 
 using the stochastic gradient :math:`\frac{\partial p(x^{(i)})}{\partial
 \theta}`, where :math:`\theta` are the parameters of the model.
@@ -72,7 +72,7 @@ which allows us to write,
 The data log-likelihood gradient then has a particularly interesting form.
 
 .. math::
-  \frac{\partial log p(x)}{\partial \theta}
+  \frac{\partial \log p(x)}{\partial \theta}
    &= - \frac{\partial \mathcal{F}(x)}{\partial \theta} + 
          \sum_{\tilde{x}} p(\tilde{x}) \
              \frac{\partial \mathcal{F}(\tilde{x})}{\partial \theta}.
@@ -99,7 +99,7 @@ denoted as :math:`\mathcal{N}`. The gradient can then be written as:
 .. math::
   :label: bm_grad
 
-  \frac{\partial log p(x)}{\partial \theta}
+  \frac{\partial \log p(x)}{\partial \theta}
    &\approx 
    - \frac{\partial \mathcal{F}(x)}{\partial \theta} + 
      \sum_{\tilde{x} \in \mathcal{N}} p(\tilde{x}) \
@@ -139,7 +139,7 @@ This translates directly to the following free energy formula:
 
 .. math::
 
-  \mathcal{F}(x)= - b'x - \sum_i log \sum_{h_i} e^{h_i (c_i + W_i x)}.
+  \mathcal{F}(x)= - b'x - \sum_i \log \sum_{h_i} e^{h_i (c_i + W_i x)}.
 
 Because of the specific structure of RBMs, visible and hidden units are
 conditionally independent given one-another. Using this property, we can
@@ -170,7 +170,7 @@ The free energy of an RBM with binary units further simplifies to:
 .. math::
   :label: rbm_free_energy   
 
-  \mathcal{F}(x)= - b'x - \sum_i log 1 + e^{(c_i + W_i x)}.
+  \mathcal{F}(x)= - b'x - \sum_i \log(1 + e^{(c_i + W_i x)}).
 
 **Update Equations with Binary Units**
 
@@ -180,12 +180,12 @@ following log-likelihood gradients for an RBM with binary units:
 .. math::
     :label: rbm_grad
 
-    \frac {\partial{log p(v)}} {\partial W_{ij}} &= 
+    \frac {\partial{\log p(v)}} {\partial W_{ij}} &= 
        - x^{(i)}_j \cdot sigm(W_i \cdot x^{(i)} + c_i)
        + E_v[p(h_i|v) \cdot v_j] \\
-    \frac {\partial{log p(v)}} {\partial c_i} &=
+    \frac {\partial{\log p(v)}} {\partial c_i} &=
        - sigm(W_i \cdot x^{(i)}) + E_v[p(h_i|v)] \\
-    \frac {\partial{log p(v)}} {\partial b_j} &=
+    \frac {\partial{\log p(v)}} {\partial b_j} &=
        - x^{(i)}_j + E_v[p(v_j|h)]
 
 For a more detailed derivation of these equations, we refer the reader to the
@@ -219,7 +219,7 @@ follows:
     x^{(n+1)} &\sim sigm(W h^{(n+1)} + b),
 
 where :math:`h^{(n)}` refers to the set of all hidden units at the n-th step of
-within the Markov chain.
+the Markov chain.
 
 This can be illustrated graphically:
 
@@ -268,9 +268,9 @@ Implementation
 
 We construct an ``RBM`` class. The parameters of the network can either be
 initialized by the constructor or can be passed as arguments. This option is
-useful when a RBM is used as the building block of a deep network, in which
+useful when an RBM is used as the building block of a deep network, in which
 case the weight matrix and the hidden layer bias is shared with the
-corresponding sigmoidal layer of a MLP network.
+corresponding sigmoidal layer of an MLP network.
 
 .. code-block:: python
 
@@ -351,7 +351,7 @@ corresponding sigmoidal layer of a MLP network.
         self.batch_size = self.input.shape[0]
 
 
-Next step is to define functions which defines the symbolic graph associated
+Next step is to define functions which construct the symbolic graph associated
 with Eqs. :eq:`rbm_propup` - :eq:`rbm_propdown`. The code is as follows:
 
 .. code-block:: python
@@ -477,7 +477,7 @@ constant (weights are converted to values between 0 and 1).
 
 Having these utility functions, we can start training the RBM and plot/save
 the filters after each training epoch.  We train the RBM using PCD, as it has
-been shown to lead to a better generative model ([Tieleman]_).
+been shown to lead to a better generative model ([Tieleman08]_).
 
 .. code-block:: python
 
@@ -527,11 +527,11 @@ initialization.
     # Initialize the persistent chain with some sample from the test 
     persistent_vis_chain = theano.shared(test_set_x.value[sample:sample+20])
 
-Next we create the 20 persistent chains in paralel to get our
+Next we create the 20 persistent chains in parallel to get our
 samples. To do so, we compile a theano function which performs one Gibbs step
 and updates the state of the persistent chain with the new visible sample. We
 apply this function iteratively for a large number of steps, plotting the
-samples at every 1000 step.
+samples at every 1000 steps.
 
 .. code-block:: python
 
@@ -573,7 +573,7 @@ Tracking Progress
 
 RBMs are particularly tricky to train. Because of the partition function
 :math:`Z` of Eq. :eq:`energy1`, we cannot estimate the log-likelihood
-:math:`log(P(x))` during training. We therefore have no direct useful metric
+:math:`\log(P(x))` during training. We therefore have no direct useful metric
 for choosing the optimal hyperparameters.
 
 Several options are available to the user.
@@ -604,7 +604,7 @@ all bits are independent. Therefore,
 
 .. math::
     PL(x) = \prod_i P(x_i | x_{-i}) \text{ and }\\
-    log PL(x) = \sum_i log P(x_i | x_{-i})
+    \log PL(x) = \sum_i \log P(x_i | x_{-i})
 
 Here :math:`x_{-i}` denotes the set of all bits of :math:`x` minus bit
 :math:`i`. The log-PL is therefore the sum of the log-probabilities of each
@@ -614,7 +614,7 @@ expensive. For this reason, we use the following stochastic approximation to
 log-PL:
 
 .. math::
-    log PL(x) &\approx N \cdot log P(x_i | x_{-i}) \text{, where }
+    \log PL(x) &\approx N \cdot \log P(x_i | x_{-i}) \text{, where }
     i \sim U(0,N),
 
 and :math:`N` is the number of visible units. In order to work with binary
@@ -623,9 +623,9 @@ units, we further introduce the notation :math:`\tilde{x}_i` to refer to
 then written as:
 
 .. math::
-    log PL(x) &\approx N \cdot log 
+    \log PL(x) &\approx N \cdot \log 
        \frac {e^{-FE(x)}} {e^{-FE(x)} + e^{-FE(\tilde{x}_i)}} \\
-    &\approx N \cdot log[ sigm (FE(\tilde{x}_i) - FE(x)) ]
+    &\approx N \cdot \log[ sigm (FE(\tilde{x}_i) - FE(x)) ]
 
 We modify the `cd` function of the `RBM` class, to return this cost as well as
 the RBM updates. Notice that we modify the updates dictionary to increment the
