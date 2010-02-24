@@ -521,11 +521,9 @@ initialization.
     # find out the number of test samples  
     number_of_test_samples = test_set_x.value.shape[0]
 
-    # pick two initial starting points randomly 
-    sample = rng.randint(number_of_test_samples-20)
-
-    # Initialize the persistent chain with some sample from the test 
-    persistent_vis_chain = theano.shared(test_set_x.value[sample:sample+20])
+    # pick random test examples, with which to initialize the persistent chain
+    test_idx = rng.randint(number_of_test_samples-20)
+    persistent_vis_chain = theano.shared(test_set_x.value[test_idx:test_idx+20])
 
 Next we create the 20 persistent chains in parallel to get our
 samples. To do so, we compile a theano function which performs one Gibbs step
@@ -593,7 +591,8 @@ the weights of each unit as a gray-scale image (after reshaping to a square
 matrix). Filters should pick out strong features in the data. While it is not
 clear for an arbitrary dataset, what these features should look like, training
 on MNIST usually results in filters which act as stroke detectors, while
-training on natural images lead to Gabor like filters.
+training on natural images lead to Gabor like filters if trained in
+conjunction with a sparsity criteria.
 
 **Proxies to Likelihood**  
 
@@ -649,9 +648,14 @@ values :math:`\{0,1,...,N\}`, from one update to another.
         xi = T.iround(self.input)
         # calculate free energy for the given bit configuration
         fe_xi = self.free_energy(xi)
-        # flip bit x_i and preserve all other bits x_{-i}
-        xi_flip = T.setsubtensor(xi, 1-xi[:, bit_i_idx],
-                                 (slice(None,None,None),bit_i_idx))
+
+        # flip bit x_i of matrix xi and preserve all other bits x_{\i}
+        # Equivalent to xi[:,bit_i_idx] = 1-xi[:, bit_i_idx]
+        # NB: slice(start,stop,step) is the python object used for
+        # slicing, e.g. to index matrix x as follows: x[start:stop:step]
+        xi_flip = T.setsubtensor(xi, 1-xi[:, bit_i_idx], 
+                                 idx_list=(slice(None,None,None),bit_i_idx))
+        
         # calculate free energy with bit flipped
         fe_xi_flip = self.free_energy(xi_flip)
 

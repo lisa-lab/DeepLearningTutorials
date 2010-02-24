@@ -174,21 +174,33 @@ class RBM(object):
         if persistent:
             # Note that this works only if persistent is a shared variable
             updates[persistent] = T.cast(nh_sample, dtype=theano.config.floatX)
+            # pseudo-likelihood is a better proxy for PCD
+            cost = self.get_pseudo_likelihood_cost(updates)
+        else:
+            # reconstruction cross-entropy is a better proxy for CD
+            cost = self.get_reconstruction_cost(updates, nv_mean)
 
-        ####################################################
-        # stochastic approximation to the pseudo-likelihood
-        ####################################################
+        return cost, updates
+
+    def get_pseudo_likelihood_cost(self, updates):
+        """Stochastic approximation to the pseudo-likelihood"""
 
         # index of bit i in expression p(x_i | x_{\i})
         bit_i_idx = theano.shared(value=0, name = 'bit_i_idx')
 
         # binarize the input image by rounding to nearest integer
         xi = T.iround(self.input)
+
         # calculate free energy for the given bit configuration
         fe_xi = self.free_energy(xi)
-        # flip bit x_i and preserve all other bits x_{\i}
+
+        # flip bit x_i of matrix xi and preserve all other bits x_{\i}
+        # Equivalent to xi[:,bit_i_idx] = 1-xi[:, bit_i_idx]
+        # NB: slice(start,stop,step) is the python object used for
+        # slicing, e.g. to index matrix x as follows: x[start:stop:step]
         xi_flip = T.setsubtensor(xi, 1-xi[:, bit_i_idx], 
-                                 (slice(None,None,None),bit_i_idx))
+                                 idx_list=(slice(None,None,None),bit_i_idx))
+
         # calculate free energy with bit flipped
         fe_xi_flip = self.free_energy(xi_flip)
 
@@ -196,14 +208,23 @@ class RBM(object):
         cost = self.n_visible * T.log(T.nnet.sigmoid(fe_xi_flip - fe_xi))
 
         # increment bit_i_idx % number as part of updates
-        print type(self.n_visible)
         updates[bit_i_idx] = (bit_i_idx + 1) % self.n_visible
 
-        return updates, cost
+        return cost
+
+    def get_reconstruction_cost(self, updates, nv_mean):
+        """Approximation to the reconstruction error"""
+
+        cross_entropy = T.mean(
+                T.sum(self.input*T.log(nv_mean) + 
+                (1 - self.input)*T.log(1-nv_mean), axis = 1))
+
+        return cross_entropy
 
 
-def test_rbm( learning_rate=0.1, training_epochs = 15, \
-                            dataset='mnist.pkl.gz'):
+
+def test_rbm(learning_rate=0.1, training_epochs = 15,
+             dataset='mnist.pkl.gz'):
     """
     Demonstrate ***
 
@@ -242,7 +263,7 @@ def test_rbm( learning_rate=0.1, training_epochs = 15, \
                n_hidden = 500,numpy_rng = rng, theano_rng = theano_rng)
 
     # get the cost and the gradient corresponding to one step of CD
-    updates, cost = rbm.cd(lr=learning_rate, persistent=persistent_chain)
+    cost, updates = rbm.cd(lr=learning_rate, persistent=persistent_chain)
 
 
     #################################
@@ -296,11 +317,9 @@ def test_rbm( learning_rate=0.1, training_epochs = 15, \
     # find out the number of test samples  
     number_of_test_samples = test_set_x.value.shape[0]
 
-    # pick two initial starting points randomly 
-    sample = rng.randint(number_of_test_samples-20)
-
-    # Initialize the persistent chain with some sample from the test 
-    persistent_vis_chain = theano.shared(test_set_x.value[sample:sample+20])
+    # pick random test examples, with which to initialize the persistent chain
+    test_idx = rng.randint(number_of_test_samples-20)
+    persistent_vis_chain = theano.shared(test_set_x.value[test_idx:test_idx+20])
 
     # define one step of Gibbs sampling (mf = mean-field)
     [hid_mf, hid_sample, vis_mf, vis_sample] =  rbm.gibbs_vhv(persistent_vis_chain)
@@ -338,7 +357,4 @@ def test_rbm( learning_rate=0.1, training_epochs = 15, \
         image.save('sample_%i_step_%i.png'%(idx,idx*jdx))
 
 if __name__ == '__main__':
-    lr = numpy.float(os.sys.argv[1])
-    print 'Using learning rate of ', lr
-    print 'type of learning rate is ', type(lr)
-    test_rbm(learning_rate=lr)
+    test_rbm()
