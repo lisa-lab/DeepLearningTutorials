@@ -1,0 +1,54 @@
+.. _DBN:
+
+Deep Belief Networks
+====================================
+
+.. note::
+  This section assumes the reader has already read through :doc:`logreg`
+  and :doc:`mlp` and :doc:`rbm`. Additionally it uses the following Theano
+  functions and concepts : `T.tanh`_, `shared variables`_, `basic arithmetic
+  ops`_, `T.grad`_, `Random numbers`_, `floatX`_. If you intend to run the
+  code on GPU also read `GPU`_.
+
+.. _T.tanh: http://deeplearning.net/software/theano/tutorial/examples.html?highlight=tanh
+
+.. _shared variables: http://deeplearning.net/software/theano/tutorial/examples.html#using-shared-variables
+
+.. _basic arithmetic ops: http://deeplearning.net/software/theano/tutorial/adding.html#adding-two-scalars
+
+.. _T.grad: http://deeplearning.net/software/theano/tutorial/examples.html#computing-gradients
+
+.. _floatX: http://deeplearning.net/software/theano/library/config.html#config.floatX
+
+.. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html 
+
+.. _Random numbers: http://deeplearning.net/software/theano/tutorial/examples.html#using-random-numbers
+
+
+.. note::
+    The code for this section is available for download `here`_.
+
+.. _here: http://deeplearning.net/tutorial/code/DBN.py
+
+
+Deep Belief Networks
+++++++++++++++++++++
+
+A Deep Belief Network [Hinton06]_ with :math:`\ell` layers models the joint
+distribution between observed vector :math:`x` and :math:`\ell` hidden layers :math:`h^k` as
+follows:
+
+.. math::
+    :label: dbn
+ 
+    P(x, h^1, \ldots, h^{\ell}) = \left(\prod_{k=0}^{\ell-2} P(h^k|h^{k+1})\right) P(h^{\ell-1},h^{\ell})
+
+where :math:`x=h^0`, :math:`P(h^{k-1} | h^k)` is a conditional distribution for
+visible hidden units in an RBM associated with level :math:`k` of the DBN,
+and :math:`P(h^{\ell-1}, h^{\ell})` is the visible-hidden joint distribution
+in the top-level RBM. This is illustrated in the figure below.
+
+
+.. figure:: images/DBN3.png
+    :align: center
+
