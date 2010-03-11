@@ -105,7 +105,8 @@ class RBM(object):
         # compute the activation of the hidden units given a sample of the visibles
         h1_mean = T.nnet.sigmoid(T.dot(v0_sample, self.W) + self.hbias)
         # get a sample of the hiddens given their activation
-        h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, prob = h1_mean)
+        h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, prob = h1_mean,
+                dtype = theano.config.floatX)
         return [h1_mean, h1_sample]
 
     def sample_v_given_h(self, h0_sample):
@@ -113,7 +114,8 @@ class RBM(object):
         # compute the activation of the visible given the hidden sample
         v1_mean = T.nnet.sigmoid(T.dot(h0_sample, self.W.T) + self.vbias)
         # get a sample of the visible given their activation
-        v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,prob = v1_mean)
+        v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,prob = v1_mean,
+                dtype = theano.config.floatX)
         return [v1_mean, v1_sample]
 
     def gibbs_hvh(self, h0_sample):
@@ -159,10 +161,14 @@ class RBM(object):
         [nv_mean, nv_sample, nh_mean, nh_sample] = self.gibbs_hvh(chain_start)
 
         # determine gradients on RBM parameters
-        g_vbias = T.sum( self.input - nv_mean, axis = 0)/self.batch_size
-        g_hbias = T.sum( ph_mean    - nh_mean, axis = 0)/self.batch_size
-        g_W = T.dot(ph_mean.T, self.input   )/ self.batch_size - \
-              T.dot(nh_mean.T, nv_mean      )/ self.batch_size
+        # cast batch_size to floatX, because its type is int64,
+        # and otherwise the gradients are upcasted to float64,
+        # even when floatX == float32
+        batch_size = T.cast(self.batch_size, dtype=theano.config.floatX)
+        g_vbias = T.sum( self.input - nv_mean, axis = 0)/batch_size
+        g_hbias = T.sum( ph_mean    - nh_mean, axis = 0)/batch_size
+        g_W = T.dot(ph_mean.T, self.input   )/ batch_size - \
+              T.dot(nh_mean.T, nv_mean      )/ batch_size
 
         gparams = [g_W.T, g_hbias, g_vbias]
 
