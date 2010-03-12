@@ -178,6 +178,8 @@ class dA(object):
                 is always 0 or 1, this don't change the result. This is needed to allow
                 the gpu to work correctly as it only support float32 for now.
         """
+        if corruption_level==0:
+            return input
         return  self.theano_rng.binomial( size = input.shape, n = 1, prob =  1 - corruption_level, dtype=theano.config.floatX) * input
 
     
@@ -261,7 +263,7 @@ def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='mnist.pkl.gz' 
     
     train_da = theano.function([index], cost, updates = updates,
          givens = {x:train_set_x[index*batch_size:(index+1)*batch_size]})
-
+    
     start_time = time.clock()
 
     ############
