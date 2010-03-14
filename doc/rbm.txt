@@ -569,7 +569,7 @@ samples at every 1000 steps.
     plot_every = 1000
 
     for idx in xrange(n_samples):
-        # do `plot_every` intermediate samplings of which we do not care
+        # generate `plot_every` intermediate samples that we discard, because successive samples in the chain are too correlated
         for jdx in  xrange(plot_every):
             vis_mf, vis_sample = sample_fn()
 
