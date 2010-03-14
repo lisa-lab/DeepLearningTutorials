@@ -330,8 +330,8 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     # define one step of Gibbs sampling (mf = mean-field)
     [hid_mf, hid_sample, vis_mf, vis_sample] =  rbm.gibbs_vhv(persistent_vis_chain)
 
-    # the sample at the end of the channel is returned by ``gibbs_1`` as 
-    # its second output; note that this is computed as a binomial draw, 
+    # the sample at the end of the channel is returned by ``gibbs_vhb`` as 
+    # its last output; note that this is computed as a binomial draw, 
     # therefore it is formed of ints (0 and 1) and therefore needs to 
     # be converted to the same dtype as ``persistent_vis_chain``
     vis_sample = T.cast(vis_sample, dtype=theano.config.floatX)
