@@ -349,7 +349,7 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
 
     for idx in xrange(n_samples):
 
-        # generate `plot_every` intermediate samples that we discard, waiting for more convergence
+        # generate `plot_every` intermediate samples that we discard, because successive samples in the chain are too correlated
         for jdx in  xrange(plot_every):
             vis_mf, vis_sample = sample_fn()
 
