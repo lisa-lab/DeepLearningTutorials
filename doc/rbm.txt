@@ -39,7 +39,7 @@ descent on the empirical log-likelihood of the training data:
     \mathcal{L}(\theta, \mathcal{D}) = \frac{1}{N} \sum_{x^{(i)} \in
     \mathcal{D}} \log\ p(x^{(i)}).
 
-using the stochastic gradient :math:`\frac{\partial p(x^{(i)})}{\partial
+using the stochastic gradient :math:`\frac{\partial \log p(x^{(i)})}{\partial
 \theta}`, where :math:`\theta` are the parameters of the model.
 
 
@@ -102,9 +102,11 @@ denoted as :math:`\mathcal{N}`. The gradient can then be written as:
   \frac{\partial \log p(x)}{\partial \theta}
    &\approx 
    - \frac{\partial \mathcal{F}(x)}{\partial \theta} + 
-     \sum_{\tilde{x} \in \mathcal{N}} p(\tilde{x}) \
+     \frac{1}{|\mathcal{N}|}\sum_{\tilde{x} \in \mathcal{N}} \
      \frac{\partial \mathcal{F}(\tilde{x})}{\partial \theta}.
 
+where we would ideally like elements :math:`\tilde{x}` of :math:`\mathcal{N}` to be sampled
+according to :math:`P` (i.e. we are doing Monte-Carlo).
 With the above formula, we almost have a pratical, stochastic algorithm for
 learning an EBM. The only missing ingredient is how to extract these negative
 particles :math:`\mathcal{N}`. While the statistical litterature abounds with
@@ -116,8 +118,14 @@ EBM.
 Restricted Boltzmann Machines (RBM)
 +++++++++++++++++++++++++++++++++++
 
-Boltzmann Machines (BMs) are a particular form of energy-based model which
-contain hidden variables. Restricted Boltzmann Machines further restrict BMs to
+Boltzmann Machines (BMs) are a particular form of log-linear Markov Random Field (MRF),
+i.e., for which the energy function is linear in its free parameters. To make
+them powerful enough to represent complicated distributions (i.e., go from the
+limited parametric setting to a non-parametric one), we consider that some of
+the variables are never observed (they are called hidden). By having more hidden
+variables (also called hidden units), we can increase the modeling capacity 
+of the Boltzmann Machine (BM).
+Restricted Boltzmann Machines further restrict BMs to
 those without visible-visible and hidden-hidden connections.  A graphical
 depiction of an RBM is shown below.
 
@@ -151,8 +159,8 @@ write:
 
 **RBMs with binary units**
 
-In the commonly studied case of using binary units (where :math:`h_i \in
-\{0,1\}`, we obtain from Eq. :eq:`rbm_energy` and :eq:`energy2`, a stochastic
+In the commonly studied case of using binary units (where :math:`x_j` and :math:`h_i \in
+\{0,1\}`), we obtain from Eq. :eq:`rbm_energy` and :eq:`energy2`, a probabilistic
 version of the usual neuron activation function:
 
 .. math::
@@ -181,15 +189,16 @@ following log-likelihood gradients for an RBM with binary units:
     :label: rbm_grad
 
     \frac {\partial{\log p(v)}} {\partial W_{ij}} &= 
-       - x^{(i)}_j \cdot sigm(W_i \cdot x^{(i)} + c_i)
-       + E_v[p(h_i|v) \cdot v_j] \\
+        x^{(i)}_j \cdot sigm(W_i \cdot x^{(i)} + c_i)
+       - E_v[p(h_i|v) \cdot v_j] \\
     \frac {\partial{\log p(v)}} {\partial c_i} &=
-       - sigm(W_i \cdot x^{(i)}) + E_v[p(h_i|v)] \\
+        sigm(W_i \cdot x^{(i)}) - E_v[p(h_i|v)] \\
     \frac {\partial{\log p(v)}} {\partial b_j} &=
-       - x^{(i)}_j + E_v[p(v_j|h)]
+        x^{(i)}_j - E_v[p(v_j|h)]
 
 For a more detailed derivation of these equations, we refer the reader to the
-following `page <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/DBNEquations>`_.
+following `page <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/DBNEquations>`_,
+or to section 5 of `Learning Deep Architectures for AI <http://www.iro.umontreal.ca/%7Elisa/publications2/index.php/publications/show/239>`_.
 
 .. note::
     We will be updating the tutorial shortly, such that the gradients are
@@ -219,7 +228,11 @@ follows:
     x^{(n+1)} &\sim sigm(W h^{(n+1)} + b),
 
 where :math:`h^{(n)}` refers to the set of all hidden units at the n-th step of
-the Markov chain.
+the Markov chain. What it means is that, for example, :math:`h^{(n+1)}_i` is
+randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_i'x^{(n)} + c_i),
+and similarly, 
+:math:`x^{(n+1)}_j` is
+randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_{.j}'h^{(n+1)} + b_j).
 
 This can be illustrated graphically:
 
@@ -241,9 +254,10 @@ Contrastive Divergence (CD-k)
 
 Contrastive Divergence uses two tricks to speed up the sampling process:
 
-* since we eventually want :math:`p(x) \approx p_T(x)` (the true, underlying
+* since we eventually want :math:`p(x) \approx p_{train}(x)` (the true, underlying
   distribution of the data), we initialize the Markov chain with a training
-  example.
+  example (i.e., from a distribution that is expected to be close to :math:`p`,
+  so that the chain will be already close to having converged to its final distribution :math:`p`).
   
 * CD does not wait for the chain to converge. Samples are obtained after only
   k-steps of Gibbs sampling. In pratice, :math:`k=1` has been shown to work
@@ -255,8 +269,9 @@ Persistent CD
 
 Persistent CD [Tieleman08]_ uses another approximation for sampling from
 :math:`p(x,h)`.  It relies on a single Markov chain, which has a persistent
-state. For each parameter update, we extract new samples by simply running the
-chain for k-steps. The state of the chain is then preserved for subsequent updates.
+state (i.e., not restarting a chain for each observed example). For each
+parameter update, we extract new samples by simply running the chain for
+k-steps. The state of the chain is then preserved for subsequent updates.
 
 The general intuition is that if parameter updates are small enough compared
 to the mixing rate of the chain, the Markov chain should be able to "catch up"
@@ -447,7 +462,7 @@ compute the gradients of Eq. :eq:`rbm_grad`.
         gparams = [g_W.T, g_hbias, g_vbias]
 
 Finally, we construct the updates dictionary containing the parameter
-updates. In case of PCD, these should also update the shared variable
+updates. In the case of PCD, these should also update the shared variable
 containing the state of the Gibbs chain.
 
 .. code-block:: python
@@ -580,7 +595,7 @@ Several options are available to the user.
 
 Negative samples obtained during training can be visualized. As training
 progresses, we know that the model defined by the RBM becomes closer to the
-true underlying distribution, :math:`p_T(x)`. Negative samples should thus
+true underlying distribution, :math:`p_{train}(x)`. Negative samples should thus
 look like samples from the training set. Obviously bad hyperparameters can be
 discarded in this fashion.
 
@@ -605,7 +620,7 @@ all bits are independent. Therefore,
     PL(x) = \prod_i P(x_i | x_{-i}) \text{ and }\\
     \log PL(x) = \sum_i \log P(x_i | x_{-i})
 
-Here :math:`x_{-i}` denotes the set of all bits of :math:`x` minus bit
+Here :math:`x_{-i}` denotes the set of all bits of :math:`x` except bit
 :math:`i`. The log-PL is therefore the sum of the log-probabilities of each
 bit :math:`x_i`, conditionned on the state of all other bits. For MNIST, this
 would involve summing over the 784 input dimensions, which remains rather
@@ -613,9 +628,10 @@ expensive. For this reason, we use the following stochastic approximation to
 log-PL:
 
 .. math::
-    \log PL(x) &\approx N \cdot \log P(x_i | x_{-i}) \text{, where }
-    i \sim U(0,N),
-
+   g = N \cdot \log P(x_i | x_{-i}) \text{, where } i \sim U(0,N), \text{, and}\\
+   E[ g ] = \log PL(x) 
+    
+where the expectation is taken over the uniform random choice of index :math:`i`,
 and :math:`N` is the number of visible units. In order to work with binary
 units, we further introduce the notation :math:`\tilde{x}_i` to refer to
 :math:`x` with bit-i being flipped (1->0, 0->1). The log-PL for an RBM with binary unit is
