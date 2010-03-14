@@ -667,7 +667,7 @@ values :math:`\{0,1,...,N\}`, from one update to another.
         # calculate free energy for the given bit configuration
         fe_xi = self.free_energy(xi)
 
-        # flip bit x_i of matrix xi and preserve all other bits x_{\i}
+        # flip bit x_i of matrix xi and preserve all other bits x_{-i}
         # Equivalent to xi[:,bit_i_idx] = 1-xi[:, bit_i_idx]
         # NB: slice(start,stop,step) is the python object used for
         # slicing, e.g. to index matrix x as follows: x[start:stop:step]
