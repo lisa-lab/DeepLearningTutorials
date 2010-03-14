@@ -575,7 +575,9 @@ samples at every 1000 steps.
 
         # construct image
         image = PIL.Image.fromarray(tile_raster_images( 
-                                         X          = vis_mf, img_shape  = (28,28), tile_shape = (10,10),
+                                         X          = vis_mf, 
+                                         img_shape  = (28,28), 
+                                         tile_shape = (10,10),
                                          tile_spacing = (1,1) ) )
         print ' ... plotting sample ', idx
         image.save('sample_%i_step_%i.png'%(idx,idx*jdx))
