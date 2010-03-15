@@ -232,7 +232,7 @@ the Markov chain. What it means is that, for example, :math:`h^{(n+1)}_i` is
 randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_i'x^{(n)} + c_i)`,
 and similarly, 
 :math:`x^{(n+1)}_j` is
-randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_{.j}'h^{(n+1)} + b_j).
+randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_{.j} h^{(n+1)} + b_j)`.
 
 This can be illustrated graphically:
 
