@@ -229,7 +229,7 @@ follows:
 
 where :math:`h^{(n)}` refers to the set of all hidden units at the n-th step of
 the Markov chain. What it means is that, for example, :math:`h^{(n+1)}_i` is
-randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_i'x^{(n)} + c_i),
+randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_i'x^{(n)} + c_i)`,
 and similarly, 
 :math:`x^{(n+1)}_j` is
 randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_{.j}'h^{(n+1)} + b_j).
