@@ -75,7 +75,7 @@ representations of intermediate layers of the MLP.
 
 .. code-block:: python
 
-  class StackedAutoencoder():
+  class SdA(object):
 
     def __init__(self, numpy_rng, theano_rng = None, n_ins = 784, 
                  hidden_layers_sizes = [500,500], n_outs = 10, 
@@ -179,10 +179,7 @@ bias of the encoding part with its corresponding sigmoid layer.
 
 All we need now is to add the logistic layer on top of the sigmoid
 layers such that we have an MLP. We will 
-use the ``LogisticRegression`` class introduced in :ref:`logreg`. Since
-we already have Theano variables pointing to our training dataset we
-will also construct a training function for the MLP (that we will use
-later in the fine-tunining stage). 
+use the ``LogisticRegression`` class introduced in :ref:`logreg`. 
 
 .. code-block:: python
 
@@ -234,8 +231,7 @@ implements one step of training the ``dA`` correspoinding to layer
         index            = T.lscalar('index')   # index to a minibatch
 
 In order to be able to change the corruption level or the learning rate
-during training we do the following trick. We associate Theano variables
-for them and afterwards provide default values : 
+during training we associate Theano variable too them.
 
 .. code-block:: python 
 
@@ -347,7 +343,7 @@ during finetuning ( a ``train_model``, a ``validate_model`` and a
 Note that the returned ``valid_score`` and ``test_score`` are not Theano
 functions, but rather python functions that also loop over the entire 
 validation set and the entire test set producing a list of the losses
-over the sets.
+over these sets.
 
 
 
