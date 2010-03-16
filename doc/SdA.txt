@@ -231,7 +231,7 @@ implements one step of training the ``dA`` correspoinding to layer
         index            = T.lscalar('index')   # index to a minibatch
 
 In order to be able to change the corruption level or the learning rate
-during training we associate Theano variable too them.
+during training we associate a Theano variable to them.
 
 .. code-block:: python 
 
