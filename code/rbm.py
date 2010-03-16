@@ -52,12 +52,12 @@ class RBM(object):
 
         if W is None : 
            # W is initialized with `initial_W` which is uniformely sampled
-           # from -6./sqrt(n_visible+n_hidden) and 6./sqrt(n_hidden+n_visible)
+           # from -4*sqrt(6./(n_visible+n_hidden)) and 4*sqrt(6./(n_hidden+n_visible))
            # the output of uniform if converted using asarray to dtype 
            # theano.config.floatX so that the code is runable on GPU
            initial_W = numpy.asarray( numpy.random.uniform( 
-                     low = -numpy.sqrt(6./(n_hidden+n_visible)), 
-                     high = numpy.sqrt(6./(n_hidden+n_visible)), 
+                     low = -4*numpy.sqrt(6./(n_hidden+n_visible)), 
+                     high = 4*numpy.sqrt(6./(n_hidden+n_visible)), 
                      size = (n_visible, n_hidden)), 
                      dtype = theano.config.floatX)
            # theano shared variables for weights and biases
@@ -204,6 +204,11 @@ class RBM(object):
         # Equivalent to xi[:,bit_i_idx] = 1-xi[:, bit_i_idx]
         # NB: slice(start,stop,step) is the python object used for
         # slicing, e.g. to index matrix x as follows: x[start:stop:step]
+        # In our case, idx_list is a tuple. The first element of the tuple
+        # describes what slice we want from the first dimension. 
+        # ``slice(None,None,None)`` means that we want all values, equivalent
+        # to numpy notation ``:``. The second element of the tuple is the 
+        # value bit_i_idx, meaning that we are looking for [:,bit_i_idx]. 
         xi_flip = T.setsubtensor(xi, 1-xi[:, bit_i_idx], 
                                  idx_list=(slice(None,None,None),bit_i_idx))
 
@@ -286,7 +291,7 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
            givens = { x: train_set_x[index*batch_size:(index+1)*batch_size]})
 
     plotting_time = 0.
-    start_time = time.clock()  
+    start_time = time.clock()
 
 
     # go through training epochs 

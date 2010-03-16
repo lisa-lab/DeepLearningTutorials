@@ -60,17 +60,36 @@ class HiddenLayer(object):
         self.input = input
 
         # `W` is initialized with `W_values` which is uniformely sampled
-        # from -6./sqrt(n_in+n_hidden) and 6./sqrt(n_in+n_hidden)
+        # from sqrt(-6./(n_in+n_hidden)) and sqrt(6./(n_in+n_hidden))
+        # for tanh activation function
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
-        W_values = numpy.asarray( rng.uniform( \
-              low = -numpy.sqrt(6./(n_in+n_out)), \
-              high = numpy.sqrt(6./(n_in+n_out)), \
-              size = (n_in, n_out)), dtype = theano.config.floatX)
-        self.W = theano.shared(value = W_values)
+        # Note : optimal initialization of weights is dependent on the
+        #        activation function used (among other things).
+        #        For example, results presented in [Xavier10] suggest that you 
+        #        should use 4 times larger initial weights for sigmoid 
+        #        compared to tanh
+        if activation == theano.tensor.tanh:
+            W_values = numpy.asarray( rng.uniform(
+                    low  = - numpy.sqrt(6./(n_in+n_out)),
+                    high = numpy.sqrt(6./(n_in+n_out)),
+                    size = (n_in, n_out)), dtype = theano.config.floatX)
+        elif activation == theano.tensor.nnet.sigmoid:
+            W_values = numpy.asarray( 4*rng.uniform(
+                    low  = - numpy.sqrt(6./(n_in+n_out)),
+                    high = numpy.sqrt(6./(n_in+n_out)),
+                    size = (n_in, n_out)), dtype = theano.config.floatX)
+        else:
+            # how should we initialize the weights for your activation function ?
+            W_values = numpy.asarray( rng.uniform(
+                    low  = - numpy.sqrt(6./(n_in+n_out)),
+                    high = numpy.sqrt(6./(n_in+n_out)),
+                    size = (n_in,n_out)), dtype = theano.config.floatX)
+
+        self.W = theano.shared(value = W_values, name ='W')
 
         b_values = numpy.zeros((n_out,), dtype= theano.config.floatX)
-        self.b = theano.shared(value= b_values)
+        self.b = theano.shared(value= b_values, name ='b')
 
         self.output = activation(T.dot(input, self.W) + self.b)
         # parameters of the model

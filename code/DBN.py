@@ -15,7 +15,14 @@ from rbm import RBM
 
 
 class DBN(object):
-    """
+    """Deep Belief Network
+
+    A deep belief network is obtained by stacking several RBMs on top of each
+    other. The hidden layer of the RBM at layer `i` becomes the input of the
+    RBM at layer `i+1`. The first layer RBM gets as input the input of the 
+    network, and the hidden layer of the last RBM represents the output. When
+    used for classification, the DBN is treated as a MLP, by adding a logistic
+    regression layer on top.
     """
 
     def __init__(self, numpy_rng, theano_rng = None, n_ins = 784, 
@@ -110,8 +117,8 @@ class DBN(object):
                          n_in = hidden_layers_sizes[-1], n_out = n_outs)
         self.params.extend(self.logLayer.params)
 
-        # construct a function that implements one step of fine-tuning compute the cost for
-        # second phase of training, defined as the negative log likelihood 
+        # compute the cost for second phase of training, defined as the 
+        # negative log likelihood 
         self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
 
         # compute the gradients with respect to the model parameters
@@ -379,6 +386,4 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
 
 
 if __name__ == '__main__':
-    pretrain_lr = numpy.float(os.sys.argv[1])
-    finetune_lr = numpy.float(os.sys.argv[2])
-    test_DBN(pretrain_lr=pretrain_lr, finetune_lr=finetune_lr)
+    test_DBN()

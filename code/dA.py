@@ -79,16 +79,16 @@ class dA(object):
         the dA on layer 2 gets as input the output of the dA on layer 1, 
         and the weights of the dA are used in the second stage of training 
         to construct an MLP.
-   
+
         :type numpy_rng: numpy.random.RandomState
         :param numpy_rng: number random generator used to generate weights
 
         :type theano_rng: theano.tensor.shared_randomstreams.RandomStreams
         :param theano_rng: Theano random generator; if None is given one is generated
                      based on a seed drawn from `rng`
-    
+
         :type input: theano.tensor.TensorType
-        :paran input: a symbolic description of the input or None for standalone
+        :param input: a symbolic description of the input or None for standalone
                       dA
 
         :type n_visible: int
@@ -101,7 +101,7 @@ class dA(object):
         :param W: Theano variable pointing to a set of weights that should be 
                   shared belong the dA and another architecture; if dA should 
                   be standalone set this to None
-              
+
         :type bhid: theano.tensor.TensorType
         :param bhid: Theano variable pointing to a set of biases values (for 
                      hidden units) that should be shared belong dA and another 
@@ -111,35 +111,36 @@ class dA(object):
         :param bvis: Theano variable pointing to a set of biases values (for 
                      visible units) that should be shared belong dA and another
                      architecture; if dA should be standalone set this to None
-        
-    
+
+
         """
         self.n_visible = n_visible
         self.n_hidden  = n_hidden
-        
+
         # create a Theano random generator that gives symbolic random values
         if not theano_rng : 
             theano_rng = RandomStreams(rng.randint(2**30))
-    
+
         # note : W' was written as `W_prime` and b' as `b_prime`
         if not W:
             # W is initialized with `initial_W` which is uniformely sampled
-            # from -6./sqrt(n_visible+n_hidden) and 6./sqrt(n_hidden+n_visible)
-            # the output of uniform if converted using asarray to dtype 
+            # from -4*sqrt(6./(n_visible+n_hidden)) and
+            # 4*sqrt(6./(n_hidden+n_visible))the output of uniform if
+            # converted using asarray to dtype
             # theano.config.floatX so that the code is runable on GPU
             initial_W = numpy.asarray( numpy_rng.uniform( 
                       low  = -numpy.sqrt(6./(n_hidden+n_visible)), 
                       high = numpy.sqrt(6./(n_hidden+n_visible)), 
                       size = (n_visible, n_hidden)), dtype = theano.config.floatX)
-            W = theano.shared(value = initial_W, name ='W')  
-    
+            W = theano.shared(value = initial_W, name ='W')
+
         if not bvis:
             bvis = theano.shared(value = numpy.zeros(n_visible, 
                                          dtype = theano.config.floatX))
 
         if not bhid:
             bhid = theano.shared(value = numpy.zeros(n_hidden,
-                                              dtype = theano.config.floatX))
+                                dtype = theano.config.floatX), name ='b')
 
 
         self.W = W
@@ -178,8 +179,6 @@ class dA(object):
                 is always 0 or 1, this don't change the result. This is needed to allow
                 the gpu to work correctly as it only support float32 for now.
         """
-        if corruption_level==0:
-            return input
         return  self.theano_rng.binomial( size = input.shape, n = 1, prob =  1 - corruption_level, dtype=theano.config.floatX) * input
 
     
