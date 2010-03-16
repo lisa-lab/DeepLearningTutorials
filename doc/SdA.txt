@@ -75,7 +75,7 @@ representations of intermediate layers of the MLP.
 
 .. code-block:: python
 
-  class SdA(object):
+  class StackedAutoencoder():
 
     def __init__(self, numpy_rng, theano_rng = None, n_ins = 784, 
                  hidden_layers_sizes = [500,500], n_outs = 10, 
@@ -179,7 +179,10 @@ bias of the encoding part with its corresponding sigmoid layer.
 
 All we need now is to add the logistic layer on top of the sigmoid
 layers such that we have an MLP. We will 
-use the ``LogisticRegression`` class introduced in :ref:`logreg`. 
+use the ``LogisticRegression`` class introduced in :ref:`logreg`. Since
+we already have Theano variables pointing to our training dataset we
+will also construct a training function for the MLP (that we will use
+later in the fine-tunining stage). 
 
 .. code-block:: python
 
@@ -231,7 +234,8 @@ implements one step of training the ``dA`` correspoinding to layer
         index            = T.lscalar('index')   # index to a minibatch
 
 In order to be able to change the corruption level or the learning rate
-during training we associate Theano variables with default values to them.
+during training we do the following trick. We associate Theano variables
+for them and afterwards provide default values : 
 
 .. code-block:: python 
 
@@ -343,7 +347,7 @@ during finetuning ( a ``train_model``, a ``validate_model`` and a
 Note that the returned ``valid_score`` and ``test_score`` are not Theano
 functions, but rather python functions that also loop over the entire 
 validation set and the entire test set producing a list of the losses
-over these sets.
+over the sets.
 
 
 
@@ -424,8 +428,13 @@ The user can run the code by calling:
 
 By default the code runs 15 pre-training epochs for each layer, with 
 a corruption level of 0.2 and a learning rate of 0.1. Pre-training takes
-80.63 minutes. Fine-tuning is completed after 48 epochs in 97.18 
-minutes and results  in a validation score of 1.63 %, with a test 
-performace of 1.68 %.
+76.95 minutes. Fine-tuning is completed after 48 epochs in 115.73 
+minutes and results in a validation score of 1.63 %, with a test 
+performace of 1.68 %. These results were obtained on a machine with an Intel
+Xeon E5430 @ 2.66GHz CPU, with a single-threaded GotoBLAS.
 
+For comparison, on a multi-core Intel Xeon X5560 @ 2.80GHz, using multi-threaded MKL
+(with 8 threads), pre-training takes 23.43 minutes and fine-tuning takes 25.61 minutes, 
+meaning a ~4x speed-up at an 8x CPU cost.
 
+Timings accurate as of March 16, 2010.
