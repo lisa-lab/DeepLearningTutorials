@@ -279,7 +279,7 @@ class SdA(object):
 
 
 
-def test_SdA( finetune_lr = 0.1, pretraining_epochs = 2, \
+def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
               pretrain_lr = 0.1, training_epochs = 1000, \
               dataset='mnist.pkl.gz'):
     """
@@ -322,7 +322,7 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 2, \
     print '... building the model'
     # construct the stacked denoising autoencoder class
     sda = SdA( numpy_rng = numpy_rng, n_ins = 28*28, 
-                      hidden_layers_sizes = [100,100,100],
+                      hidden_layers_sizes = [1000,1000,1000],
                       n_outs = 10)
     
 

@@ -427,9 +427,9 @@ The user can run the code by calling:
   python code/SdA.py
 
 By default the code runs 15 pre-training epochs for each layer, with 
-a corruption level of 0.1 and a learning rate of 0.1. Pre-training takes
-78.88 minutes. Fine-tuning is completed after 32 epochs in 65.89 
-minutes and results  in a validation score of 1.7 %, with a test 
-performace of 1.65 %.
+a corruption level of 0.2 and a learning rate of 0.1. Pre-training takes
+80.63 minutes. Fine-tuning is completed after 48 epochs in 97.18 
+minutes and results  in a validation score of 1.63 %, with a test 
+performace of 1.68 %.
 
 

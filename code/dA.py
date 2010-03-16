@@ -170,8 +170,17 @@ class dA(object):
         
                 this will produce an array of 0s and 1s where 1 has a probability of 
                 1 - ``corruption_level`` and 0 with ``corruption_level``
+
+                The binomial function return int64 data type by default. 
+                int64 multiplicated by the input type(floatX) always return float64.
+                To keep all data in floatX when floatX is float32, we set the dtype
+                of the binomial to floatX. As in our case the value of the binomial 
+                is always 0 or 1, this don't change the result. This is needed to allow
+                the gpu to work correctly as it only support float32 for now.
         """
-        return  self.theano_rng.binomial( size = input.shape, n = 1, prob =  1 - corruption_level) * input
+        if corruption_level==0:
+            return input
+        return  self.theano_rng.binomial( size = input.shape, n = 1, prob =  1 - corruption_level, dtype=theano.config.floatX) * input
 
     
     def get_hidden_values(self, input):
@@ -254,7 +263,7 @@ def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='mnist.pkl.gz' 
     
     train_da = theano.function([index], cost, updates = updates,
          givens = {x:train_set_x[index*batch_size:(index+1)*batch_size]})
-
+    
     start_time = time.clock()
 
     ############
