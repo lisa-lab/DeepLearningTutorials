@@ -132,12 +132,12 @@ depiction of an RBM is shown below.
 .. image:: images/rbm.png
     :align: center
 
-The energy function :math:`E(x,h)` of an RBM is defined as:
+The energy function :math:`E(v,h)` of an RBM is defined as:
 
 .. math::
     :label: rbm_energy
 
-    E(v,h) = - b'x - c'h - h'Wx 
+    E(v,h) = - b'v - c'h - h'Wv 
 
 where :math:`W` represents the weights connecting hidden and visible units and
 :math:`b`, :math:`c` are the offsets of the visible and hidden layers
@@ -147,38 +147,38 @@ This translates directly to the following free energy formula:
 
 .. math::
 
-  \mathcal{F}(x)= - b'x - \sum_i \log \sum_{h_i} e^{h_i (c_i + W_i x)}.
+  \mathcal{F}(v)= - b'v - \sum_i \log \sum_{h_i} e^{h_i (c_i + W_i v)}.
 
 Because of the specific structure of RBMs, visible and hidden units are
 conditionally independent given one-another. Using this property, we can
 write:
 
 .. math::
-    p(h|x) &= \prod_i p(h_i|x) \\
-    p(x|h) &= \prod_j p(x_j|h).
+    p(h|v) &= \prod_i p(h_i|v) \\
+    p(v|h) &= \prod_j p(v_j|h).
 
 **RBMs with binary units**
 
-In the commonly studied case of using binary units (where :math:`x_j` and :math:`h_i \in
+In the commonly studied case of using binary units (where :math:`v_j` and :math:`h_i \in
 \{0,1\}`), we obtain from Eq. :eq:`rbm_energy` and :eq:`energy2`, a probabilistic
 version of the usual neuron activation function:
 
 .. math::
   :label: rbm_propup
 
-  P(h_i=1|x) = sigm(c_i + W_i x) \\
+  P(h_i=1|v) = sigm(c_i + W_i v) \\
 
 .. math::
   :label: rbm_propdown
 
-  P(x_j=1|h) = sigm(b_j + W'_j h)
+  P(v_j=1|h) = sigm(b_j + W'_j h)
 
 The free energy of an RBM with binary units further simplifies to:
 
 .. math::
   :label: rbm_free_energy   
 
-  \mathcal{F}(x)= - b'x - \sum_i \log(1 + e^{(c_i + W_i x)}).
+  \mathcal{F}(v)= - b'v - \sum_i \log(1 + e^{(c_i + W_i v)}).
 
 **Update Equations with Binary Units**
 
@@ -189,12 +189,12 @@ following log-likelihood gradients for an RBM with binary units:
     :label: rbm_grad
 
     \frac {\partial{\log p(v)}} {\partial W_{ij}} &= 
-        x^{(i)}_j \cdot sigm(W_i \cdot x^{(i)} + c_i)
+        v^{(i)}_j \cdot sigm(W_i \cdot v^{(i)} + c_i)
        - E_v[p(h_i|v) \cdot v_j] \\
     \frac {\partial{\log p(v)}} {\partial c_i} &=
-        sigm(W_i \cdot x^{(i)}) - E_v[p(h_i|v)] \\
+        sigm(W_i \cdot v^{(i)}) - E_v[p(h_i|v)] \\
     \frac {\partial{\log p(v)}} {\partial b_j} &=
-        x^{(i)}_j - E_v[p(v_j|h)]
+        v^{(i)}_j - E_h[p(v_j|h)]
 
 For a more detailed derivation of these equations, we refer the reader to the
 following `page <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/DBNEquations>`_,
