@@ -577,7 +577,7 @@ def dbn_main(finetune_lr = 0.01,
                         (28,28), (10,10),
                         tile_spacing=(1,1))).save('filters_%i_%i.png'%(layer_idx,i))
     end_time = time.clock()
-    print 'Pretraining took %f minutes' %((end_time - start_time)/60.)
+    print >> sys.stderr, ('The pretraining code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected Xm our buildbot' % (((end_time - start_time))/60.))
 
     return
 
@@ -644,7 +644,8 @@ def dbn_main(finetune_lr = 0.01,
            'with test performance %f %%') %  
                  (finetune_status['best_validation_loss']*100.,
                      finetune_status['test_score']*100.))
-    print ('The code ran for %f minutes' % ((finetune_status['duration'])/60.))
+    print >> sys.stderr, ('The fine tuning code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected Xm our buildbot' % ((end_time-start_time)/60.))
+
 
 def rbm_main():
     rbm = RBM(n_visible=20, n_hidden=30,

@@ -37,7 +37,7 @@ References:
 __docformat__ = 'restructedtext en'
 
 
-import numpy, time, cPickle, gzip
+import numpy, time, cPickle, gzip, sys, os
 
 import theano
 import theano.tensor as T
@@ -302,7 +302,7 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='mnist.pkl.gz' ):
           'test performance %f %%') % 
                (validation_scores[0]*100., validation_scores[1]*100.))
 
-    print ('The code ran for %f minutes' % ((end_time-start_time)/60.))
+    print >> sys.stderr, ('The code for file '+os.path.split(__file__)[1]+' ran for %.1fs expected 6.8s in our buildbot' % ((end_time-start_time)))
 
 
 if __name__ == '__main__':

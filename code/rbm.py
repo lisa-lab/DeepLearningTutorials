@@ -317,8 +317,7 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     end_time = time.clock()
 
     pretraining_time = (end_time - start_time) - plotting_time
-
-    print ('Training took %f minutes' %(pretraining_time/60.))
+    print >> sys.stderr, ('The pretraining code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected Xm our buildbot' % (pretraining_time/60.))
 
   
     #################################

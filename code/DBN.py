@@ -299,8 +299,7 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
             print 'Pre-training layer %i, epoch %d, cost '%(i,epoch),numpy.mean(c)
  
     end_time = time.clock()
-
-    print ('Pretraining took %f minutes' %((end_time-start_time)/60.))
+    print >> sys.stderr, ('The pretraining code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected Xm our buildbot' % ((end_time-start_time)/60.))
     
     ########################
     # FINETUNING THE MODEL #
@@ -379,7 +378,7 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
     print(('Optimization complete with best validation score of %f %%,'
            'with test performance %f %%') %  
                  (best_validation_loss * 100., test_score*100.))
-    print ('The code ran for %f minutes' % ((end_time-start_time)/60.))
+    print >> sys.stderr, ('The fine tuning code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected Xm our buildbot' % ((end_time-start_time)/60.))
 
 
 

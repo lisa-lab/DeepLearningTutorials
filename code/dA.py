@@ -30,7 +30,7 @@
 
 """
 
-import numpy, time, cPickle, gzip 
+import numpy, time, cPickle, gzip, sys, os
 
 import theano
 import theano.tensor as T
@@ -282,8 +282,7 @@ def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='mnist.pkl.gz' 
 
     training_time = (end_time - start_time)
 
-    print ('Training took %f minutes' %(training_time/60.))
-
+    print >> sys.stderr, ('The no corruption code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected 1.17m our buildbot' % ((training_time)/60.))
     image = PIL.Image.fromarray(tile_raster_images( X = da.W.value.T,
                  img_shape = (28,28),tile_shape = (10,10), 
                  tile_spacing=(1,1)))
@@ -325,7 +324,7 @@ def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='mnist.pkl.gz' 
 
     training_time = (end_time - start_time)
 
-    print ('Training took %f minutes' %(training_time/60.))
+    print >> sys.stderr, ('The 30% corruption code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected 1.18m our buildbot' % (training_time/60.))
 
     image = PIL.Image.fromarray(tile_raster_images( X = da.W.value.T,
                  img_shape = (28,28),tile_shape = (10,10), 
