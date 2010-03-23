@@ -1,0 +1,9 @@
+Reported by : Razvan
+
+Best performance for SdA float64 CPU : 1.23%
+                         float32 CPU : 1.30%
+target : 1.10%
+
+Possible reasons:
+    - bug !? 
+    - random seed / weights initialization / finetuning early stopping parameters

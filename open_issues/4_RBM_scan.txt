@@ -1,0 +1,16 @@
+Reported by : Razvan
+
+The bug can be reproduced if you do : 
+ z = scan(..)
+ c = f(z[-1])
+ gp = T.grad(c, p, consider_constant = [ z[-1] ] )
+
+In this case grad will not consider z[-1] constant. Workaround: 
+
+ z = scan(..)
+ z_1 = z[-1]
+ c = f(z_1)
+ gp = T.grad(c,p, consider_constant = [z_1])
+
+ Note : I need to make sure this actually happens .. it might have been an
+ artifact of something else when I first got this. 
