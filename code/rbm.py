@@ -6,7 +6,7 @@ to those without visible-visible and hidden-hidden connections.
 """
 
 
-import numpy, time, cPickle, gzip, PIL.Image
+import numpy, time, cPickle, gzip, sys, os, PIL.Image
 
 import theano
 import theano.tensor as T
@@ -281,7 +281,8 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     #     Training the RBM          #
     #################################
     dirname = 'lr=%.5f'%learning_rate
-    os.makedirs(dirname)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
     os.chdir(dirname)
 
     # it is ok for a theano function to have no output
@@ -317,7 +318,7 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     end_time = time.clock()
 
     pretraining_time = (end_time - start_time) - plotting_time
-    print >> sys.stderr, ('The pretraining code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected Xm our buildbot' % (pretraining_time/60.))
+    print >> sys.stderr, ('The pretraining code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected 2.17m our buildbot' % (pretraining_time/60.))
 
   
     #################################
@@ -350,6 +351,9 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     # until you plot at least `n_samples`
     n_samples = 10
     plot_every = 1000
+    
+    plotting_time = 0.
+    start_time=time.time()
 
     for idx in xrange(n_samples):
 
@@ -358,6 +362,7 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
             vis_mf, vis_sample = sample_fn()
 
         # construct image
+        plotting_start = time.clock()
         image = PIL.Image.fromarray(tile_raster_images( 
                                          X          = vis_mf,
                                          img_shape  = (28,28),
@@ -365,6 +370,12 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
                                          tile_spacing = (1,1) ) )
         print ' ... plotting sample ', idx
         image.save('sample_%i_step_%i.png'%(idx,idx*jdx))
+        plotting_stop = time.clock()
+        plotting_time += (plotting_stop - plotting_start)
+
+    end_time=time.time()
+    sampling_time = (end_time - start_time) - plotting_time
+    print >> sys.stderr, ('The sampling code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected 1.57m in our buildbot' % (sampling_time/60.))
 
 if __name__ == '__main__':
     test_rbm()

@@ -1,4 +1,4 @@
-import convolutional_mlp, logistic_cg, logistic_sgd, mlp, SdA, dA
+import convolutional_mlp, logistic_cg, logistic_sgd, mlp, SdA, dA, rbm
 from nose.plugins.skip import SkipTest
 import theano
 #TODO: rbm, DBN, deep
@@ -14,7 +14,7 @@ def test_convolutional_mlp():
 def test_dbn():
     raise SkipTest('Implementation not finished')
 def test_rbm():
-    raise SkipTest('Implementation not finished')
+    rbm.test_rbm(training_epochs=2)
 def test_dA():
     dA.test_dA(training_epochs = 2)
 def test_SdA():
