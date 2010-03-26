@@ -45,26 +45,26 @@ the :math:`\ell` hidden layers :math:`h^k` as follows:
  
     P(x, h^1, \ldots, h^{\ell}) = \left(\prod_{k=0}^{\ell-2} P(h^k|h^{k+1})\right) P(h^{\ell-1},h^{\ell})
 
-where :math:`x=h^0`, :math:`P(h^{k-1} | h^k)` is a conditional distribution for
-visible hidden units in an RBM associated with level :math:`k` of the DBN,
-and :math:`P(h^{\ell-1}, h^{\ell})` is the visible-hidden joint distribution
-in the top-level RBM. This is illustrated in the figure below.
+where :math:`x=h^0`, :math:`P(h^{k-1} | h^k)` is a conditional distribution
+for the visible units conditioned on the hidden units of the RBM at level
+:math:`k`, and :math:`P(h^{\ell-1}, h^{\ell})` is the visible-hidden joint
+distribution in the top-level RBM. This is illustrated in the figure below.
 
 
 .. figure:: images/DBN3.png
     :align: center
 
-The principle of greedy layer-wise unsupervised training can be applied with
-RBMs as the building blocks for each layer [Hinton06]_, [Bengio07]_. The process
-is as follows:
+The principle of greedy layer-wise unsupervised training can be applied to
+DBNs with RBMs as the building blocks for each layer [Hinton06]_, [Bengio07]_.
+The process is as follows:
 
 1. Train the first layer as an RBM that models the raw input :math:`x =
 h^{(0)}` as its visible layer.
 
-2. Use that first layer to obtain a representation of the input data that will
-be used as data for the second layer. Two common solutions exist. The
-reprensetation can be chosen as being the mean activations
-:math:`p(h^{(1)}=1|h^{(0)}` or samples of :math:`p(h^{(1)}|h^{(0)}`.
+2. Use that first layer to obtain a representation of the input that will
+be used as data for the second layer. Two common solutions exist. This
+representation can be chosen as being the mean activations
+:math:`p(h^{(1)}=1|h^{(0)})` or samples of :math:`p(h^{(1)}|h^{(0)})`.
 
 3. Train the second layer as an RBM, taking the transformed data (samples or
 mean activations) as training examples (for the visible layer of that RBM).
@@ -100,7 +100,7 @@ p(x)` can be rewritten as,
     :label: dbn_bound
 
     \log p(x) = &KL(Q(h^{(1)}|x)||p(h^{(1)}|x)) + H_{Q(h^{(1)}|x)} + \\
-                &\sum_h Q(h^{(1)}|x)(\log p(h^{(1)}) + \log p(x|h^{(1)}))
+                &\sum_h Q(h^{(1)}|x)(\log p(h^{(1)}) + \log p(x|h^{(1)})).
 
 :math:`KL(Q(h^{(1)}|x) || p(h^{(1)}|x))` represents the KL divergence between
 the posterior :math:`Q(h^{(1)}|x)` of the first RBM if it were standalone, and the
@@ -133,10 +133,10 @@ for SdA. The main difference is that we use the RBM class instead of the dA
 class.
 
 We start off by defining the DBN class which will store the layers of the 
-MLP, along with their associated RBMs. Since in this tutorial we take the 
-viewpoint of using the RBMs to initialize an MLP, the code will reflect this
-by seperating as much as possible the RBMs used to initialize the network
-and the MLP used for classification.
+MLP, along with their associated RBMs. Since we take the viewpoint of using
+the RBMs to initialize an MLP, the code will reflect this by seperating as
+much as possible the RBMs used to initialize the network and the MLP used for
+classification.
 
 .. code-block:: python
 
@@ -180,16 +180,16 @@ and the MLP used for classification.
             self.y  = T.ivector('y') # the labels are presented as 1D vector of 
                                      # [int] labels
 
-``self.sigmoid_layers`` will store the sigmoid layers of the MLP facade, while
-``self.rbm_layers`` will store the RBMs associated with the layers of the MLP. 
+``self.sigmoid_layers`` will store the feed-forward graph which together form
+the MLP, while ``self.rbm_layers`` will store the RBMs used to pretrain each
+layer of the MLP.
 
 Next step, we construct ``n_layers`` sigmoid layers (we use the
-``SigmoidalLayer`` class introduced in :ref:`mlp`, with the only
-modification that we replaced the non-linearity from ``tanh`` to the
-logistic function :math:`s(x) = \frac{1}{1+e^{-x}}`) and ``n_layers``
-RBMs, where ``n_layers`` is the depth of our model.
-We link the sigmoid layers such that they form an MLP, and construct
-each RBM such that they share the weight matrix and the 
+``SigmoidalLayer`` class introduced in :ref:`mlp`, with the only modification
+that we replaced the non-linearity from ``tanh`` to the logistic function
+:math:`s(x) = \frac{1}{1+e^{-x}}`) and ``n_layers`` RBMs, where ``n_layers``
+is the depth of our model.  We link the sigmoid layers such that they form an
+MLP, and construct each RBM such that they share the weight matrix and the
 bias with its corresponding sigmoid layer.
 
 
@@ -236,9 +236,9 @@ bias with its corresponding sigmoid layer.
             self.rbm_layers.append(rbm_layer)        
 
 
-All we need now is to add the logistic layer on top of the sigmoid
-layers such that we have an MLP. We will 
-use the ``LogisticRegression`` class introduced in :ref:`logreg`. 
+All that is left is to stack one last logistic regression layer in order to
+form an MLP. We will use the ``LogisticRegression`` class introduced in
+:ref:`logreg`. 
 
 .. code-block:: python
 
@@ -257,10 +257,9 @@ use the ``LogisticRegression`` class introduced in :ref:`logreg`.
         # minibatch given by self.x and self.y
         self.errors = self.logLayer.errors(self.y)
 
-The class also provides a method that generates training functions for
-each of the RBM associated with the different layers. 
-They are returned as a list, where element :math:`i` is a function that
-implements one step of training the ``RBM`` correspoinding to layer 
+The class also provides a method which generates training functions for each
+of the RBMs. They are returned as a list, where element :math:`i` is a
+function which implements one step of training for the ``RBM`` at layer
 :math:`i`.
 
 
@@ -282,9 +281,8 @@ implements one step of training the ``RBM`` correspoinding to layer
         # index to a [mini]batch
         index            = T.lscalar('index')   # index to a minibatch
 
-In order to be able to change the learning rate
-during training we associate a Theano variable to it that has a 
-default value.
+In order to be able to change the learning rate during training, we associate a
+Theano variable to it that has a default value.
 
 .. code-block:: python
 
@@ -319,18 +317,17 @@ default value.
 
         return pretrain_fns
 
-Now any function ``pretrain_fns[i]`` takes as arguments ``index`` and 
-optionally ``lr`` -- the
-learning rate. Note that the name of the parameters are the name given 
-to the Theano variables when they are constructed, not the name of the 
-python variables (``learning_rate``). Keep this 
-in mind when working with Theano. Optionally, if you provide ``k`` (the 
-number of Gibbs steps to do in CD or PCD) this will also become an argument
-of your function.
+Now any function ``pretrain_fns[i]`` takes as arguments ``index`` and
+optionally ``lr`` -- the learning rate. Note that the names of the parameters
+are the names given to the Theano variables (e.g. ``lr``) when they are
+constructed and not the name of the python variables (e.g. ``learning_rate``). Keep
+this in mind when working with Theano. Optionally, if you provide ``k`` (the
+number of Gibbs steps to perform in CD or PCD) this will also become an
+argument of your function.
 
-In the same fashion we build a method for constructing function required 
-during finetuning ( a ``train_model``, a ``validate_model`` and a
-``test_model`` function). 
+In the same fashion, the DBN class includes a method for building the
+functions required for finetuning ( a ``train_model``, a ``validate_model``
+and a ``test_model`` function). 
 
 .. code-block:: python
 
@@ -397,9 +394,9 @@ during finetuning ( a ``train_model``, a ``validate_model`` and a
 
 
 Note that the returned ``valid_score`` and ``test_score`` are not Theano
-functions, but rather python functions that also loop over the entire 
-validation set and the entire test set producing a list of the losses
-over these sets.
+functions, but rather Python functions. These loop over the entire 
+validation set and the entire test set to produce a list of the losses
+obtained over these sets.
 
 
 Putting it all together
@@ -418,15 +415,14 @@ The few lines of code below constructs the deep belief network :
     
 
 
-There are two stages in training this network, a layer-wise pre-training and 
-fine-tuning afterwards. 
+There are two stages in training this network: (1) a layer-wise pre-training and
+(2) a fine-tuning stage.
 
-For the pre-training stage, we will loop over all the layers of the
-network. For each layer we will use the compiled theano function that
-implements a SGD step towards optimizing the weights for reducing 
-the reconstruction cost of that layer. This function will be applied 
-to the training set for a fixed number of epochs given by
-``pretraining_epochs``.
+For the pre-training stage, we loop over all the layers of the network. For
+each layer, we use the compiled theano function which determines the
+input to the ``i``-th level RBM and performs one step of CD-k within this RBM.
+This function is applied to the training set for a fixed number of epochs
+given by ``pretraining_epochs``.
 
 
 .. code-block:: python
@@ -457,8 +453,8 @@ to the training set for a fixed number of epochs given by
  
     end_time = time.clock()
 
-The fine-tuning loop is very similar with the one in the :ref:`mlp`, the
-only difference is that we will use now the functions given by
+The fine-tuning loop is very similar to the one in the :ref:`mlp` tutorial,
+the only difference being that we now use the functions given by
 `build_finetune_functions`.
 
 Running the Code
@@ -479,12 +475,12 @@ Tips and Tricks
 +++++++++++++++
 
 One way to improve the running time of your code (given that you have
-sufficient memory available), is to compute how the network, up to layer
-:math:`k-1`, transforms your data. Namely, you start by training your first
+sufficient memory available), is to compute the representation of the entire
+dataset at layer ``i`` in a single pass, once the weights of the
+:math:`i-1`-th layers have been fixed. Namely, start by training your first
 layer RBM. Once it is trained, you can compute the hidden units values for
-every datapoint in your dataset and store this as a new dataset that you will
-use to train the RBM corresponding to layer 2. Once you trained the RBM for
-layer 2, you compute, in a similar fashion, the dataset for layer 3 and so on.
-You can see now, that at this point, the RBMs are trained individually, and
-they just provide (one to the other) a non-linear transformation of the input.
-Once all RBMs are trained, you can start fine-tunning the model.
+every example in the dataset and store this as a new dataset which is used to
+train the 2nd layer RBM. Once you trained the RBM for layer 2, you compute, in
+a similar fashion, the dataset for layer 3 and so on. This avoids calculating
+the intermediate (hidden layer) representations, ``pretraining_epochs`` times
+at the expense of increased memory usage.
