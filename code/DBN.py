@@ -373,8 +373,9 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
            'with test performance %f %%') %  
                  (best_validation_loss * 100., test_score*100.))
     print >> sys.stderr, ('The fine tuning code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected Xm our buildbot' % ((end_time-start_time)/60.))
-
-
+    ##################
+    ## SAMPLING DBN ##
+    ##################
 
 
 

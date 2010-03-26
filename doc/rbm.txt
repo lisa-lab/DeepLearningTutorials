@@ -52,13 +52,16 @@ with physical systems.
     Z = \sum_x e^{-E(x)}
 
 An energy-based model can be learnt by performing (stochastic) gradient
-descent on the empirical log-likelihood of the training data:
+descent on the empirical negative log-likelihood of the training data. As for 
+the logistic regression we will first define the log-likelihood and then the
+loss function as being the negative log-likelihood.
 
 .. math::
     \mathcal{L}(\theta, \mathcal{D}) = \frac{1}{N} \sum_{x^{(i)} \in
-    \mathcal{D}} \log\ p(x^{(i)}).
+    \mathcal{D}} \log\ p(x^{(i)}).\\
+    \ell (\theta, \mathcal{D}) = - \mathcal{L} (\theta, \mathcal{D})
 
-using the stochastic gradient :math:`\frac{\partial \log p(x^{(i)})}{\partial
+using the stochastic gradient :math:`\frac{\partial - \log p(x^{(i)})}{\partial
 \theta}`, where :math:`\theta` are the parameters of the model.
 
 
@@ -88,11 +91,14 @@ which allows us to write,
 .. math::
     &P(x) = \frac{e^{-\mathcal{F}(x)}}{Z} \text{ with } Z=\sum_x e^{-\mathcal{F}(x)}.
 
-The data log-likelihood gradient then has a particularly interesting form.
+The data negative log-likelihood gradient then has a particularly interesting
+form.
 
 .. math::
-  \frac{\partial \log p(x)}{\partial \theta}
-   &= - \frac{\partial \mathcal{F}(x)}{\partial \theta} + 
+  :label: free_energy_grad
+
+  - \frac{\partial - \log p(x)}{\partial \theta}
+   &= \frac{\partial \mathcal{F}(x)}{\partial \theta} -
          \sum_{\tilde{x}} p(\tilde{x}) \
              \frac{\partial \mathcal{F}(\tilde{x})}{\partial \theta}.
 
@@ -118,9 +124,9 @@ denoted as :math:`\mathcal{N}`. The gradient can then be written as:
 .. math::
   :label: bm_grad
 
-  \frac{\partial \log p(x)}{\partial \theta}
+  \frac{\partial -\log p(x)}{\partial \theta}
    &\approx 
-   - \frac{\partial \mathcal{F}(x)}{\partial \theta} + 
+    \frac{\partial \mathcal{F}(x)}{\partial \theta} -
      \frac{1}{|\mathcal{N}|}\sum_{\tilde{x} \in \mathcal{N}} \
      \frac{\partial \mathcal{F}(\tilde{x})}{\partial \theta}.
 
@@ -128,7 +134,7 @@ where we would ideally like elements :math:`\tilde{x}` of :math:`\mathcal{N}` to
 according to :math:`P` (i.e. we are doing Monte-Carlo).
 With the above formula, we almost have a pratical, stochastic algorithm for
 learning an EBM. The only missing ingredient is how to extract these negative
-particles :math:`\mathcal{N}`. While the statistical litterature abounds with
+particles :math:`\mathcal{N}`. While the statistical literature abounds with
 sampling methods, Markov Chain Monte Carlo methods are especially well suited
 for models such as the Restricted Boltzmann Machines (RBM), a specific type of
 EBM.
@@ -207,17 +213,18 @@ following log-likelihood gradients for an RBM with binary units:
 .. math::
     :label: rbm_grad
 
-    \frac {\partial{\log p(v)}} {\partial W_{ij}} &= 
-        v^{(i)}_j \cdot sigm(W_i \cdot v^{(i)} + c_i)
-       - E_v[p(h_i|v) \cdot v_j] \\
-    \frac {\partial{\log p(v)}} {\partial c_i} &=
-        sigm(W_i \cdot v^{(i)}) - E_v[p(h_i|v)] \\
-    \frac {\partial{\log p(v)}} {\partial b_j} &=
-        v^{(i)}_j - E_h[p(v_j|h)]
+    \frac {\partial{- \log p(v)}} {\partial W_{ij}} &= 
+        E_v[p(h_i|v) \cdot v_j] 
+        - v^{(i)}_j \cdot sigm(W_i \cdot v^{(i)} + c_i)
+    \frac {\partial{- \log p(v)}} {\partial c_i} &=
+        E_v[p(h_i|v)] - sigm(W_i \cdot v^{(i)})  \\
+    \frac {\partial{- \log p(v)}} {\partial b_j} &=
+        E_v[p(v_j|h)] - v^{(i)}_j
 
 For a more detailed derivation of these equations, we refer the reader to the
 following `page <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/DBNEquations>`_,
-or to section 5 of `Learning Deep Architectures for AI <http://www.iro.umontreal.ca/%7Elisa/publications2/index.php/publications/show/239>`_.
+or to section 5 of `Learning Deep Architectures for AI <http://www.iro.umontreal.ca/%7Elisa/publications2/index.php/publications/show/239>`_. We will however not use these formulas, but rather get the gradient using Theano `T.grad`_
+from equation :eq:`free_energy_grad`.
 
 
 Sampling in an RBM
@@ -239,14 +246,14 @@ simultaneously given the visibles. A step in the Markov chain is thus taken as
 follows: 
 
 .. math::
-    h^{(n+1)} &\sim sigm(W'x^{(n)} + c) \\
-    x^{(n+1)} &\sim sigm(W h^{(n+1)} + b),
+    h^{(n+1)} &\sim sigm(W'v^{(n)} + c) \\
+    v^{(n+1)} &\sim sigm(W h^{(n+1)} + b),
 
 where :math:`h^{(n)}` refers to the set of all hidden units at the n-th step of
 the Markov chain. What it means is that, for example, :math:`h^{(n+1)}_i` is
-randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_i'x^{(n)} + c_i)`,
+randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_i'v^{(n)} + c_i)`,
 and similarly, 
-:math:`x^{(n+1)}_j` is
+:math:`v^{(n+1)}_j` is
 randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_{.j} h^{(n+1)} + b_j)`.
 
 This can be illustrated graphically:
@@ -254,13 +261,13 @@ This can be illustrated graphically:
 .. image:: images/markov_chain.png
     :align: center
 
-As :math:`t \rightarrow \infty`, samples :math:`(x^{(t)}, h^{(t)})` are
-guaranteed to be accurate samples of :math:`p(x,h)`.
+As :math:`t \rightarrow \infty`, samples :math:`(v^{(t)}, h^{(t)})` are
+guaranteed to be accurate samples of :math:`p(v,h)`.
 
 In theory, each parameter update in the learning process would require running
 one such chain to convergence. It is needless to say that doing so would be
 prohibitively expensive. As such, several algorithms have been devised for
-RBMs, in order to efficiently sample from :math:`p(x,h)` during the learning
+RBMs, in order to efficiently sample from :math:`p(v,h)` during the learning
 process.
 
 
@@ -269,7 +276,7 @@ Contrastive Divergence (CD-k)
 
 Contrastive Divergence uses two tricks to speed up the sampling process:
 
-* since we eventually want :math:`p(x) \approx p_{train}(x)` (the true, underlying
+* since we eventually want :math:`p(v) \approx p_{train}(v)` (the true, underlying
   distribution of the data), we initialize the Markov chain with a training
   example (i.e., from a distribution that is expected to be close to :math:`p`,
   so that the chain will be already close to having converged to its final distribution :math:`p`).
@@ -283,7 +290,7 @@ Persistent CD
 -------------
 
 Persistent CD [Tieleman08]_ uses another approximation for sampling from
-:math:`p(x,h)`.  It relies on a single Markov chain, which has a persistent
+:math:`p(v,h)`.  It relies on a single Markov chain, which has a persistent
 state (i.e., not restarting a chain for each observed example). For each
 parameter update, we extract new samples by simply running the chain for
 k-steps. The state of the chain is then preserved for subsequent updates.
@@ -389,26 +396,39 @@ with Eqs. :eq:`rbm_propup` - :eq:`rbm_propdown`. The code is as follows:
 
 .. code-block:: python
 
+
+    def propup(self, vis):
+        ''' This function propagates the visible units activation upwards to
+        the hidden units '''
+        return T.nnet.sigmoid(T.dot(v, self.W) + self.hbias)
+
     def sample_h_given_v(self, v0_sample):
         ''' This function infers state of hidden units given visible units '''
         # compute the activation of the hidden units given a sample of the visibles
-        h1_mean = T.nnet.sigmoid(T.dot(v0_sample, self.W) + self.hbias)
+        h1_mean = self.propup(v0_sample)
         # get a sample of the hiddens given their activation
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
         # for the GPU we need to specify to return the dtype floatX
-        h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, prob = h1_mean, dtype = theano.config.floatX)
+        h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, prob = h1_mean,
+                dtype = theano.config.floatX)
         return [h1_mean, h1_sample]
+
+    def propdown(self.hid):
+        '''This function propagates the hidden units activation downwards to
+        the visible units'''
+        return T.nnet.sigmoid(T.dot(hid,self.W.T) + self.vbias)
 
     def sample_v_given_h(self, h0_sample):
         ''' This function infers state of visible units given hidden units '''
         # compute the activation of the visible given the hidden sample
-        v1_mean = T.nnet.sigmoid(T.dot(h0_sample, self.W.T) + self.vbias)
+        v1_mean = self.propdown(h0_sample)
         # get a sample of the visible given their activation
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
         # for the GPU we need to specify to return the dtype floatX
-        v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,prob = v1_mean, dtype = theano.config.floatX)
+        v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,prob = v1_mean,
+                dtype = theano.config.floatX)
         return [v1_mean, v1_sample]
 
 We can then use these functions to define the symbolic graph for a Gibbs
@@ -439,7 +459,7 @@ The code is as follows:
         v1_mean, v1_sample = self.sample_v_given_h(h1_sample)
         return [h1_mean, h1_sample, v1_mean, v1_sample]
 
-The class also has a function that computes the free energy of the model, needed for computing the gradient of the parameters  (see Eq. :eq:`rbm_grad`).
+The class also has a function that computes the free energy of the model, needed for computing the gradient of the parameters  (see Eq. :eq:`free_energy_grad`).
 
 .. code-block:: python
 
@@ -493,9 +513,8 @@ state of the Gibbs chain from the previous iteration.
 
 If ``persistent`` is ``None``, we initialize the Gibbs chain with the hidden
 sample generated during the positive phase, therefore implementing CD. Once we have established the
-starting point of the chain, we can then compute the values of the visible 
-units in the negative phase. These are required to
-compute the gradients of Eq. :eq:`rbm_grad`. To do so, we will use the ``scan`` 
+starting point of the chain, we can then compute the sample at the end of the
+Gibbs chain, sample that we need for getting the gradient (see  Eq. :eq:`free_energy_grad`). To do so, we will use the ``scan`` 
 op provided by Theano, therefore we urge the reader to look it up by following this `link <http://deeplearning.net/software/theano/library/scan.html>`_.
 
 .. code-block:: python
@@ -513,6 +532,19 @@ op provided by Theano, therefore we urge the reader to look it up by following t
                     # 4th output
                     outputs_info = [None,None,None,chain_start],
                     n_steps = k)
+
+
+Once we have the generated the chain we take the sample at the end of the 
+chain to get the free energy of the negative phase. Note that the
+``chain_end`` is a symbolical Theano variable express in terms of the model
+parameters, and if we would apply ``T.grad`` naively, the function will 
+try to go through the Gibbs chain to get the gradients. This is not what we 
+want (it will mess up our gradients) and therefire we need to indicate to
+``T.grad`` that ``chain_end`` is a constant. We do this by using the argument
+``consider_constant`` of ``T.grad``.
+
+.. code-block:: python
+
 
         # determine gradients on RBM parameters
         # not that we only need the sample at the end of the chain
@@ -691,22 +723,6 @@ been shown to lead to a better generative model ([Tieleman08]_).
            mean_cost += [train_rbm(batch_index)]
 
         print 'Training epoch %d, cost is '%epoch, numpy.mean(mean_cost)
-
-        # Plot filters after each training epoch
-        plotting_start = time.clock()
-        # Construct image from the weight matrix 
-        image = PIL.Image.fromarray(tile_raster_images( X = rbm.W.value.T,
-                 img_shape = (28,28),tile_shape = (10,10), 
-                 tile_spacing=(1,1)))
-        image.save('filters_at_epoch_%i.png'%epoch)
-        plotting_stop = time.clock()
-        plotting_time += (plotting_stop - plotting_start)
-
-    end_time = time.clock()
-
-    pretraining_time = (end_time - start_time) - plotting_time
-
-    print ('Training took %f minutes' %(pretraining_time/60.))
 
 Once the RBM is trained, we can then use the ``gibbs_vhv`` function to implement
 the Gibbs chain required for sampling. We initialize the Gibbs chain starting

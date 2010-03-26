@@ -104,10 +104,15 @@ class RBM(object):
         hidden_term = T.sum(T.log(1+T.exp(wx_b)),axis = 1)
         return -hidden_term - vbias_term
 
+    def propup(self, vis):
+        ''' This function propagates the visible units activation upwards to
+        the hidden units '''
+        return T.nnet.sigmoid(T.dot(v, self.W) + self.hbias)
+
     def sample_h_given_v(self, v0_sample):
         ''' This function infers state of hidden units given visible units '''
         # compute the activation of the hidden units given a sample of the visibles
-        h1_mean = T.nnet.sigmoid(T.dot(v0_sample, self.W) + self.hbias)
+        h1_mean = self.propup(v0_sample)
         # get a sample of the hiddens given their activation
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
@@ -116,10 +121,15 @@ class RBM(object):
                 dtype = theano.config.floatX)
         return [h1_mean, h1_sample]
 
+    def propdown(self.hid):
+        '''This function propagates the hidden units activation downwards to
+        the visible units'''
+        return T.nnet.sigmoid(T.dot(hid,self.W.T) + self.vbias)
+
     def sample_v_given_h(self, h0_sample):
         ''' This function infers state of visible units given hidden units '''
         # compute the activation of the visible given the hidden sample
-        v1_mean = T.nnet.sigmoid(T.dot(h0_sample, self.W.T) + self.vbias)
+        v1_mean = self.propdown(h0_sample)
         # get a sample of the visible given their activation
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
@@ -352,13 +362,13 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     #################################
 
 
-    # find out the number of test 
+    # find out the number of test samples 
     number_of_test_samples = test_set_x.value.shape[0]
 
     # pick random test examples, with which to initialize the persistent chain
     test_idx = rng.randint(number_of_test_samples-n_chains)
     persistent_vis_chain = theano.shared(
-            numpy.array(test_set_x.value[test_idx:test_idx+100], dtype=theano.config.floatX))
+            numpy.array(test_set_x.value[test_idx:test_idx+n_chains], dtype=theano.config.floatX))
 
     plot_every = 1000
     # define one step of Gibbs sampling (mf = mean-field)

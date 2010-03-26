@@ -34,9 +34,11 @@ Deep Belief Networks
 Deep Belief Networks
 ++++++++++++++++++++
 
-A Deep Belief Network [Hinton06]_ with :math:`\ell` layers models the joint
-distribution between observed vector :math:`x` and :math:`\ell` hidden layers :math:`h^k` as
-follows:
+[Hinton06]_ showed that RBMs can be stacked and trained in a greedy manner
+to form so-called Deep Belief Networks (DBN). DBNs are graphical models which
+learn to extract a deep hierarchical representation of the training data.
+They model the joint distribution between observed vector :math:`x` and
+the :math:`\ell` hidden layers :math:`h^k` as follows:
 
 .. math::
     :label: dbn
@@ -52,41 +54,89 @@ in the top-level RBM. This is illustrated in the figure below.
 .. figure:: images/DBN3.png
     :align: center
 
+The principle of greedy layer-wise unsupervised training can be applied with
+RBMs as the building blocks for each layer [Hinton06]_, [Bengio07]_. The process
+is as follows:
 
-In practice, such a model is trained in two stages, a pretraining stage and 
-a fine-tunning one. During pretraining, you go through the layers starting 
-from the bottom to top and train each layer seperately. At this point you 
-can see your model as a set of disconnected RBMs that have to be trained. 
-To train the RBM corresponding to layer :math:`k` though, you need to have
-the input of this layer (which depends on the RBM corresponding to the first
-:math:`k-1` layers) and this is why you have to go through the RBMs in a 
-specific order. A trick that you can do (and would actually improve the 
-time run of your code, given that you have sufficient memory available), 
-is to compute how the network, up to layer :math:`k-1`, transforms your 
-data. Namely, you start by training your first layer RBM. Once it 
-is trained, you can compute the hidden units values for every datapoint in 
-your dataset and store this as a new dataset that you will use to train the 
-RBM corresponding to layer 2. Once you trained the RBM for layer 2, you 
-compute, in a similar fashion, the dataset for layer 3 and so on. You 
-can see now, that at this point, the RBMs are trained individually, and 
-they just provide (one to the other) a non-linear transformation of the 
-input.  Once all RBMs are trained, you can start fine-tunning the model.
+1. Train the first layer as an RBM that models the raw input :math:`x =
+h^{(0)}` as its visible layer.
 
-During fine-tunning, you drop the RBMs and just use the learned weights 
-and biases to create a MLP. Layer :math:`k` of the MLP will have the 
-weights and biases of the RBM corresponding to layer :math:`k`. On top 
-of these layers you add a logistic regression layer and train the model
-using (stochastic) gradient descent. Note, that for classification you 
-use the RBMs just to initialize your MLP, which you will use in the end 
-as your model. 
+2. Use that first layer to obtain a representation of the input data that will
+be used as data for the second layer. Two common solutions exist. The
+reprensetation can be chosen as being the mean activations
+:math:`p(h^{(1)}=1|h^{(0)}` or samples of :math:`p(h^{(1)}|h^{(0)}`.
 
-To implement this in Theano we will use the class defined before for the
-RBM tutorial. As an observation, the code for the DBN is very similar 
-with the one for SdA, mostly the difference being that we use the RBM class
-instead of the dA class.
+3. Train the second layer as an RBM, taking the transformed data (samples or
+mean activations) as training examples (for the visible layer of that RBM).
 
-We start off, by defining the DBN class which will store the layers of the 
-MLP together with the RBMs that are linked to them.
+4. Iterate (2 and 3) for the desired number of layers, each time propagating
+upward either samples or mean values.
+
+5. Fine-tune all the parameters of this deep architecture with respect to a
+proxy for the DBN log- likelihood, or with respect to a supervised training
+criterion (after adding extra learning machinery to convert the learned
+representation into supervised predictions, e.g. a linear classifier).
+
+
+In this tutorial, we focus on fine-tuning via supervised gradient descent.
+Specifically, we use a logistic regression classifier to classify the input
+:math:`x` based on the output of the last hidden layer :math:`h^{(l)}` of the
+DBN. Fine-tuning is then performed via supervised gradient descent of the
+negative log-likelihood cost function. Since the supervised gradient is only
+non-null for the weights and hidden layer biases of each layer (i.e. null for
+the visible biases of each RBM), this procedure is equivalent to initializing
+the parameters of a deep MLP with the weights and hidden layer biases obtained
+with the unsupervised training strategy.
+
+Justifying Greedy-Layer Wise Pre-Training
++++++++++++++++++++++++++++++++++++++++++
+
+Why does such an algorithm work ? Taking as example a 2-layer DBN with hidden
+layers :math:`h^{(1)}` and :math:`h^{(2)}` (with respective weight parameters
+:math:`W^{(1)}` and :math:`W^{(2)}`), [Bengio09]_ established that :math:`\log
+p(x)` can be rewritten as,
+
+.. math::
+    :label: dbn_bound
+
+    \log p(x) = &KL(Q(h^{(1)}|x)||p(h^{(1)}|x)) + H_{Q(h^{(1)}|x)} + \\
+                &\sum_h Q(h^{(1)}|x)(\log p(h^{(1)}) + \log p(x|h^{(1)}))
+
+:math:`KL(Q(h^{(1)}|x) || p(h^{(1)}|x))` represents the KL divergence between
+the posterior :math:`Q(h^{(1)}|x)` of the first RBM if it were standalone, and the
+probability :math:`p(h^{(1)}|x)` for the same layer but defined by the entire DBN
+(i.e. taking into account the prior :math:`p(h^{(1)},h^{(2)})` defined by the
+top-level RBM). :math:`H_{Q(h^{(1)}|x)}` is the entropy of the distribution
+:math:`Q(h^{(1)}|x)`. 
+
+It can be shown that if we initialize both hidden layers such that
+:math:`W^{(2)}={W^{(1)}}^T`, :math:`Q(h^{(1)}|x)=p(h^{(1)}|x)` and the KL
+divergence term is null. If we learn the first level RBM and then keep its
+parameters :math:`W^{(1)}` fixed, optimizing Eq. :eq:`dbn_bound` with respect
+to :math:`W^{(2)}` can thus only increase the likelihood :math:`p(x)`.  
+
+Also, notice that if we isolate the terms which depend only on :math:`W^{(2)}`, we
+get: 
+
+.. math:: 
+    \sum_h Q(h^{(1)}|x)p(h^{(1)})
+    
+Optimizing this with respect to :math:`W^{(2)}` amounts to training a second-stage
+RBM, using the output of :math:`Q(h^{(1)}|x)` as the training distribution.
+
+Implementation
+++++++++++++++
+
+To implement DBNs in Theano, we will use the class defined in the :doc:`rbm`
+tutorial. As an observation, the code for the DBN is very similar with the one
+for SdA. The main difference is that we use the RBM class instead of the dA
+class.
+
+We start off by defining the DBN class which will store the layers of the 
+MLP, along with their associated RBMs. Since in this tutorial we take the 
+viewpoint of using the RBMs to initialize an MLP, the code will reflect this
+by seperating as much as possible the RBMs used to initialize the network
+and the MLP used for classification.
 
 .. code-block:: python
 
@@ -131,16 +181,16 @@ MLP together with the RBMs that are linked to them.
                                      # [int] labels
 
 ``self.sigmoid_layers`` will store the sigmoid layers of the MLP facade, while
-``self.rbm_layers`` will store  the RBMs associated with the layers of the MLP. 
+``self.rbm_layers`` will store the RBMs associated with the layers of the MLP. 
 
 Next step, we construct ``n_layers`` sigmoid layers (we use the
 ``SigmoidalLayer`` class introduced in :ref:`mlp`, with the only
 modification that we replaced the non-linearity from ``tanh`` to the
 logistic function :math:`s(x) = \frac{1}{1+e^{-x}}`) and ``n_layers``
-denoising autoencoders, where ``n_layers`` is the depth of our model.
+RBMs, where ``n_layers`` is the depth of our model.
 We link the sigmoid layers such that they form an MLP, and construct
 each RBM such that they share the weight matrix and the 
-bias of the encoding part with its corresponding sigmoid layer.
+bias with its corresponding sigmoid layer.
 
 
 .. code-block:: python
@@ -216,7 +266,7 @@ implements one step of training the ``RBM`` correspoinding to layer
 
 .. code-block:: python
 
-    def pretraining_functions(self, train_set_x, batch_size):
+    def pretraining_functions(self, train_set_x, batch_size, k):
         ''' Generates a list of functions, for performing one step of gradient descent at a
         given layer. The function will require as input the minibatch index, and to train an
         RBM you just need to iterate, calling the corresponding function on all minibatch
@@ -226,6 +276,7 @@ implements one step of training the ``RBM`` correspoinding to layer
         :param train_set_x: Shared var. that contains all datapoints used for training the RBM
         :type batch_size: int
         :param batch_size: size of a [mini]batch
+        :param k: number of Gibbs steps to do in CD-k / PCD-k
         '''
 
         # index to a [mini]batch
@@ -251,11 +302,15 @@ default value.
 
             # get the cost and the updates list
             # TODO: change cost function to reconstruction error
-            cost,updates = rbm.cd(learning_rate, persistent=None)
+            cost,updates = rbm.cd(learning_rate, persistent=None, k)
 
-            # compile the theano function    
-            fn = theano.function(inputs = [index, 
-                              theano.Param(learning_rate, default = 0.1)], 
+            # compile the Theano function; check if k is also a Theano
+            # variable, if so added to the inputs of the function
+            if isinstance(k, theano.Variable):
+                inputs = [ index, theano.Param(learning_rate, default=0.1),k]
+            else:
+                inputs = [ index, theano.Param(learning_rate, default=0.1)]
+            fn = theano.function(inputs = inputs,
                     outputs = cost, 
                     updates = updates,
                     givens  = {self.x :train_set_x[batch_begin:batch_end]})
@@ -269,11 +324,13 @@ optionally ``lr`` -- the
 learning rate. Note that the name of the parameters are the name given 
 to the Theano variables when they are constructed, not the name of the 
 python variables (``learning_rate``). Keep this 
-in mind when working with Theano. 
+in mind when working with Theano. Optionally, if you provide ``k`` (the 
+number of Gibbs steps to do in CD or PCD) this will also become an argument
+of your function.
 
 In the same fashion we build a method for constructing function required 
 during finetuning ( a ``train_model``, a ``validate_model`` and a
-``test_model`` funcion). 
+``test_model`` function). 
 
 .. code-block:: python
 
@@ -379,9 +436,11 @@ to the training set for a fixed number of epochs given by
     # PRETRAINING THE MODEL #
     #########################
     print '... getting the pretraining functions'
+    # We are using CD-1 here
     pretraining_fns = dbn.pretraining_functions(
             train_set_x   = train_set_x, 
-            batch_size    = batch_size ) 
+            batch_size    = batch_size,
+            k = 1) 
 
     print '... pre-training the model'
     start_time = time.clock()  
@@ -415,3 +474,17 @@ The user can run the code by calling:
 Sampling a DBN
 ++++++++++++++
 
+
+Tips and Tricks
++++++++++++++++
+
+One way to improve the running time of your code (given that you have
+sufficient memory available), is to compute how the network, up to layer
+:math:`k-1`, transforms your data. Namely, you start by training your first
+layer RBM. Once it is trained, you can compute the hidden units values for
+every datapoint in your dataset and store this as a new dataset that you will
+use to train the RBM corresponding to layer 2. Once you trained the RBM for
+layer 2, you compute, in a similar fashion, the dataset for layer 3 and so on.
+You can see now, that at this point, the RBMs are trained individually, and
+they just provide (one to the other) a non-linear transformation of the input.
+Once all RBMs are trained, you can start fine-tunning the model.

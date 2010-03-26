@@ -434,3 +434,18 @@ For comparison, on a multi-core Intel Xeon X5560 @ 2.80GHz, using multi-threaded
 meaning a ~4x speed-up at an 8x CPU cost.
 
 Timings accurate as of March 16, 2010.
+
+
+Tips and Tricks
++++++++++++++++
+
+One way to improve the running time of your code (given that you have
+sufficient memory available), is to compute how the network, up to layer
+:math:`k-1`, transforms your data. Namely, you start by training your first
+layer dA. Once it is trained, you can compute the hidden units values for
+every datapoint in your dataset and store this as a new dataset that you will
+use to train the dA corresponding to layer 2. Once you trained the dA for
+layer 2, you compute, in a similar fashion, the dataset for layer 3 and so on.
+You can see now, that at this point, the dAs are trained individually, and
+they just provide (one to the other) a non-linear transformation of the input.
+Once all dAs are trained, you can start fine-tunning the model.
