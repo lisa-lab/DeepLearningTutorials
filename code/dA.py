@@ -129,8 +129,8 @@ class dA(object):
             # converted using asarray to dtype
             # theano.config.floatX so that the code is runable on GPU
             initial_W = numpy.asarray( numpy_rng.uniform( 
-                      low  = -numpy.sqrt(6./(n_hidden+n_visible)), 
-                      high = numpy.sqrt(6./(n_hidden+n_visible)), 
+                      low  = -4*numpy.sqrt(6./(n_hidden+n_visible)), 
+                      high =  4*numpy.sqrt(6./(n_hidden+n_visible)), 
                       size = (n_visible, n_hidden)), dtype = theano.config.floatX)
             W = theano.shared(value = initial_W, name ='W')
 
@@ -219,7 +219,8 @@ class dA(object):
 
 
 
-def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='mnist.pkl.gz' ):
+def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='../data/mnist.pkl.gz',
+        batch_size = 20, output_folder = 'dA_plots' ):
 
     """
     This demo is tested on MNIST
@@ -237,8 +238,6 @@ def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='mnist.pkl.gz' 
     datasets = load_data(dataset)
     train_set_x, train_set_y = datasets[0]
 
-    batch_size = 20   # size of the minibatch
-
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size
 
@@ -246,6 +245,10 @@ def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='mnist.pkl.gz' 
     index = T.lscalar()    # index to a [mini]batch 
     x     = T.matrix('x')  # the data is presented as rasterized images
 
+    
+    if not os.path.isdir(output_folder):
+        os.makedirs(output_folder)
+    os.chdir(output_folder)
     ####################################
     # BUILDING THE MODEL NO CORRUPTION #
     ####################################
@@ -331,6 +334,7 @@ def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='mnist.pkl.gz' 
                  tile_spacing=(1,1)))
     image.save('filters_corruption_30.png') 
  
+    os.chdir('../')
 
 
 if __name__ == '__main__':

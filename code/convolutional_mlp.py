@@ -96,7 +96,8 @@ class LeNetConvPoolLayer(object):
 
 
 
-def evaluate_lenet5(learning_rate=0.1, n_epochs=200, dataset='mnist.pkl.gz', nkerns=[20,50]):
+def evaluate_lenet5(learning_rate=0.1, n_epochs=200, dataset='../data/mnist.pkl.gz',
+        nkerns=[20,50], batch_size = 500):
     """ Demonstrates lenet on MNIST dataset
 
     :type learning_rate: float
@@ -121,8 +122,6 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200, dataset='mnist.pkl.gz', nke
     valid_set_x, valid_set_y = datasets[1]
     test_set_x , test_set_y  = datasets[2]
 
-
-    batch_size = 500    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size

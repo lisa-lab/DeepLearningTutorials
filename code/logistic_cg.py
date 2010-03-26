@@ -140,7 +140,7 @@ class LogisticRegression(object):
 
 
 
-def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='mnist.pkl.gz' ):
+def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
     """Demonstrate conjugate gradient optimization of a log-linear model 
 
     This is demonstrated on MNIST.

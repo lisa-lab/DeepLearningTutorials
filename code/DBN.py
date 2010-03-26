@@ -2,7 +2,7 @@
 """
 import os
 
-import numpy, time, cPickle, gzip 
+import numpy, time, cPickle, gzip, os, sys
 
 import theano
 import theano.tensor as T
@@ -141,6 +141,7 @@ class DBN(object):
         # index to a [mini]batch
         index            = T.lscalar('index')   # index to a minibatch
         learning_rate    = T.scalar('lr')    # learning rate to use
+        k                = T.lscalar('k')
 
         # number of batches
         n_batches = train_set_x.value.shape[0] / batch_size
@@ -154,11 +155,12 @@ class DBN(object):
 
             # get the cost and the updates list
             # TODO: change cost function to reconstruction error
-            cost,updates = rbm.cd(learning_rate, persistent=None)
+            cost,updates = rbm.get_cost_updates(learning_rate, persistent=None, k =k)
 
             # compile the theano function    
             fn = theano.function(inputs = [index, 
-                              theano.Param(learning_rate, default = 0.1)], 
+                              theano.Param(learning_rate, default = 0.1),
+                              theano.Param(k, default = 1)],
                     outputs = cost, 
                     updates = updates,
                     givens  = {self.x :train_set_x[batch_begin:batch_end]})
@@ -229,13 +231,10 @@ class DBN(object):
         return train_fn, valid_score, test_score
 
 
-
-
-
-
 def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
-              pretrain_lr = 0.1, training_epochs = 1000, \
-              dataset='mnist.pkl.gz'):
+              pretrain_lr = 0.1, k = 1, training_epochs = 1000, \
+              dataset='../data/mnist.pkl.gz', batch_size = 1,
+              output_folder = 'DBN_plots'):
     """
     Demonstrates how to train and test a Deep Belief Network.
 
@@ -253,17 +252,12 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
     :param dataset: path the the pickled dataset
     """
 
-    print 'finetune_lr = ', finetune_lr
-    print 'pretrain_lr = ', pretrain_lr
 
     datasets = load_data(dataset)
 
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
     test_set_x , test_set_y  = datasets[2]
-
-
-    batch_size = 20    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size
@@ -295,7 +289,7 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
             c = []
             for batch_index in xrange(n_train_batches):
                 c.append(pretraining_fns[i](index = batch_index, 
-                         lr = pretrain_lr ) )
+                         lr = pretrain_lr, k = k ) )
             print 'Pre-training layer %i, epoch %d, cost '%(i,epoch),numpy.mean(c)
  
     end_time = time.clock()

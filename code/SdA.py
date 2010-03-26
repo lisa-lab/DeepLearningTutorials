@@ -281,7 +281,7 @@ class SdA(object):
 
 def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
               pretrain_lr = 0.05, training_epochs = 1000, \
-              dataset='mnist.pkl.gz'):
+              dataset='../data/mnist.pkl.gz', batch_size = 1):
     """
     Demonstrates how to train and test a stochastic denoising autoencoder.
 
@@ -311,8 +311,6 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
     valid_set_x, valid_set_y = datasets[1]
     test_set_x , test_set_y  = datasets[2]
 
-
-    batch_size = 20    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size

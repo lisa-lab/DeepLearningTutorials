@@ -170,7 +170,7 @@ class MLP(object):
 
 
 def test_mlp( learning_rate=0.01, L1_reg = 0.00, L2_reg = 0.0001, n_epochs=1000,
-            dataset = 'mnist.pkl.gz'):
+            dataset = '../data/mnist.pkl.gz', batch_size = 20):
     """
     Demonstrate stochastic gradient descent optimization for a multilayer 
     perceptron
@@ -205,8 +205,6 @@ def test_mlp( learning_rate=0.01, L1_reg = 0.00, L2_reg = 0.0001, n_epochs=1000,
     test_set_x , test_set_y  = datasets[2]
 
 
-
-    batch_size = 20    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size

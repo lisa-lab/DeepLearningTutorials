@@ -6,7 +6,7 @@ to those without visible-visible and hidden-hidden connections.
 """
 
 
-import numpy, time, cPickle, gzip, sys, os, PIL.Image
+import numpy, time, cPickle, gzip, PIL.Image
 
 import theano
 import theano.tensor as T
@@ -91,13 +91,17 @@ class RBM(object):
         # **** WARNING: It is not a good idea to put things in this list 
         # other than shared variables created in this function.
         self.params     = [self.W, self.hbias, self.vbias]
-        self.batch_size = self.input.shape[0]
+        # cast batch_size to floatX, because its type is int64,
+        # and otherwise the gradients are upcasted to float64,
+        # even when floatX == float32
+        self.batch_size = T.cast(self.input.shape[0], dtype = theano.config.floatX)
+
 
     def free_energy(self, v_sample):
         ''' Function to compute the free energy '''
         wx_b = T.dot(v_sample, self.W) + self.hbias
-        vbias_term = T.sum(T.dot(v_sample, self.vbias))
-        hidden_term = T.sum(T.log(1+T.exp(wx_b)))
+        vbias_term = T.dot(v_sample, self.vbias)
+        hidden_term = T.sum(T.log(1+T.exp(wx_b)),axis = 1)
         return -hidden_term - vbias_term
 
     def sample_h_given_v(self, v0_sample):
@@ -105,6 +109,9 @@ class RBM(object):
         # compute the activation of the hidden units given a sample of the visibles
         h1_mean = T.nnet.sigmoid(T.dot(v0_sample, self.W) + self.hbias)
         # get a sample of the hiddens given their activation
+        # Note that theano_rng.binomial returns a symbolic sample of dtype 
+        # int64 by default. If we want to keep our computations in floatX 
+        # for the GPU we need to specify to return the dtype floatX
         h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, prob = h1_mean,
                 dtype = theano.config.floatX)
         return [h1_mean, h1_sample]
@@ -114,6 +121,9 @@ class RBM(object):
         # compute the activation of the visible given the hidden sample
         v1_mean = T.nnet.sigmoid(T.dot(h0_sample, self.W.T) + self.vbias)
         # get a sample of the visible given their activation
+        # Note that theano_rng.binomial returns a symbolic sample of dtype 
+        # int64 by default. If we want to keep our computations in floatX 
+        # for the GPU we need to specify to return the dtype floatX
         v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,prob = v1_mean,
                 dtype = theano.config.floatX)
         return [v1_mean, v1_sample]
@@ -132,17 +142,21 @@ class RBM(object):
         v1_mean, v1_sample = self.sample_v_given_h(h1_sample)
         return [h1_mean, h1_sample, v1_mean, v1_sample]
  
-    def cd(self, lr = 0.1, persistent=None):
+    def get_cost_updates(self, lr = 0.1, persistent=None, k =1):
         """ 
-        This functions implements one step of CD-1 or PCD-1
+        This functions implements one step of CD-k or PCD-k
 
         :param lr: learning rate used to train the RBM 
+
         :param persistent: None for CD. For PCD, shared variable containing old state
         of Gibbs chain. This must be a shared variable of size (batch size, number of
         hidden units).
 
-        Returns the updates dictionary. The dictionary contains the update rules for weights
-        and biases but also an update of the shared variable used to store the persistent
+        :param k: number of Gibbs steps to do in CD-k/PCD-k
+
+        Returns a proxy for the cost and the updates dictionary. The 
+        dictionary contains the update rules for weights and biases but 
+        also an update of the shared variable used to store the persistent
         chain, if one is used.
         """
 
@@ -158,33 +172,39 @@ class RBM(object):
             chain_start = persistent
 
         # perform actual negative phase
-        [nv_mean, nv_sample, nh_mean, nh_sample] = self.gibbs_hvh(chain_start)
+        # in order to implement CD-k/PCD-k we need to scan over the 
+        # function that implements one gibbs step k times. 
+        # Read Theano tutorial on scan for more information :
+        # http://deeplearning.net/software/theano/library/scan.html
+        # the scan will return the entire Gibbs chain
+        [nv_means, nv_samples, nh_means, nh_samples], updates = \
+            theano.scan(self.gibbs_hvh, 
+                    # the None are place holders, saying that
+                    # chain_start is the initial state corresponding to the 
+                    # 4th output
+                    outputs_info = [None,None,None,chain_start],
+                    n_steps = k)
 
         # determine gradients on RBM parameters
-        # cast batch_size to floatX, because its type is int64,
-        # and otherwise the gradients are upcasted to float64,
-        # even when floatX == float32
-        batch_size = T.cast(self.batch_size, dtype=theano.config.floatX)
-        g_vbias = T.sum( self.input - nv_mean, axis = 0)/batch_size
-        g_hbias = T.sum( ph_mean    - nh_mean, axis = 0)/batch_size
-        g_W = T.dot(ph_mean.T, self.input   )/ batch_size - \
-              T.dot(nh_mean.T, nv_mean      )/ batch_size
+        # not that we only need the sample at the end of the chain
+        chain_end = nv_samples[-1]
 
-        gparams = [g_W.T, g_hbias, g_vbias]
+        cost = T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))
+        # We must not compute the gradient through the gibbs sampling 
+        gparams = T.grad(cost, self.params,consider_constant = [chain_end])
 
         # constructs the update dictionary
-        updates = {}
         for gparam, param in zip(gparams, self.params):
-           updates[param] = param + gparam * lr
-
+            # make sure that the learning rate is of the right dtype 
+            updates[param] = param - gparam * T.cast(lr, dtype = theano.config.floatX)
         if persistent:
             # Note that this works only if persistent is a shared variable
-            updates[persistent] = T.cast(nh_sample, dtype=theano.config.floatX)
+            updates[persistent] = nh_samples[-1]
             # pseudo-likelihood is a better proxy for PCD
             cost = self.get_pseudo_likelihood_cost(updates)
         else:
             # reconstruction cross-entropy is a better proxy for CD
-            cost = self.get_reconstruction_cost(updates, nv_mean)
+            cost = self.get_reconstruction_cost(updates, nv_means[-1])
 
         return cost, updates
 
@@ -216,7 +236,7 @@ class RBM(object):
         fe_xi_flip = self.free_energy(xi_flip)
 
         # equivalent to e^(-FE(x_i)) / (e^(-FE(x_i)) + e^(-FE(x_{\i}))) 
-        cost = self.n_visible * T.log(T.nnet.sigmoid(fe_xi_flip - fe_xi))
+        cost = T.mean(self.n_visible * T.log(T.nnet.sigmoid(fe_xi_flip - fe_xi)))
 
         # increment bit_i_idx % number as part of updates
         updates[bit_i_idx] = (bit_i_idx + 1) % self.n_visible
@@ -235,9 +255,10 @@ class RBM(object):
 
 
 def test_rbm(learning_rate=0.1, training_epochs = 15,
-             dataset='mnist.pkl.gz'):
+             dataset='../data/mnist.pkl.gz', batch_size = 20,
+             n_chains = 20, n_samples = 10, output_folder = 'rbm_plots'):
     """
-    Demonstrate ***
+    Demonstrate how to train and afterwards sample from it using Theano.
 
     This is demonstrated on MNIST.
 
@@ -247,14 +268,18 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
 
     :param dataset: path the the pickled dataset
 
+    :param batch_size: size of a batch used to train the RBM
+    
+    :param n_chains: number of parallel Gibbs chains to be used for sampling
+
+    :param n_samples: number of samples to plot for each chain
+
     """
     datasets = load_data(dataset)
 
     train_set_x, train_set_y = datasets[0]
     test_set_x , test_set_y  = datasets[2]
 
-
-    batch_size = 20    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size
@@ -273,17 +298,17 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     rbm = RBM( input = x, n_visible=28*28, \
                n_hidden = 500,numpy_rng = rng, theano_rng = theano_rng)
 
-    # get the cost and the gradient corresponding to one step of CD
-    cost, updates = rbm.cd(lr=learning_rate, persistent=persistent_chain)
+    # get the cost and the gradient corresponding to one step of CD-15
+    cost, updates = rbm.get_cost_updates(lr=learning_rate, persistent=persistent_chain, k = 15)
 
 
     #################################
     #     Training the RBM          #
     #################################
-    dirname = 'lr=%.5f'%learning_rate
-    if not os.path.exists(dirname):
-        os.makedirs(dirname)
-    os.chdir(dirname)
+    
+    if not os.path.isdir(output_folder):
+        os.makedirs(output_folder)
+    os.chdir(output_folder)
 
     # it is ok for a theano function to have no output
     # the purpose of train_rbm is solely to update the RBM parameters
@@ -318,64 +343,56 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     end_time = time.clock()
 
     pretraining_time = (end_time - start_time) - plotting_time
-    print >> sys.stderr, ('The pretraining code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected 2.17m our buildbot' % (pretraining_time/60.))
+
+    print ('Training took %f minutes' %(pretraining_time/60.))
 
   
     #################################
     #     Sampling from the RBM     #
     #################################
 
-    # find out the number of test samples  
+
+    # find out the number of test 
     number_of_test_samples = test_set_x.value.shape[0]
 
     # pick random test examples, with which to initialize the persistent chain
-    test_idx = rng.randint(number_of_test_samples-20)
-    persistent_vis_chain = theano.shared(test_set_x.value[test_idx:test_idx+20])
+    test_idx = rng.randint(number_of_test_samples-n_chains)
+    persistent_vis_chain = theano.shared(
+            numpy.array(test_set_x.value[test_idx:test_idx+100], dtype=theano.config.floatX))
 
+    plot_every = 1000
     # define one step of Gibbs sampling (mf = mean-field)
-    [hid_mf, hid_sample, vis_mf, vis_sample] =  rbm.gibbs_vhv(persistent_vis_chain)
+    # define a function that does `plot_every` steps before returning the sample for plotting
+    [hid_mfs, hid_samples, vis_mfs, vis_samples], updates =  \
+            theano.scan(rbm.gibbs_vhv,
+                    outputs_info = [None,None,None,persistent_vis_chain], n_steps = plot_every)
 
-    # the sample at the end of the channel is returned by ``gibbs_vhb`` as 
-    # its last output; note that this is computed as a binomial draw, 
-    # therefore it is formed of ints (0 and 1) and therefore needs to 
-    # be converted to the same dtype as ``persistent_vis_chain``
-    vis_sample = T.cast(vis_sample, dtype=theano.config.floatX)
-
+    # add to updates the shared variable that takes care of our persistent
+    # chain : 
+    updates.update({ persistent_vis_chain: vis_samples[-1]})
     # construct the function that implements our persistent chain 
     # we generate the "mean field" activations for plotting and the actual samples for
     # reinitializing the state of our persistent chain
-    sample_fn = theano.function([], [vis_mf, vis_sample],
-                      updates = { persistent_vis_chain:vis_sample})
+    sample_fn = theano.function([], [vis_mfs[-1], vis_samples[-1]],
+                      updates = updates)
 
-    # sample the RBM, plotting every `plot_every`-th sample; do this 
-    # until you plot at least `n_samples`
-    n_samples = 10
-    plot_every = 1000
-    
-    plotting_time = 0.
-    start_time=time.time()
-
+    # create a space to store the image for plotting ( we need to leave 
+    # room for the tile_spacing as well)
+    image_data = numpy.zeros((29*n_samples+1,29*n_chains-1),dtype='uint8')
     for idx in xrange(n_samples):
-
         # generate `plot_every` intermediate samples that we discard, because successive samples in the chain are too correlated
-        for jdx in  xrange(plot_every):
-            vis_mf, vis_sample = sample_fn()
-
-        # construct image
-        plotting_start = time.clock()
-        image = PIL.Image.fromarray(tile_raster_images( 
-                                         X          = vis_mf,
-                                         img_shape  = (28,28),
-                                         tile_shape = (10,10),
-                                         tile_spacing = (1,1) ) )
+        vis_mf, vis_sample = sample_fn()
         print ' ... plotting sample ', idx
-        image.save('sample_%i_step_%i.png'%(idx,idx*jdx))
-        plotting_stop = time.clock()
-        plotting_time += (plotting_stop - plotting_start)
-
-    end_time=time.time()
-    sampling_time = (end_time - start_time) - plotting_time
-    print >> sys.stderr, ('The sampling code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected 1.57m in our buildbot' % (sampling_time/60.))
+        image_data[29*idx:29*idx+28,:] = tile_raster_images( 
+                X = vis_mf,
+                img_shape = (28,28),
+                tile_shape = (1, n_chains),
+                tile_spacing = (1,1))
+        # construct image
+    
+    image = PIL.Image.fromarray(image_data)
+    image.save('samples.png')
+    os.chdir('../')
 
 if __name__ == '__main__':
     test_rbm()
