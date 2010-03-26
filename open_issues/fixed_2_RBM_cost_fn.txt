@@ -1,0 +1,7 @@
+Reported by : Razvan
+
+Cost function (delta of free energy) has a reversed sign (i.e. free_energy(positive) - free_energy(negative) ). I'm not sure
+where the minus pops in .. but is confusing when going from theory to code. 
+
+
+FIXED 
