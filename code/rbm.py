@@ -121,7 +121,7 @@ class RBM(object):
                 dtype = theano.config.floatX)
         return [h1_mean, h1_sample]
 
-    def propdown(self.hid):
+    def propdown(self, hid):
         '''This function propagates the hidden units activation downwards to
         the visible units'''
         return T.nnet.sigmoid(T.dot(hid,self.W.T) + self.vbias)

@@ -53,6 +53,7 @@ Observations :
 
     ** Our thing with batchsize =1 **
     439s for 30 epochs => 14.63s
+    our thing with batchsize 600 :0.43s
 
 
     Results : 
@@ -70,6 +71,7 @@ Observations :
     iteration 0, with test performance 3.880000 %
     The code for file mlp.py ran for 13.12m expected 1.51m in our buildbot =>
     4.37min / epoch
+    out thing with batchsize 20 :1.78min/epoch
 
 
 

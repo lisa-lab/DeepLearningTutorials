@@ -58,10 +58,10 @@ loss function as being the negative log-likelihood.
 
 .. math::
     \mathcal{L}(\theta, \mathcal{D}) = \frac{1}{N} \sum_{x^{(i)} \in
-    \mathcal{D}} \log\ p(x^{(i)}).\\
+    \mathcal{D}} \log\ p(x^{(i)})\\
     \ell (\theta, \mathcal{D}) = - \mathcal{L} (\theta, \mathcal{D})
 
-using the stochastic gradient :math:`\frac{\partial - \log p(x^{(i)})}{\partial
+using the stochastic gradient :math:`-\frac{\partial  \log p(x^{(i)})}{\partial
 \theta}`, where :math:`\theta` are the parameters of the model.
 
 
@@ -97,7 +97,7 @@ form.
 .. math::
   :label: free_energy_grad
 
-  - \frac{\partial - \log p(x)}{\partial \theta}
+  - \frac{\partial  \log p(x)}{\partial \theta}
    &= \frac{\partial \mathcal{F}(x)}{\partial \theta} -
          \sum_{\tilde{x}} p(\tilde{x}) \
              \frac{\partial \mathcal{F}(\tilde{x})}{\partial \theta}.
@@ -124,7 +124,7 @@ denoted as :math:`\mathcal{N}`. The gradient can then be written as:
 .. math::
   :label: bm_grad
 
-  \frac{\partial -\log p(x)}{\partial \theta}
+  - \frac{\partial \log p(x)}{\partial \theta}
    &\approx 
     \frac{\partial \mathcal{F}(x)}{\partial \theta} -
      \frac{1}{|\mathcal{N}|}\sum_{\tilde{x} \in \mathcal{N}} \
@@ -213,12 +213,12 @@ following log-likelihood gradients for an RBM with binary units:
 .. math::
     :label: rbm_grad
 
-    \frac {\partial{- \log p(v)}} {\partial W_{ij}} &= 
+    - \frac{\partial{ \log p(v)}}{\partial W_{ij}} &= 
         E_v[p(h_i|v) \cdot v_j] 
-        - v^{(i)}_j \cdot sigm(W_i \cdot v^{(i)} + c_i)
-    \frac {\partial{- \log p(v)}} {\partial c_i} &=
+        - v^{(i)}_j \cdot sigm(W_i \cdot v^{(i)} + c_i) \\
+    -\frac{\partial{ \log p(v)}}{\partial c_i} &=
         E_v[p(h_i|v)] - sigm(W_i \cdot v^{(i)})  \\
-    \frac {\partial{- \log p(v)}} {\partial b_j} &=
+    -\frac{\partial{ \log p(v)}}{\partial b_j} &=
         E_v[p(v_j|h)] - v^{(i)}_j
 
 For a more detailed derivation of these equations, we refer the reader to the
@@ -396,10 +396,8 @@ with Eqs. :eq:`rbm_propup` - :eq:`rbm_propdown`. The code is as follows:
 
 .. code-block:: python
 
-
     def propup(self, vis):
-        ''' This function propagates the visible units activation upwards to
-        the hidden units '''
+        ''' This function propagates the visible units activation upwards to the hidden units '''
         return T.nnet.sigmoid(T.dot(v, self.W) + self.hbias)
 
     def sample_h_given_v(self, v0_sample):
@@ -414,9 +412,8 @@ with Eqs. :eq:`rbm_propup` - :eq:`rbm_propdown`. The code is as follows:
                 dtype = theano.config.floatX)
         return [h1_mean, h1_sample]
 
-    def propdown(self.hid):
-        '''This function propagates the hidden units activation downwards to
-        the visible units'''
+    def propdown(self, hid):
+        '''This function propagates the hidden units activation downwards to the visible units'''
         return T.nnet.sigmoid(T.dot(hid,self.W.T) + self.vbias)
 
     def sample_v_given_h(self, h0_sample):
@@ -723,6 +720,22 @@ been shown to lead to a better generative model ([Tieleman08]_).
            mean_cost += [train_rbm(batch_index)]
 
         print 'Training epoch %d, cost is '%epoch, numpy.mean(mean_cost)
+
+        # Plot filters after each training epoch
+        plotting_start = time.clock()
+        # Construct image from the weight matrix 
+        image = PIL.Image.fromarray(tile_raster_images( X = rbm.W.value.T,
+                 img_shape = (28,28),tile_shape = (10,10), 
+                 tile_spacing=(1,1)))
+        image.save('filters_at_epoch_%i.png'%epoch)
+        plotting_stop = time.clock()
+        plotting_time += (plotting_stop - plotting_start)
+
+    end_time = time.clock()
+
+    pretraining_time = (end_time - start_time) - plotting_time
+
+    print ('Training took %f minutes' %(pretraining_time/60.))
 
 Once the RBM is trained, we can then use the ``gibbs_vhv`` function to implement
 the Gibbs chain required for sampling. We initialize the Gibbs chain starting
