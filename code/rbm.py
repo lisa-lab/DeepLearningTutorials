@@ -107,7 +107,7 @@ class RBM(object):
     def propup(self, vis):
         ''' This function propagates the visible units activation upwards to
         the hidden units '''
-        return T.nnet.sigmoid(T.dot(v, self.W) + self.hbias)
+        return T.nnet.sigmoid(T.dot(vis, self.W) + self.hbias)
 
     def sample_h_given_v(self, v0_sample):
         ''' This function infers state of hidden units given visible units '''
