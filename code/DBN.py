@@ -154,6 +154,7 @@ class DBN(object):
         for rbm in self.rbm_layers:
 
             # get the cost and the updates list
+            # using CD-k here (persisent=None) for training each RBM.
             # TODO: change cost function to reconstruction error
             cost,updates = rbm.get_cost_updates(learning_rate, persistent=None, k =k)
 

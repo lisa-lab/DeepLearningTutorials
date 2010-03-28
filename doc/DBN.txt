@@ -304,6 +304,7 @@ Theano variable to it that has a default value.
         for rbm in self.rbm_layers:
 
             # get the cost and the updates list
+            # using CD-k here (persisent=None) for training each RBM.
             # TODO: change cost function to reconstruction error
             cost,updates = rbm.cd(learning_rate, persistent=None, k)
 
