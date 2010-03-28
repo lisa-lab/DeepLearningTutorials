@@ -153,12 +153,12 @@ autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
         # note : W' was written as `W_prime` and b' as `b_prime`
         if not W:
             # W is initialized with `initial_W` which is uniformely sampled
-            # from -6./sqrt(n_visible+n_hidden) and 6./sqrt(n_hidden+n_visible)
+            # from -4*sqrt(6./(n_visible+n_hidden)) and 4*sqrt(6./(n_hidden+n_visible))
             # the output of uniform if converted using asarray to dtype 
             # theano.config.floatX so that the code is runable on GPU
             initial_W = numpy.asarray( numpy_rng( 
-                      low  = -numpy.sqrt(6./(n_hidden+n_visible)), 
-                      high = numpy.sqrt(6./(n_hidden+n_visible)), 
+                      low  = -4*numpy.sqrt(6./(n_hidden+n_visible)),
+                      high =  4*numpy.sqrt(6./(n_hidden+n_visible)),
                       size = (n_visible, n_hidden)), dtype = theano.config.floatX)
             W = theano.shared(value = initial_W, name ='W')  
     
@@ -440,12 +440,12 @@ The final denoising autoencoder class becomes :
         # note : W' was written as `W_prime` and b' as `b_prime`
         if not W:
             # W is initialized with `initial_W` which is uniformely sampled
-            # from -6./sqrt(n_visible+n_hidden) and 6./sqrt(n_hidden+n_visible)
+            # from -4.*sqrt(6./(n_visible+n_hidden)) and 4.*sqrt(6./(n_hidden+n_visible))
             # the output of uniform if converted using asarray to dtype 
             # theano.config.floatX so that the code is runable on GPU
             initial_W = numpy.asarray( numpy_rng( 
-                      low  = -numpy.sqrt(6./(n_hidden+n_visible)), 
-                      high = numpy.sqrt(6./(n_hidden+n_visible)), 
+                      low  = -4*numpy.sqrt(6./(n_hidden+n_visible)), 
+                      high =  4*numpy.sqrt(6./(n_hidden+n_visible)), 
                       size = (n_visible, n_hidden)), dtype = theano.config.floatX)
             W = theano.shared(value = initial_W, name ='W')  
     
