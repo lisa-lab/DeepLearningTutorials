@@ -189,12 +189,12 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
         # initialize shared variable for weights.
         w_shp = (2, 3, 9, 9)
         w_bound =  numpy.sqrt(3 * 9 * 9)
-        w = theano.shared( numpy.asarray(
+        W = theano.shared( numpy.asarray(
                     rng.uniform(
                         low=-1.0 / w_bound,
                         high=1.0 / w_bound,
                         size=w_shp),
-                    dtype=input.dtype))
+                    dtype=input.dtype),name ='W')
         
         # initialize shared variable for bias (1D tensor) with random values
         # IMPORTANT: biases are usually initialized to zero. However in this
@@ -204,10 +204,10 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
         b_shp = (2,)
         b = theano.shared( numpy.asarray(
                     rng.uniform(low=-.5, high=.5, size=b_shp),
-                    dtype=input.dtype))
+                    dtype=input.dtype), name ='b')
 
         # build symbolic expression that computes the convolution of input with filters in w
-        conv_out = conv.conv2d(input, w)
+        conv_out = conv.conv2d(input, W)
 
         # build symbolic expression to add bias and apply activation function, i.e. produce neural net layer output
         # A few words on ``dimshuffle`` : 
@@ -420,11 +420,11 @@ layer.
                   low = -numpy.sqrt(3./fan_in), \
                   high = numpy.sqrt(3./fan_in), \
                   size = filter_shape), dtype = theano.config.floatX)
-            self.W = theano.shared(value = W_values)
+            self.W = theano.shared(value = W_values, name = 'W')
 
             # the bias is a 1D tensor -- one bias per output feature map
             b_values = numpy.zeros((filter_shape[0],), dtype= theano.config.floatX)
-            self.b = theano.shared(value= b_values)
+            self.b = theano.shared(value= b_values, name = 'b')
 
             # convolve input feature maps with filters
             conv_out = conv.conv2d(input, self.W,
