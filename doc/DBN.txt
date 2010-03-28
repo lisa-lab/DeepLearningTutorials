@@ -93,7 +93,8 @@ Justifying Greedy-Layer Wise Pre-Training
 
 Why does such an algorithm work ? Taking as example a 2-layer DBN with hidden
 layers :math:`h^{(1)}` and :math:`h^{(2)}` (with respective weight parameters
-:math:`W^{(1)}` and :math:`W^{(2)}`), [Bengio09]_ established that :math:`\log
+:math:`W^{(1)}` and :math:`W^{(2)}`), [Hinton06]_ established 
+(see also Bengio09]_ for a detailed derivation) that :math:`\log
 p(x)` can be rewritten as,
 
 .. math::
