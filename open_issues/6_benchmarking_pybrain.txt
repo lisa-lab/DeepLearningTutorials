@@ -45,33 +45,60 @@ Observations :
     RESULTS : 
     logreg on maggie46
 
-    *** Using their early stopping :  ***
-    Only training took :  7221.22 (s) = 120.353 min for 150 epochs = > 48.141s/epoch
-    A pass through the test takes: 2.8s
-    Total amount of time spend: 7224.02
-    Final error is : 7.77
+Total error: 0.015611011103
+Total error: 0.00966772673335
+Total error: 0.00860664508883
+Time spend per epoch: 43.32
+Final error is : 10.44
+Time spend per epoch: 43.32
+Final error is : 10.44
+
+    Arac : 
+
+Total error: 0.0366924968888
+Total error: 0.0366576944937
+Total error: 0.0367442383338
+Time spend per epoch: 24.71
+Final error is : 69.28
+Time spend per epoch: 24.71
+Final error is : 69.28
+
 
     ** Our thing with batchsize =1 **
-    439s for 30 epochs => 14.63s
-    our thing with batchsize 600 :0.43s
+
+test error of best model  8.45
+time : 12.99
+12.01
+
+
 
 
     Results : 
     mlp on maggie46
-    *** Using their early stopping :  ***
-    Only training took :  5317.4(s) = 88.623 min for 3 epochs => 29.5 min/epoch
-    A pass through the test takes: 7.51s
-    Total amount of time spend: 5324.91
-    Final error is : 4.87 ( This was run only for 3 epochs .. because it was
-    to slow .. a different run that I did not allow to end seems to suggest that 
-    they are getting similar final testing performance as us)
-    
-    similar parametrs for 3 epochs we get : 
-    Optimization complete. Best validation score of 3.600000 % obtained at
-    iteration 0, with test performance 3.880000 %
-    The code for file mlp.py ran for 13.12m expected 1.51m in our buildbot =>
-    4.37min / epoch
-    out thing with batchsize 20 :1.78min/epoch
 
 
+    pybrain :: 
+
+Total error: 0.0124744609817
+Total error: 0.00722484141084
+Total error: 0.00599591269763
+Time spend per epoch : 1226.69
+Final error is : 8.68
+Time spend per epoch: 1226.69
+Final error is : 8.68
+
+20.4448 min
+
+    arac::
+
+Total error: 0.0318599056504
+Total error: 0.0316029246672
+Total error: 0.0315542295953
+Time spend per epoch: 860.336666667 (s)
+Final error is : 58.59
+
+    our thing::
+
+test error of best model  3.88
+time: 381.92
 
