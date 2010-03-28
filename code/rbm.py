@@ -301,7 +301,7 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     rng        = numpy.random.RandomState(123)
     theano_rng = RandomStreams( rng.randint(2**30))
 
-    # initialize storage fot the persistent chain (state = hidden layer of chain)
+    # initialize storage for the persistent chain (state = hidden layer of chain)
     persistent_chain = theano.shared(numpy.zeros((batch_size, 500)))
 
     # construct the RBM class
@@ -372,14 +372,14 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
 
     plot_every = 1000
     # define one step of Gibbs sampling (mf = mean-field)
-    # define a function that does `plot_every` steps before returning the sample for plotting
-    [hid_mfs, hid_samples, vis_mfs, vis_samples], updates =  \
-            theano.scan(rbm.gibbs_vhv,
-                    outputs_info = [None,None,None,persistent_vis_chain], n_steps = plot_every)
+    [hid_mf, hid_sample, vis_mf, vis_sample] =  rbm.gibbs_vhv(persistent_vis_chain)
 
-    # add to updates the shared variable that takes care of our persistent
-    # chain : 
-    updates.update({ persistent_vis_chain: vis_samples[-1]})
+    # the sample at the end of the channel is returned by ``gibbs_vhv`` as 
+    # its last output; note that this is computed as a binomial draw, 
+    # therefore it is formed of ints (0 and 1) and therefore needs to 
+    # be converted to the same dtype as ``persistent_vis_chain``
+    vis_sample = T.cast(vis_sample, dtype=theano.config.floatX)
+
     # construct the function that implements our persistent chain 
     # we generate the "mean field" activations for plotting and the actual samples for
     # reinitializing the state of our persistent chain
