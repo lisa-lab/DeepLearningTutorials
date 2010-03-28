@@ -65,8 +65,8 @@ The code to do this in Theano is the following:
   y = T.lvector('y')
 
   # allocate shared variables model params
-  b = theano.shared(numpy.zeros((10,)))
-  W = theano.shared(numpy.zeros((784,10)))
+  b = theano.shared(numpy.zeros((10,)), name = 'b')
+  W = theano.shared(numpy.zeros((784,10)), name = 'W')
 
   # symbolic expression for computing the vector of 
   # class-membership probabilities 
@@ -189,10 +189,10 @@ similar to what we have covered so far, and should be self explanatory.
 
             # initialize with 0 the weights W as a matrix of shape (n_in, n_out) 
             self.W = theano.shared( value=numpy.zeros((n_in,n_out),
-                                                dtype = theano.config.floatX) )
+                                                dtype = theano.config.floatX), name ='W' )
             # initialize the baises b as a vector of n_out 0s
             self.b = theano.shared( value=numpy.zeros((n_out,), 
-                                                dtype = theano.config.floatX) )
+                                                dtype = theano.config.floatX), name = 'b' )
 
             # compute vector of class-membership probabilities in symbolic form
             self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W)+self.b)
