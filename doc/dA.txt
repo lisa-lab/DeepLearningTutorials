@@ -164,11 +164,11 @@ autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
     
         if not bvis:
             bvis = theano.shared(value = numpy.zeros(n_visible, 
-                                         dtype = theano.config.floatX))
+                                         dtype = theano.config.floatX), name = 'bvis')
 
         if not bhid:
             bhid = theano.shared(value = numpy.zeros(n_hidden,
-                                              dtype = theano.config.floatX))
+                                              dtype = theano.config.floatX), name = 'bhid')
 
 
         self.W = W
@@ -191,8 +191,7 @@ autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
 
 Note that we pass the symbolic ``input``  to the autoencoder as a
 parameter. This is such that later we can concatenate layers of 
-autoencoders to form a deep network: the symbolic output (the :math:`\mathbf{y}` above, self.y 
-in the code below) of
+autoencoders to form a deep network: the symbolic output (the :math:`\mathbf{y}` above) of
 the k-th layer will be the symbolic input of the (k+1)-th.
 
 Now we can express the computation of the latent representation and of the reconstructed
@@ -451,12 +450,11 @@ The final denoising autoencoder class becomes :
     
         if not bvis:
             bvis = theano.shared(value = numpy.zeros(n_visible, 
-                                         dtype = theano.config.floatX))
+                                         dtype = theano.config.floatX), name = 'bvis')
 
         if not bhid:
             bhid = theano.shared(value = numpy.zeros(n_hidden,
-                                              dtype = theano.config.floatX))
-
+                                              dtype = theano.config.floatX), name = 'bhid')
 
         self.W = W
         # b corresponds to the bias of the hidden 
