@@ -126,7 +126,7 @@ class DBN(object):
         # minibatch given by self.x and self.y
         self.errors = self.logLayer.errors(self.y)
 
-    def pretraining_functions(self, train_set_x, batch_size):
+    def pretraining_functions(self, train_set_x, batch_size,k):
         ''' Generates a list of functions, for performing one step of gradient descent at a
         given layer. The function will require as input the minibatch index, and to train an
         RBM you just need to iterate, calling the corresponding function on all minibatch
@@ -136,12 +136,12 @@ class DBN(object):
         :param train_set_x: Shared var. that contains all datapoints used for training the RBM
         :type batch_size: int
         :param batch_size: size of a [mini]batch
+        :param k: number of Gibbs steps to do in CD-k / PCD-k
         '''
 
         # index to a [mini]batch
         index            = T.lscalar('index')   # index to a minibatch
         learning_rate    = T.scalar('lr')    # learning rate to use
-        k                = T.lscalar('k')
 
         # number of batches
         n_batches = train_set_x.value.shape[0] / batch_size
@@ -234,8 +234,7 @@ class DBN(object):
 
 def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
               pretrain_lr = 0.1, k = 1, training_epochs = 1000, \
-              dataset='../data/mnist.pkl.gz', batch_size = 1,
-              output_folder = 'DBN_plots'):
+              dataset='../data/mnist.pkl.gz', batch_size = 1):
     """
     Demonstrates how to train and test a Deep Belief Network.
 
@@ -247,10 +246,14 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
     :param pretraining_epochs: number of epoch to do pretraining
     :type pretrain_lr: float
     :param pretrain_lr: learning rate to be used during pre-training
-    :type n_iter: int
-    :param n_iter: maximal number of iterations ot run the optimizer 
+    :type k: int
+    :param k: number of Gibbs steps in CD/PCD
+    :type training_epochs: int
+    :param training_epochs: maximal number of iterations ot run the optimizer 
     :type dataset: string
     :param dataset: path the the pickled dataset
+    :type batch_size: int
+    :param batch_size: the size of a minibatch
     """
 
 
@@ -278,7 +281,8 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
     print '... getting the pretraining functions'
     pretraining_fns = dbn.pretraining_functions(
             train_set_x   = train_set_x, 
-            batch_size    = batch_size ) 
+            batch_size    = batch_size,
+            k             = k) 
 
     print '... pre-training the model'
     start_time = time.clock()  
@@ -290,7 +294,7 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
             c = []
             for batch_index in xrange(n_train_batches):
                 c.append(pretraining_fns[i](index = batch_index, 
-                         lr = pretrain_lr, k = k ) )
+                         lr = pretrain_lr ) )
             print 'Pre-training layer %i, epoch %d, cost '%(i,epoch),numpy.mean(c)
  
     end_time = time.clock()
@@ -308,7 +312,7 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
 
     print '... finetunning the model'
     # early-stopping parameters
-    patience              = 10000 # look as this many examples regardless
+    patience              = 4*n_train_batches # look as this many examples regardless
     patience_increase     = 2.    # wait this much longer when a new best is 
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
@@ -374,9 +378,6 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
            'with test performance %f %%') %  
                  (best_validation_loss * 100., test_score*100.))
     print >> sys.stderr, ('The fine tuning code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected Xm our buildbot' % ((end_time-start_time)/60.))
-    ##################
-    ## SAMPLING DBN ##
-    ##################
 
 
 
