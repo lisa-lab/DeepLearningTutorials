@@ -414,24 +414,24 @@ algorithm in Theano can be done as follows :
 
 .. code-block:: python
 
-  # Minibatch Stochastic Gradient Descent
-  
-  # assume loss is a symbolic description of the loss function given
-  # the symbolic variables params (shared variable), x_batch, y_batch; 
+    # Minibatch Stochastic Gradient Descent
+    
+    # assume loss is a symbolic description of the loss function given
+    # the symbolic variables params (shared variable), x_batch, y_batch; 
 
-  # compute gradient of loss with respect to params
-  d_loss_wrt_params = T.grad(loss, params)
+    # compute gradient of loss with respect to params
+    d_loss_wrt_params = T.grad(loss, params)
   
-  # compile the MSGD step into a theano function
-  updates = { params: params - learning_rate * d_loss_wrt_params}
-  MSGD = theano.function([x_batch,y_batch], loss, updates = updates)
+    # compile the MSGD step into a theano function
+    updates = { params: params - learning_rate * d_loss_wrt_params}
+    MSGD = theano.function([x_batch,y_batch], loss, updates = updates)
 
-  for (x_batch, y_batch) in train_batches:
-    # here x_batch and y_batch are elements of train_batches and
-    # therefore numpy arrays; function MSGD also updates the params
-    print('Current loss is ', MSGD(x_batch, y_batch))
-    if <stopping condition is met>:
-      return params
+    for (x_batch, y_batch) in train_batches:
+        # here x_batch and y_batch are elements of train_batches and
+        # therefore numpy arrays; function MSGD also updates the params
+        print('Current loss is ', MSGD(x_batch, y_batch))
+        if stopping_condition_is_met:
+            return params
 
 
 .. index:: Regularization
