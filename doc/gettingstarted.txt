@@ -536,60 +536,56 @@ heuristic implemented here gives up on much further optimization.
 
 
 The choice of when to stop is a
-judgement call and a few heuristics exist***, but these tutorials will make use
+judgement call and a few heuristics exist, but these tutorials will make use
 of a strategy based on a geometrically increasing amount of patience.
 
 .. code-block:: python
 
-    # PRE-CONDITION
-    # params refers to [initialized] parameters of our model
-
     # early-stopping parameters
-    n_iter                = 100   # the maximal number of iterations of the 
-                                  # entire dataset considered
-    patience              = 5000  # look at this many training examples regardless
-    patience_increase     = 2     # wait this much longer when a new best 
-                                  # validation error is found
+    patience              = 5000  # look as this many examples regardless
+    patience_increase     = 2     # wait this much longer when a new best is 
+                                  # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
                                   # considered significant
-    validation_frequency  = min(2500, patience/2.)
-                                  # make this many SGD updates between validations
+    validation_frequency  = min(n_train_batches, patience/2)  
+                                  # go through this many 
+                                  # minibatche before checking the network 
+                                  # on the validation set; in this case we 
+                                  # check every epoch 
 
-    # initialize cross-validation variables
-    best_params = None
+    best_params          = None
     best_validation_loss = float('inf')
+    test_score           = 0.
+    start_time = time.clock()
 
-    for iter in xrange( n_iter * len(train_batches) ) :
- 
-        # get epoch and minibatch index
-        epoch           = iter / len(train_batches)
-        minibatch_index =  iter % len(train_batches)
+    done_looping = False 
+    epoch = 0  
+    while (epoch < n_epochs) and (not done_looping):
+        epoch = epoch + 1
+        for minibatch_index in xrange(n_train_batches):
 
-        # get the minibatches corresponding to `iter` modulo
-        # `len(train_batches)`
-        x,y = train_batches[ minibatch_index ]
+            d_loss_wrt_params = ... # compute gradient
+            params -= learning_rate * d_loss_wrt_params # gradient descent
 
+            # iteration number
+            iter = epoch * n_train_batches + minibatch_index
+            # note that if we do `iter % validation_frequency` it will be
+            # true for iter = 0 which we do not want
+            if iter and iter % validation_frequency == 0: 
 
-        d_loss_wrt_params = ... # compute gradient
-        params -= learning_rate * d_loss_wrt_params # gradient descent
+                this_validation_loss = ... # compute zero-one loss on validation set
 
-        # note that if we do `iter % validation_frequency` it will be
-        # true for iter = 0 which we do not want
-        if (iter+1) % validation_frequency == 0: 
+                if this_validation_loss < best_validation_loss:
 
-            this_validation_loss = ... # compute zero-one loss on validation set
+                    # improve patience if loss improvement is good enough
+                    if this_validation_loss < best_validation_loss*improvement_threshold:
 
-            if this_validation_loss < best_validation_loss:
+                        patience = max(patience, iter * patience_increase)
+                    best_params = copy.deepcopy(params)
+                    best_validation_loss = this_validation_loss
 
-                # improve patience if loss improvement is good enough
-                if this_validation_loss < best_validation_loss*improvement_threshold:
-                   patience = iter * patience_increase
- 
-                best_params = copy.deepcopy(params)
-                best_validation_loss = this_validation_loss
-
-        if patience <= iter:
-            break
+            if patience <= iter:
+                break
 
     # POSTCONDITION:
     # best_params refers to the best out-of-sample parameters observed during the optimization
@@ -603,7 +599,7 @@ we just go back to the beginning of the training set and repeat.
     The ``validation_frequency`` should always be smaller than the
     ``patience``. The code should check at least two times how it
     performs before running out of patience. This is the reason we used
-    the formulation ``validation_frequency = min( 2500, patience/2.)``
+    the formulation ``validation_frequency = min( value, patience/2.)``
 
 .. note::
 
