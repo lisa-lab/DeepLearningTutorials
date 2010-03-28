@@ -261,7 +261,7 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     rng        = numpy.random.RandomState(123)
     theano_rng = RandomStreams( rng.randint(2**30))
 
-    # initialize storage fot the persistent chain (state = hidden layer of chain)
+    # initialize storage for the persistent chain (state = hidden layer of chain)
     persistent_chain = theano.shared(numpy.zeros((batch_size, 500)))
 
     # construct the RBM class
@@ -330,7 +330,7 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     # define one step of Gibbs sampling (mf = mean-field)
     [hid_mf, hid_sample, vis_mf, vis_sample] =  rbm.gibbs_vhv(persistent_vis_chain)
 
-    # the sample at the end of the channel is returned by ``gibbs_vhb`` as 
+    # the sample at the end of the channel is returned by ``gibbs_vhv`` as 
     # its last output; note that this is computed as a binomial draw, 
     # therefore it is formed of ints (0 and 1) and therefore needs to 
     # be converted to the same dtype as ``persistent_vis_chain``
