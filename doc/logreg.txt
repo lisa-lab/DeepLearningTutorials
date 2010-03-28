@@ -395,15 +395,17 @@ The output one should expect is of the form :
 
 .. code-block:: bash
 
-  epoch 0, minibatch 83/83, validation error 12.458333 %
-       epoch 0, minibatch 83/83, test error of best model 12.375000 %
-  ...
-  epoch 72, minibatch 83/83, validation error 7.50000 %
-  Optimization complete with best validation score of 7.5%, with test performance 7.489%
-  The code ran for 0.51200 minutes
+    ...
+    epoch 73, minibatch 83/83, validation error 7.500000 %
+        epoch 73, minibatch 83/83, test error of best model 7.489583 %
+    epoch 74, minibatch 83/83, validation error 7.479167 %
+        epoch 74, minibatch 83/83, test error of best model 7.489583 %
+    Optimization complete with best validation score of 7.479167 %,with test performance 7.489583 %
+    The code run for 75 epochs, with 1.936983 epochs/sec
+
 
 On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
-approximately 2.34 epochs/sec and it took 72 epochs to reach a test
+approximately 1.936 epochs/sec and it took 75 epochs to reach a test
 error of 7.489%. On the GPU the code does almost 10.0 epochs/sec. 
 
 .. rubric:: Footnotes
