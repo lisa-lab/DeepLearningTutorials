@@ -134,29 +134,51 @@ layer on top.
 
 
 The initial values for the weights of a hidden layer :math:`i` should be uniformly
-sampled from the interval
+sampled from a symmetric interval that depends on the activation function. For
+:math:`tanh` activation function results obtained in [Xavier10] show that the
+interval should be 
 :math:`[-\sqrt{\frac{6}{fan_{in}+fan_{out}}},\sqrt{\frac{6}{fan_{in}+fan_{out}}}]`, where 
 :math:`fan_{in}` is the number of units in the :math:`(i-1)`-th layer,
-and :math:`fan_{out}` is the number of units in the :math:`i`-th layer. This
-initialization ensures that, early in training, each neuron operates in a 
+and :math:`fan_{out}` is the number of units in the :math:`i`-th layer. For
+the sigmoid function the interval is :math:`[-4\sqrt{\frac{6}{fan_{in}+fan_{out}}},4\sqrt{\frac{6}{fan_{in}+fan_{out}}}]`. 
+This initialization ensures that, early in training, each neuron operates in a 
 regime of its activation function where information can easily be propagated
 both upward (activations flowing from inputs to outputs) and backward
-(gradients flowing from outputs to inputs).
+(gradients flowing from outputs to inputs). Note that the initialization
+depends on the activation function used, the interval 
 
 .. code-block:: python 
 
         # `W` is initialized with `W_values` which is uniformely sampled
-        # from -6./sqrt(n_in+n_hidden) and 6./sqrt(n_in+n_hidden)
+        # from sqrt(-6./(n_in+n_hidden)) and sqrt(6.(n_in+n_hidden))
+        # for tanh activation function
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
-        W_values = numpy.asarray( rng.uniform( \
-              low = -numpy.sqrt(6./(n_in+n_out)), \
-              high = numpy.sqrt(6./(n_in+n_out)), \
-              size = (n_in, n_out)), dtype = theano.config.floatX)
-        self.W = theano.shared(value = W_values)
+        # Note : optimal initialization of weights is dependent on the
+        #        activation function used (among other things).
+        #        For example, results presented in [Xavier10] suggest that you 
+        #        should use 4 times larger initial weights for sigmoid 
+        #        compared to tanh
+        if activation == theano.tensor.tanh:
+            W_values = numpy.asarray( rng.uniform(
+                    low  = - numpy.sqrt(6./(n_in+n_out)),
+                    high = numpy.sqrt(6./(n_in+n_out)),
+                    size = (n_in, n_out)), dtype = theano.config.floatX)
+        elif activation == theano.tensor.nnet.sigmoid:
+            W_values = numpy.asarray( 4*rng.uniform(
+                    low  = - numpy.sqrt(6./(n_in+n_out)),
+                    high = numpy.sqrt(6./(n_in+n_out)),
+                    size = (n_in, n_out)), dtype = theano.config.floatX)
+        else:
+            # how should we initialize the weights for your activation function ?
+            W_values = numpy.asarray( rng.uniform(
+                    low  = - numpy.sqrt(6./(n_in+n_out)),
+                    high = numpy.sqrt(6./(n_in+n_out)),
+                    size = (n_in,n_out)), dtype = theano.config.floatX)
+        self.W = theano.shared(value = W_values, name = 'W')
 
         b_values = numpy.zeros((n_out,), dtype= theano.config.floatX)
-        self.b = theano.shared(value= b_values)
+        self.b = theano.shared(value= b_values, name = 'b')
 
 Note that we used a given non linear function as the activation function of the hidden layer. By default this is ``tanh``, but in many cases we might want
 to use something else.

@@ -2,7 +2,7 @@
 """
 import os
 
-import numpy, time, cPickle, gzip 
+import numpy, time, cPickle, gzip, os, sys
 
 import theano
 import theano.tensor as T
@@ -15,7 +15,14 @@ from rbm import RBM
 
 
 class DBN(object):
-    """
+    """Deep Belief Network
+
+    A deep belief network is obtained by stacking several RBMs on top of each
+    other. The hidden layer of the RBM at layer `i` becomes the input of the
+    RBM at layer `i+1`. The first layer RBM gets as input the input of the 
+    network, and the hidden layer of the last RBM represents the output. When
+    used for classification, the DBN is treated as a MLP, by adding a logistic
+    regression layer on top.
     """
 
     def __init__(self, numpy_rng, theano_rng = None, n_ins = 784, 
@@ -110,8 +117,8 @@ class DBN(object):
                          n_in = hidden_layers_sizes[-1], n_out = n_outs)
         self.params.extend(self.logLayer.params)
 
-        # construct a function that implements one step of fine-tuning compute the cost for
-        # second phase of training, defined as the negative log likelihood 
+        # compute the cost for second phase of training, defined as the 
+        # negative log likelihood 
         self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
 
         # compute the gradients with respect to the model parameters
@@ -134,6 +141,7 @@ class DBN(object):
         # index to a [mini]batch
         index            = T.lscalar('index')   # index to a minibatch
         learning_rate    = T.scalar('lr')    # learning rate to use
+        k                = T.lscalar('k')
 
         # number of batches
         n_batches = train_set_x.value.shape[0] / batch_size
@@ -147,11 +155,12 @@ class DBN(object):
 
             # get the cost and the updates list
             # TODO: change cost function to reconstruction error
-            cost,updates = rbm.cd(learning_rate, persistent=None)
+            cost,updates = rbm.get_cost_updates(learning_rate, persistent=None, k =k)
 
             # compile the theano function    
             fn = theano.function(inputs = [index, 
-                              theano.Param(learning_rate, default = 0.1)], 
+                              theano.Param(learning_rate, default = 0.1),
+                              theano.Param(k, default = 1)],
                     outputs = cost, 
                     updates = updates,
                     givens  = {self.x :train_set_x[batch_begin:batch_end]})
@@ -222,13 +231,10 @@ class DBN(object):
         return train_fn, valid_score, test_score
 
 
-
-
-
-
 def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
-              pretrain_lr = 0.1, training_epochs = 1000, \
-              dataset='mnist.pkl.gz'):
+              pretrain_lr = 0.1, k = 1, training_epochs = 1000, \
+              dataset='../data/mnist.pkl.gz', batch_size = 1,
+              output_folder = 'DBN_plots'):
     """
     Demonstrates how to train and test a Deep Belief Network.
 
@@ -246,17 +252,12 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
     :param dataset: path the the pickled dataset
     """
 
-    print 'finetune_lr = ', finetune_lr
-    print 'pretrain_lr = ', pretrain_lr
 
     datasets = load_data(dataset)
 
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
     test_set_x , test_set_y  = datasets[2]
-
-
-    batch_size = 20    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size
@@ -288,12 +289,11 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
             c = []
             for batch_index in xrange(n_train_batches):
                 c.append(pretraining_fns[i](index = batch_index, 
-                         lr = pretrain_lr ) )
+                         lr = pretrain_lr, k = k ) )
             print 'Pre-training layer %i, epoch %d, cost '%(i,epoch),numpy.mean(c)
  
     end_time = time.clock()
-
-    print ('Pretraining took %f minutes' %((end_time-start_time)/60.))
+    print >> sys.stderr, ('The pretraining code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected Xm our buildbot' % ((end_time-start_time)/60.))
     
     ########################
     # FINETUNING THE MODEL #
@@ -372,13 +372,12 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 10, \
     print(('Optimization complete with best validation score of %f %%,'
            'with test performance %f %%') %  
                  (best_validation_loss * 100., test_score*100.))
-    print ('The code ran for %f minutes' % ((end_time-start_time)/60.))
-
-
+    print >> sys.stderr, ('The fine tuning code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected Xm our buildbot' % ((end_time-start_time)/60.))
+    ##################
+    ## SAMPLING DBN ##
+    ##################
 
 
 
 if __name__ == '__main__':
-    pretrain_lr = numpy.float(os.sys.argv[1])
-    finetune_lr = numpy.float(os.sys.argv[2])
-    test_DBN(pretrain_lr=pretrain_lr, finetune_lr=finetune_lr)
+    test_DBN()

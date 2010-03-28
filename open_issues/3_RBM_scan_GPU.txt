@@ -1,0 +1,4 @@
+Reported by : Razvan
+
+Scan is not GPU ready.. making RBM tutorial slow on GPU (not tested yet).
+Quick fix is a optimization that removes scan if you're doing CD-1.

@@ -35,7 +35,7 @@ References:
 """
 __docformat__ = 'restructedtext en'
 
-import numpy, time, cPickle, gzip
+import numpy, time, cPickle, gzip, sys, os
 
 import theano
 import theano.tensor as T
@@ -190,7 +190,8 @@ def load_data(dataset):
 
 
 
-def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000, dataset='mnist.pkl.gz'):
+def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000, dataset='../data/mnist.pkl.gz',
+        batch_size = 600):
     """
     Demonstrate stochastic gradient descent optimization of a log-linear 
     model
@@ -214,8 +215,6 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000, dataset='mnist.pkl
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
     test_set_x , test_set_y  = datasets[2]
-
-    batch_size = 600    # size of the minibatch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size
@@ -341,7 +340,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000, dataset='mnist.pkl
     print(('Optimization complete with best validation score of %f %%,'
            'with test performance %f %%') %  
                  (best_validation_loss * 100., test_score*100.))
-    print ('The code ran for %f minutes' % ((end_time-start_time)/60.))
+    print >> sys.stderr, ('The code for file '+os.path.split(__file__)[1]+' ran for %.1fs expected 3.8s in our buildbot' % ((end_time-start_time)))
 
 if __name__ == '__main__':
     sgd_optimization_mnist()

@@ -31,3 +31,5 @@ References
 .. [Vincent08] P. Vincent, H. Larochelle Y. Bengio and P.A. Manzagol, `Extracting and Composing Robust Features with Denoising Autoencoders <http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/217>`_, Proceedings of the Twenty-fifth International Conference on Machine Learning (ICML'08), pages 1096 - 1103, ACM, 2008.
 
 .. [Tieleman08] T. Tieleman, `Training restricted boltzmann machines using approximations to the likelihood gradient`, ICML 2008.
+
+.. [Xavier10] Y. Bengio, X. Glorot, `Understanding the difficulty of training deep feedforward neuralnetworks` AISTATS 2010

@@ -1,0 +1,5 @@
+Reported by : Razvan
+
+We should produce results + time for CPU float32 / CPU float64 / GPU . We should also 
+specify the batchsize (or number of updates) pointing out that you can't always just 
+compare the number of epochs. 

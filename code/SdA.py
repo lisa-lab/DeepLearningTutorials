@@ -30,7 +30,7 @@
 
 """
 
-import numpy, time, cPickle, gzip 
+import numpy, time, cPickle, gzip, sys, os
 
 import theano
 import theano.tensor as T
@@ -280,8 +280,8 @@ class SdA(object):
 
 
 def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
-              pretrain_lr = 0.1, training_epochs = 1000, \
-              dataset='mnist.pkl.gz'):
+              pretrain_lr = 0.05, training_epochs = 1000, \
+              dataset='../data/mnist.pkl.gz', batch_size = 1):
     """
     Demonstrates how to train and test a stochastic denoising autoencoder.
 
@@ -312,8 +312,6 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
     test_set_x , test_set_y  = datasets[2]
 
 
-    batch_size = 20    # size of the minibatch
-
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.value.shape[0] / batch_size
 
@@ -337,6 +335,7 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
     print '... pre-training the model'
     start_time = time.clock()  
     ## Pre-train layer-wise 
+    corruption_levels = [.1,.1,.0]
     for i in xrange(sda.n_layers):
         # go through pretraining epochs 
         for epoch in xrange(pretraining_epochs):
@@ -344,12 +343,13 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
             c = []
             for batch_index in xrange(n_train_batches):
                 c.append( pretraining_fns[i](index = batch_index, 
-                         corruption = 0.2, lr = pretrain_lr ) )
+                         corruption = corruption_levels[i], 
+                         lr = pretrain_lr ) )
             print 'Pre-training layer %i, epoch %d, cost '%(i,epoch),numpy.mean(c)
  
     end_time = time.clock()
 
-    print ('Pretraining took %f minutes' %((end_time-start_time)/60.))
+    print >> sys.stderr, ('The pretraining code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected 4.58m in our buildbot' % ((end_time-start_time)/60.))
     
     ########################
     # FINETUNING THE MODEL #
@@ -363,7 +363,7 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
 
     print '... finetunning the model'
     # early-stopping parameters
-    patience              = 10000 # look as this many examples regardless
+    patience              = 10*n_train_batches # look as this many examples regardless
     patience_increase     = 2.    # wait this much longer when a new best is 
                                   # found
     improvement_threshold = 0.995 # a relative improvement of this much is 
@@ -384,51 +384,49 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
     epoch = 0
 
     while (epoch < training_epochs) and (not done_looping):
-      epoch = epoch + 1
-      for minibatch_index in xrange(n_train_batches):
+        for minibatch_index in xrange(n_train_batches):
+            minibatch_avg_cost = train_fn(minibatch_index)
+            iter    = epoch * n_train_batches + minibatch_index
 
-        minibatch_avg_cost = train_fn(minibatch_index)
-        iter    = epoch * n_train_batches + minibatch_index
-
-        if (iter+1) % validation_frequency == 0: 
-            
-            validation_losses = validate_model()
-            this_validation_loss = numpy.mean(validation_losses)
-            print('epoch %i, minibatch %i/%i, validation error %f %%' % \
+            if (iter+1) % validation_frequency == 0:
+                validation_losses = validate_model()
+                this_validation_loss = numpy.mean(validation_losses)
+                print('epoch %i, minibatch %i/%i, validation error %f %%' % \
                    (epoch, minibatch_index+1, n_train_batches, \
                     this_validation_loss*100.))
 
 
-            # if we got the best validation score until now
-            if this_validation_loss < best_validation_loss:
+                # if we got the best validation score until now
+                if this_validation_loss < best_validation_loss:
 
-                #improve patience if loss improvement is good enough
-                if this_validation_loss < best_validation_loss *  \
-                       improvement_threshold :
-                    patience = max(patience, iter * patience_increase)
+                    #improve patience if loss improvement is good enough
+                    if this_validation_loss < best_validation_loss *  \
+                                                improvement_threshold :
+                        patience = max(patience, iter * patience_increase)
 
-                # save best validation score and iteration number
-                best_validation_loss = this_validation_loss
-                best_iter = iter
+                    # save best validation score and iteration number
+                    best_validation_loss = this_validation_loss
+                    best_iter = iter
 
-                # test it on the test set
-                test_losses = test_model()
-                test_score = numpy.mean(test_losses)
-                print(('     epoch %i, minibatch %i/%i, test error of best '
-                      'model %f %%') % 
+                    # test it on the test set
+                    test_losses = test_model()
+                    test_score = numpy.mean(test_losses)
+                    print(('     epoch %i, minibatch %i/%i, test error of best '
+                          'model %f %%') % 
                              (epoch, minibatch_index+1, n_train_batches,
                               test_score*100.))
 
 
-        if patience <= iter :
+            if patience <= iter :
                 done_looping = True
                 break
+        epoch = epoch + 1
 
     end_time = time.clock()
     print(('Optimization complete with best validation score of %f %%,'
            'with test performance %f %%') %  
                  (best_validation_loss * 100., test_score*100.))
-    print ('The code ran for %f minutes' % ((end_time-start_time)/60.))
+    print >> sys.stderr, ('The training code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected 3.91m in our buildbot' % ((end_time-start_time)/60.))
 
 
 
