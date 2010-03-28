@@ -118,7 +118,7 @@ class DBN(object):
         self.params.extend(self.logLayer.params)
 
         # compute the cost for second phase of training, defined as the 
-        # negative log likelihood 
+        # negative log likelihood of the logistic regression (output) layer
         self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
 
         # compute the gradients with respect to the model parameters
