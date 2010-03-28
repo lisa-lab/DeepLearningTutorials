@@ -284,22 +284,24 @@ follows:
 
 .. code-block:: python
 
-    # set a learning rate
-    learning_rate=0.01
+    # compute the gradient of cost with respect to theta = (W,b) 
+    g_W = T.grad(cost = cost, wrt = classifier.W)
+    g_b = T.grad(cost = cost, wrt = classifier.b)
 
     # specify how to update the parameters of the model as a dictionary
     updates ={classifier.W: classifier.W - learning_rate*g_W,\
               classifier.b: classifier.b - learning_rate*g_b}
 
-    # compiling a Theano function `train_model` that returns the cost, but in
-    # the same time updates the parameter of the model based on the rules
+    # compiling a Theano function `train_model` that returns the cost, but in 
+    # the same time updates the parameter of the model based on the rules 
     # defined in `updates`
-    train_model = theano.function( inputs = [minibatch_offset], 
+    train_model = theano.function(inputs = [index], 
             outputs = cost, 
             updates = updates,
             givens={
-                x:train_set_x[minibatch_offset:minibatch_offset+batch_size],
-                y:train_set_y[minibatch_offset:minibatch_offset+batch_size]})
+                x:train_set_x[index*batch_size:(index+1)*batch_size],
+                y:train_set_y[index*batch_size:(index+1)*batch_size]})
+
 
 
 The ``updates`` dictionary contains, for each parameter, the
@@ -307,16 +309,18 @@ stochastic gradient update operation. The ``givens`` dictionary indicates with
 what to replace certain variables of the graph. The function ``train_model`` is then
 defined such that:
 
-* the input is the mini-batch offset ``minibatch_offset`` that together with the batch size( which is not an input since it is fixed) defines :math:`x` with corresponding labels :math:`y`
+* the input is the mini-batch index ``index`` that together with the batch 
+  size( which is not an input since it is fixed) defines :math:`x` with 
+  corresponding labels :math:`y`
 * the return value is the cost/loss associated with the x, y defined by
-  the ``minibatch_offset``
+  the ``index`` 
 * on every function call, it will first replace ``x`` and ``y`` with the
-* corresponding slices from the training set as defined by the
-* ``minibatch_offset`` and afterwards it will evaluate the cost
-* associated with that minibatch and apply the operations defined by the
+  corresponding slices from the training set as defined by the
+  ``index`` and afterwards it will evaluate the cost
+  associated with that minibatch and apply the operations defined by the
   ``updates`` dictionary. 
 
-Each time ``train_model(minibatch_offset)`` function is called, it will thus compute and
+Each time ``train_model(index)`` function is called, it will thus compute and
 return the appropriate cost, while also performing a step of MSGD. The entire
 learning algorithm thus consists in looping over all examples in the dataset,
 and repeatedly calling the ``train_model`` function.
@@ -357,17 +361,19 @@ the other from the validation set.
 
 .. code-block:: python
 
-    test_model = theano.function( inputs = [minibatch_offset], 
+    # compiling a Theano function that computes the mistakes that are made by 
+    # the model on a minibatch
+    test_model = theano.function(inputs = [index], 
             outputs = classifier.errors(y),
             givens={
-                x:test_set_x[minibatch_offset:minibatch_offset+batch_size],
-                y:test_set_y[minibatch_offset:minibatch_offset+batch_size]})
+                x:test_set_x[index*batch_size:(index+1)*batch_size],
+                y:test_set_y[index*batch_size:(index+1)*batch_size]})
 
-    validate_model =theano.function( inputs = [minibatch_offset], 
+    validate_model = theano.function( inputs = [index], 
             outputs = classifier.errors(y),
             givens={
-                x:valid_set_x[minibatch_offset:minibatch_offset+batch_size],
-                y:valid_set_y[minibatch_offset:minibatch_offset+batch_size]})
+                x:valid_set_x[index*batch_size:(index+1)*batch_size],
+                y:valid_set_y[index*batch_size:(index+1)*batch_size]})
 
 
 
