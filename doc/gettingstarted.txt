@@ -91,10 +91,9 @@ MNIST Dataset
  
  Since now the data is in one variable, and a minibatch is defined as a
  slice of that variable, it comes more natural to define a minibatch by
- indicating its index and how large one minibatch is 
- Note that since the batch size stays constant through out the
- execution of the code, a function will 
- require only the index as input in order to identify on which minibatch to work. 
+ indicating its index and its size. In our setup the batch size stays constant
+ through out the execution of the code, therefore a function will actually
+ require only the index to identify on which datapoints to work.
  The code below shows how to store your data and how to 
  access a minibatch:
 
@@ -134,10 +133,18 @@ MNIST Dataset
     label = train_set_y[2*500:3*500]
 
 
-Note that the data has to be stored as floats on the GPU ( the right
+The data has to be stored as floats on the GPU ( the right
 ``dtype`` for storing on the GPU is given by ``theano.config.floatX``).
 To get around this shortcomming for the labels, we store them as float,
-and then cast it to int.
+and then cast it to int. 
+
+.. note::
+    
+    If you are running your code on the GPU and the dataset you are using 
+    is too large to fit in memory the code will crush. In such a case, do 
+    not store the data in a shared variable. You can however copy a larger chunk
+    of it at once (several minibatches) to reduce the overhead of data transfer.
+
 
 
 .. index:: Notation
