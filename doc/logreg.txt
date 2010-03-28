@@ -406,7 +406,8 @@ The output one should expect is of the form :
 
 On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
 approximately 1.936 epochs/sec and it took 75 epochs to reach a test
-error of 7.489%. On the GPU the code does almost 10.0 epochs/sec. 
+error of 7.489%. On the GPU the code does almost 10.0 epochs/sec. For this
+instance we used a batch size of 600. 
 
 .. rubric:: Footnotes
 
