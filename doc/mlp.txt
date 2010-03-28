@@ -105,32 +105,35 @@ layer on top.
 
 .. code-block:: python 
 
-  class HiddenLayer(object):
-    def __init__(self, rng, input, n_in, n_out):
-        """
-        Typical hidden layer of a MLP: units are fully-connected and have
-        sigmoidal activation function. Weight matrix W is of shape (n_in,n_out)
-        and the bias vector b is of shape (n_out,).
-        
-        Hidden unit activation is given by: sigmoid(dot(input,W) + b)
+    class HiddenLayer(object):
+        def __init__(self, rng, input, n_in, n_out, activation = T.tanh):
+            """
+            Typical hidden layer of a MLP: units are fully-connected and have
+            sigmoidal activation function. Weight matrix W is of shape (n_in,n_out)
+            and the bias vector b is of shape (n_out,).
 
-        :type rng: numpy.random.RandomState
-        :param rng: a random number generator used to initialize weights
+            NOTE : The nonlinearity used here is tanh
+            
+            Hidden unit activation is given by: tanh(dot(input,W) + b)
 
-        :type input: theano.tensor.dmatrix
-        :param input: a symbolic tensor of shape (n_examples, n_in)
+            :type rng: numpy.random.RandomState
+            :param rng: a random number generator used to initialize weights
 
-        :type n_in: int
-        :param n_in: dimensionality of input
+            :type input: theano.tensor.dmatrix
+            :param input: a symbolic tensor of shape (n_examples, n_in)
 
-        :type n_out: int
-        :param n_out: number of hidden units
+            :type n_in: int
+            :param n_in: dimensionality of input
 
-        :type activation: theano.Op or function
-        :param activation: Non linearity to be applied in the hidden 
-                              layer
-        """
-        self.input = input
+            :type n_out: int
+            :param n_out: number of hidden units
+
+            :type activation: theano.Op or function
+            :param activation: Non linearity to be applied in the hidden 
+                                  layer
+            """
+            self.input = input
+
 
 
 The initial values for the weights of a hidden layer :math:`i` should be uniformly
@@ -144,13 +147,12 @@ the sigmoid function the interval is :math:`[-4\sqrt{\frac{6}{fan_{in}+fan_{out}
 This initialization ensures that, early in training, each neuron operates in a 
 regime of its activation function where information can easily be propagated
 both upward (activations flowing from inputs to outputs) and backward
-(gradients flowing from outputs to inputs). Note that the initialization
-depends on the activation function used, the interval 
+(gradients flowing from outputs to inputs).
 
 .. code-block:: python 
 
         # `W` is initialized with `W_values` which is uniformely sampled
-        # from sqrt(-6./(n_in+n_hidden)) and sqrt(6.(n_in+n_hidden))
+        # from sqrt(-6./(n_in+n_hidden)) and sqrt(6./(n_in+n_hidden))
         # for tanh activation function
         # the output of uniform if converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
@@ -175,10 +177,12 @@ depends on the activation function used, the interval
                     low  = - numpy.sqrt(6./(n_in+n_out)),
                     high = numpy.sqrt(6./(n_in+n_out)),
                     size = (n_in,n_out)), dtype = theano.config.floatX)
-        self.W = theano.shared(value = W_values, name = 'W')
+
+        self.W = theano.shared(value = W_values, name ='W')
 
         b_values = numpy.zeros((n_out,), dtype= theano.config.floatX)
-        self.b = theano.shared(value= b_values, name = 'b')
+        self.b = theano.shared(value= b_values, name ='b')
+
 
 Note that we used a given non linear function as the activation function of the hidden layer. By default this is ``tanh``, but in many cases we might want
 to use something else.
@@ -325,13 +329,14 @@ at each step.
         updates[param] = param - learning_rate*gparam
 
 
-    # compiling a theano function `train_model` that returns the cost, but 
+    # compiling a Theano function `train_model` that returns the cost, but  
     # in the same time updates the parameter of the model based on the rules 
     # defined in `updates`
-    train_model = theano.function([minibatch_offset], cost, updates = updates,
+    train_model =theano.function( inputs = [index], outputs = cost, 
+            updates = updates,
             givens={
-                x:train_set_x[minibatch_offset:minibatch_offset+batch_size],
-                y:train_set_y[minibatch_offset:minibatch_offset+batch_size]})
+                x:train_set_x[index*batch_size:(index+1)*batch_size],
+                y:train_set_y[index*batch_size:(index+1)*batch_size]})
 
 
 
