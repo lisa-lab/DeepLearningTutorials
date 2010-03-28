@@ -442,7 +442,7 @@ given by ``pretraining_epochs``.
     pretraining_fns = dbn.pretraining_functions(
             train_set_x   = train_set_x, 
             batch_size    = batch_size,
-            k = 1) 
+            k             = k) 
 
     print '... pre-training the model'
     start_time = time.clock()  
