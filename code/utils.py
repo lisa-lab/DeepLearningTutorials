@@ -84,9 +84,11 @@ def tile_raster_images(X, img_shape, tile_shape,tile_spacing = (0,0),
             if X[i] is None:
                 # if channel is None, fill it with zeros of the correct 
                 # dtype
+                dt = out_array.dtype
+                if output_pixel_vals:
+                    dt = 'uint8'
                 out_array[:,:,i] = numpy.zeros(out_shape,
-                        dtype='uint8' if output_pixel_vals else out_array.dtype
-                        )+channel_defaults[i]
+                        dtype=dt)+channel_defaults[i]
             else:
                 # use a recurrent call to compute the channel and store it 
                 # in the output
@@ -99,7 +101,10 @@ def tile_raster_images(X, img_shape, tile_shape,tile_spacing = (0,0),
         Hs, Ws = tile_spacing
 
         # generate a matrix to store the output
-        out_array = numpy.zeros(out_shape, dtype='uint8' if output_pixel_vals else X.dtype)
+        dt = X.dtype
+        if output_pixel_vals:
+            dt = 'uint8'
+        out_array = numpy.zeros(out_shape, dtype=dt)
 
 
         for tile_row in xrange(tile_shape[0]):
@@ -114,11 +119,14 @@ def tile_raster_images(X, img_shape, tile_shape,tile_spacing = (0,0),
                         this_img = X[tile_row * tile_shape[1] + tile_col].reshape(img_shape)
                     # add the slice to the corresponding position in the 
                     # output array
+                    c = 1
+                    if output_pixel_vals:
+                        c = 255
                     out_array[
                         tile_row * (H+Hs):tile_row*(H+Hs)+H,
                         tile_col * (W+Ws):tile_col*(W+Ws)+W
                         ] \
-                        = this_img * (255 if output_pixel_vals else 1)
+                        = this_img * c
         return out_array
 
 

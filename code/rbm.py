@@ -82,7 +82,9 @@ class RBM(object):
 
 
         # initialize input layer for standalone RBM or layer0 of DBN
-        self.input = input if input else T.dmatrix('input')
+        self.input = input 
+        if not input:
+            self.input = T.dmatrix('input')
 
         self.W          = W
         self.hbias      = hbias
