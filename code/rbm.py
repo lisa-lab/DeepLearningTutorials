@@ -106,51 +106,65 @@ class RBM(object):
 
     def propup(self, vis):
         ''' This function propagates the visible units activation upwards to
-        the hidden units '''
-        return T.nnet.sigmoid(T.dot(vis, self.W) + self.hbias)
+        the hidden units 
+        
+        Note that we return also the pre_sigmoid_activation of the layer. As 
+        it will turn out later, due to how Theano deals with optimization and 
+        stability this symbolic variable will be needed to write down a more 
+        stable graph (see details in the reconstruction cost function)
+        '''
+        pre_sigmoid_activation = T.dot(vis, self.W) + self.hbias
+        return [pre_sigmoid_activation, T.nnet.sigmoid(pre_sigmoid_activation)]
 
     def sample_h_given_v(self, v0_sample):
         ''' This function infers state of hidden units given visible units '''
         # compute the activation of the hidden units given a sample of the visibles
-        h1_mean = self.propup(v0_sample)
+        pre_sigmoid_h1, h1_mean = self.propup(v0_sample)
         # get a sample of the hiddens given their activation
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
         # for the GPU we need to specify to return the dtype floatX
         h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, prob = h1_mean,
                 dtype = theano.config.floatX)
-        return [h1_mean, h1_sample]
+        return [pre_sigmoid_h1, h1_mean, h1_sample]
 
     def propdown(self, hid):
         '''This function propagates the hidden units activation downwards to
-        the visible units'''
-        return T.nnet.sigmoid(T.dot(hid,self.W.T) + self.vbias)
+        the visible units
+        
+        Note that we return also the pre_sigmoid_activation of the layer. As 
+        it will turn out later, due to how Theano deals with optimization and 
+        stability this symbolic variable will be needed to write down a more 
+        stable graph (see details in the reconstruction cost function)
+        '''
+        pre_sigmoid_activation = T.dot(hid, self.W.T) + self.vbias
+        return [pre_sigmoid_activation,T.nnet.sigmoid(pre_sigmoid_activation)]
 
     def sample_v_given_h(self, h0_sample):
         ''' This function infers state of visible units given hidden units '''
         # compute the activation of the visible given the hidden sample
-        v1_mean = self.propdown(h0_sample)
+        pre_sigmoid_v1, v1_mean = self.propdown(h0_sample)
         # get a sample of the visible given their activation
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
         # for the GPU we need to specify to return the dtype floatX
         v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,prob = v1_mean,
                 dtype = theano.config.floatX)
-        return [v1_mean, v1_sample]
+        return [pre_sigmoid_v1, v1_mean, v1_sample]
 
     def gibbs_hvh(self, h0_sample):
         ''' This function implements one step of Gibbs sampling, 
             starting from the hidden state'''
-        v1_mean, v1_sample = self.sample_v_given_h(h0_sample)
-        h1_mean, h1_sample = self.sample_h_given_v(v1_sample)
-        return [v1_mean, v1_sample, h1_mean, h1_sample]
+        pre_sigmoid_v1, v1_mean, v1_sample = self.sample_v_given_h(h0_sample)
+        pre_sigmoid_h1, h1_mean, h1_sample = self.sample_h_given_v(v1_sample)
+        return [pre_sigmoid_v1, v1_mean, v1_sample, pre_sigmoid_h1, h1_mean, h1_sample]
  
     def gibbs_vhv(self, v0_sample):
         ''' This function implements one step of Gibbs sampling, 
             starting from the visible state'''
-        h1_mean, h1_sample = self.sample_h_given_v(v0_sample)
-        v1_mean, v1_sample = self.sample_v_given_h(h1_sample)
-        return [h1_mean, h1_sample, v1_mean, v1_sample]
+        pre_sigmoid_h1, h1_mean, h1_sample = self.sample_h_given_v(v0_sample)
+        pre_sigmoid_v1, v1_mean, v1_sample = self.sample_v_given_h(h1_sample)
+        return [pre_sigmoid_h1, h1_mean, h1_sample, pre_sigmoid_v1, v1_mean, v1_sample]
  
     def get_cost_updates(self, lr = 0.1, persistent=None, k =1):
         """ 
@@ -171,7 +185,7 @@ class RBM(object):
         """
 
         # compute positive phase
-        ph_mean, ph_sample = self.sample_h_given_v(self.input)
+        pre_sigmoid_ph, ph_mean, ph_sample = self.sample_h_given_v(self.input)
 
         # decide how to initialize persistent chain:
         # for CD, we use the newly generate hidden sample
@@ -187,12 +201,12 @@ class RBM(object):
         # Read Theano tutorial on scan for more information :
         # http://deeplearning.net/software/theano/library/scan.html
         # the scan will return the entire Gibbs chain
-        [nv_means, nv_samples, nh_means, nh_samples], updates = \
+        [pre_sigmoid_nvs, nv_means, nv_samples, pre_sigmoid_nhs, nh_means, nh_samples], updates = \
             theano.scan(self.gibbs_hvh, 
                     # the None are place holders, saying that
                     # chain_start is the initial state corresponding to the 
-                    # 4th output
-                    outputs_info = [None,None,None,chain_start],
+                    # 6th output
+                    outputs_info = [None, None, None,None,None,chain_start],
                     n_steps = k)
 
         # determine gradients on RBM parameters
@@ -214,7 +228,7 @@ class RBM(object):
             cost = self.get_pseudo_likelihood_cost(updates)
         else:
             # reconstruction cross-entropy is a better proxy for CD
-            cost = self.get_reconstruction_cost(updates, nv_means[-1])
+            cost = self.get_reconstruction_cost(updates, pre_sigmoid_nvs[-1])
 
         return cost, updates
 
@@ -253,18 +267,41 @@ class RBM(object):
 
         return cost
 
-    def get_reconstruction_cost(self, updates, nv_mean):
-        """Approximation to the reconstruction error"""
+    def get_reconstruction_cost(self, updates, pre_sigmoid_nv):
+        """Approximation to the reconstruction error
+        
+        Note that this function requires the pre-sigmoid activation. To 
+        understand why this is so you need to understand a bit about how 
+        Theano works. Once you express a computational graph in Theano, it
+        will apply to it several optimizations which will lead to a faster 
+        and more stable computational graph. One of these optimizations 
+        expresses terms of the form log(sigmoid(x)) in terms of softplus. 
+        We need this optimization for the cross-entropy since sigmoid of 
+        numbers larger than 30. ( or even less) turn to 1. and numbers 
+        smaller than  -30. turn to 0 which in terms will force theano 
+        to compute log(0) and therefore we will get either -inf or NaN 
+        as cost. If the value is expressed in terms of softplus we do 
+        not get this undesirable behaviour. This optimization usually works
+        fine, but here we have a special case. The sigmoid is applied inside
+        the scan op, while the log is outside. Therefore Theano will only 
+        see log(scan(..)) instead of log(sigmoid(..)) and will not apply
+        the wanted optimization. We can not go and replace the sigmoid 
+        in scan with something else also, because this only needs to be 
+        done on the last step. Therefore the easiest and more efficient way
+        is to get also the pre-sigmoid activation as an output of scan, 
+        and apply bot the log and sigmoid outside scan such that Theano
+        can catch and optimize the expression.
+        """
 
         cross_entropy = T.mean(
-                T.sum(self.input*T.log(nv_mean) + 
-                (1 - self.input)*T.log(1-nv_mean), axis = 1))
+                T.sum(self.input*T.log(T.sigmoid(pre_sigmoid_nv)) + 
+                (1 - self.input)*T.log(1-T.sigmoid(pre_sigmoid_nv)), axis = 1))
 
         return cross_entropy
 
 
 
-def test_rbm(learning_rate=0.1, training_epochs = 15,
+def test_rbm(learning_rate=0.1, training_epochs = 1,
              dataset='../data/mnist.pkl.gz', batch_size = 20,
              n_chains = 20, n_samples = 10, output_folder = 'rbm_plots'):
     """
@@ -372,19 +409,23 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
 
     plot_every = 1000
     # define one step of Gibbs sampling (mf = mean-field)
-    [hid_mf, hid_sample, vis_mf, vis_sample] =  rbm.gibbs_vhv(persistent_vis_chain)
+    # define a function that does `plot_every` steps before returning the sample for
+    # plotting
+    [presig_hids, hid_mfs, hid_samples, presig_vis, vis_mfs, vis_samples], updates =  \
+                        theano.scan(rbm.gibbs_vhv,
+                                outputs_info = [None, None,None,None,None,persistent_vis_chain],
+                                n_steps = plot_every)
 
-    # the sample at the end of the channel is returned by ``gibbs_vhv`` as 
-    # its last output; note that this is computed as a binomial draw, 
-    # therefore it is formed of ints (0 and 1) and therefore needs to 
-    # be converted to the same dtype as ``persistent_vis_chain``
-    vis_sample = T.cast(vis_sample, dtype=theano.config.floatX)
 
-    # construct the function that implements our persistent chain 
-    # we generate the "mean field" activations for plotting and the actual samples for
-    # reinitializing the state of our persistent chain
+    # add to updates the shared variable that takes care of our persistent
+    # chain :.
+    updates.update({ persistent_vis_chain: vis_samples[-1]})
+    # construct the function that implements our persistent chain.
+    # we generate the "mean field" activations for plotting and the actual
+    # samples for reinitializing the state of our persistent chain
     sample_fn = theano.function([], [vis_mfs[-1], vis_samples[-1]],
-                      updates = updates)
+                                                         updates = updates)
+
 
     # create a space to store the image for plotting ( we need to leave 
     # room for the tile_spacing as well)
