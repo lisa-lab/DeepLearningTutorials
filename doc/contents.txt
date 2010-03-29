@@ -17,5 +17,6 @@ Contents
    dA
    SdA
    rbm
+   DBN
    utilities
    references
