@@ -397,36 +397,52 @@ with Eqs. :eq:`rbm_propup` - :eq:`rbm_propdown`. The code is as follows:
 .. code-block:: python
 
     def propup(self, vis):
-        ''' This function propagates the visible units activation upwards to the hidden units '''
-        return T.nnet.sigmoid(T.dot(v, self.W) + self.hbias)
+        ''' This function propagates the visible units activation upwards to
+        the hidden units 
+        
+        Note that we return also the pre_sigmoid_activation of the layer. As 
+        it will turn out later, due to how Theano deals with optimization and 
+        stability this symbolic variable will be needed to write down a more 
+        stable graph (see details in the reconstruction cost function)
+        '''
+        pre_sigmoid_activation = T.dot(vis, self.W) + self.hbias
+        return [pre_sigmoid_activation, T.nnet.sigmoid(pre_sigmoid_activation)]
 
     def sample_h_given_v(self, v0_sample):
         ''' This function infers state of hidden units given visible units '''
         # compute the activation of the hidden units given a sample of the visibles
-        h1_mean = self.propup(v0_sample)
+        pre_sigmoid_h1, h1_mean = self.propup(v0_sample)
         # get a sample of the hiddens given their activation
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
         # for the GPU we need to specify to return the dtype floatX
         h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, prob = h1_mean,
                 dtype = theano.config.floatX)
-        return [h1_mean, h1_sample]
+        return [pre_sigmoid_h1, h1_mean, h1_sample]
 
     def propdown(self, hid):
-        '''This function propagates the hidden units activation downwards to the visible units'''
-        return T.nnet.sigmoid(T.dot(hid,self.W.T) + self.vbias)
+        '''This function propagates the hidden units activation downwards to
+        the visible units
+        
+        Note that we return also the pre_sigmoid_activation of the layer. As 
+        it will turn out later, due to how Theano deals with optimization and 
+        stability this symbolic variable will be needed to write down a more 
+        stable graph (see details in the reconstruction cost function)
+        '''
+        pre_sigmoid_activation = T.dot(hid, self.W.T) + self.vbias
+        return [pre_sigmoid_activation,T.nnet.sigmoid(pre_sigmoid_activation)]
 
     def sample_v_given_h(self, h0_sample):
         ''' This function infers state of visible units given hidden units '''
         # compute the activation of the visible given the hidden sample
-        v1_mean = self.propdown(h0_sample)
+        pre_sigmoid_v1, v1_mean = self.propdown(h0_sample)
         # get a sample of the visible given their activation
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
         # for the GPU we need to specify to return the dtype floatX
         v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,prob = v1_mean,
                 dtype = theano.config.floatX)
-        return [v1_mean, v1_sample]
+        return [pre_sigmoid_v1, v1_mean, v1_sample]
 
 We can then use these functions to define the symbolic graph for a Gibbs
 sampling step. We define two functions:
@@ -445,18 +461,42 @@ The code is as follows:
     def gibbs_hvh(self, h0_sample):
         ''' This function implements one step of Gibbs sampling, 
             starting from the hidden state'''
-        v1_mean, v1_sample = self.sample_v_given_h(h0_sample)
-        h1_mean, h1_sample = self.sample_h_given_v(v1_sample)
-        return [v1_mean, v1_sample, h1_mean, h1_sample]
+        pre_sigmoid_v1, v1_mean, v1_sample = self.sample_v_given_h(h0_sample)
+        pre_sigmoid_h1, h1_mean, h1_sample = self.sample_h_given_v(v1_sample)
+        return [pre_sigmoid_v1, v1_mean, v1_sample, pre_sigmoid_h1, h1_mean, h1_sample]
  
     def gibbs_vhv(self, v0_sample):
         ''' This function implements one step of Gibbs sampling, 
             starting from the visible state'''
-        h1_mean, h1_sample = self.sample_h_given_v(v0_sample)
-        v1_mean, v1_sample = self.sample_v_given_h(h1_sample)
-        return [h1_mean, h1_sample, v1_mean, v1_sample]
+        pre_sigmoid_h1, h1_mean, h1_sample = self.sample_h_given_v(v0_sample)
+        pre_sigmoid_v1, v1_mean, v1_sample = self.sample_v_given_h(h1_sample)
+        return [pre_sigmoid_h1, h1_mean, h1_sample, pre_sigmoid_v1, v1_mean, v1_sample]
+ 
 
-The class also has a function that computes the free energy of the model, needed for computing the gradient of the parameters  (see Eq. :eq:`free_energy_grad`).
+The class also has a function that computes the free energy of the model, 
+needed for computing the gradient of the parameters  
+(see Eq. :eq:`free_energy_grad`). Note that we also return the pre-sigmoid
+activation. To understand why this is so you need to understand a bit about how 
+Theano works. Once you express a computational graph in Theano, it
+will apply to it several optimizations which will lead to a faster 
+and more stable computational graph. One of these optimizations 
+expresses terms of the form log(sigmoid(x)) in terms of softplus. 
+We need this optimization for the cross-entropy since sigmoid of 
+numbers larger than 30. ( or even less) turn to 1. and numbers 
+smaller than  -30. turn to 0 which in terms will force theano 
+to compute log(0) and therefore we will get either -inf or NaN 
+as cost. If the value is expressed in terms of softplus we do 
+not get this undesirable behaviour. This optimization usually works
+fine, but here we have a special case. The sigmoid is applied inside
+the scan op, while the log is outside. Therefore Theano will only 
+see log(scan(..)) instead of log(sigmoid(..)) and will not apply
+the wanted optimization. We can not go and replace the sigmoid 
+in scan with something else also, because this only needs to be 
+done on the last step. Therefore the easiest and more efficient way
+is to get also the pre-sigmoid activation as an output of scan, 
+and apply bot the log and sigmoid outside scan such that Theano
+can catch and optimize the expression.
+
 
 .. code-block:: python
 
@@ -493,7 +533,7 @@ gradients for CD-k and PCD-k updates.
         """
 
         # compute positive phase
-        ph_mean, ph_sample = self.sample_h_given_v(self.input)
+        pre_sigmoid_ph, ph_mean, ph_sample = self.sample_h_given_v(self.input)
 
         # decide how to initialize persistent chain:
         # for CD, we use the newly generate hidden sample
@@ -522,12 +562,12 @@ op provided by Theano, therefore we urge the reader to look it up by following t
         # Read Theano tutorial on scan for more information :
         # http://deeplearning.net/software/theano/library/scan.html
         # the scan will return the entire Gibbs chain
-        [nv_means, nv_samples, nh_means, nh_samples], updates = \
+        [pre_sigmoid_nvs, nv_means, nv_samples, pre_sigmoid_nhs, nh_means, nh_samples], updates = \
             theano.scan(self.gibbs_hvh, 
                     # the None are place holders, saying that
                     # chain_start is the initial state corresponding to the 
-                    # 4th output
-                    outputs_info = [None,None,None,chain_start],
+                    # 6th output
+                    outputs_info = [None, None, None,None,None,chain_start],
                     n_steps = k)
 
 
@@ -569,7 +609,7 @@ containing the state of the Gibbs chain.
             cost = self.get_pseudo_likelihood_cost(updates)
         else:
             # reconstruction cross-entropy is a better proxy for CD
-            cost = self.get_reconstruction_cost(updates, nv_means[-1])
+            cost = self.get_reconstruction_cost(updates, pre_sigmoid_nvs[-1])
 
         return cost, updates
 
@@ -777,9 +817,10 @@ samples at every 1000 steps.
     plot_every = 1000
     # define one step of Gibbs sampling (mf = mean-field)
     # define a function that does `plot_every` steps before returning the sample for plotting
-    [hid_mfs, hid_samples, vis_mfs, vis_samples], updates =  \
-            theano.scan(rbm.gibbs_vhv,
-                    outputs_info = [None,None,None,persistent_vis_chain], n_steps = plot_every)
+    [presig_hids, hid_mfs, hid_samples, presig_vis, vis_mfs, vis_samples], updates =  \
+                        theano.scan(rbm.gibbs_vhv,
+                                outputs_info = [None, None,None,None,None,persistent_vis_chain],
+                                n_steps = plot_every)
 
     # add to updates the shared variable that takes care of our persistent
     # chain : 
