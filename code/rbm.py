@@ -294,8 +294,8 @@ class RBM(object):
         """
 
         cross_entropy = T.mean(
-                T.sum(self.input*T.log(T.sigmoid(pre_sigmoid_nv)) + 
-                (1 - self.input)*T.log(1-T.sigmoid(pre_sigmoid_nv)), axis = 1))
+                T.sum(self.input*T.log(T.nnet.sigmoid(pre_sigmoid_nv)) + 
+                (1 - self.input)*T.log(1-T.nnet.sigmoid(pre_sigmoid_nv)), axis = 1))
 
         return cross_entropy
 
