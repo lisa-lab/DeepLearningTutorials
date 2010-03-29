@@ -473,16 +473,14 @@ The code is as follows:
         return [pre_sigmoid_h1, h1_mean, h1_sample, pre_sigmoid_v1, v1_mean, v1_sample]
  
 
-The class also has a function that computes the free energy of the model, 
-needed for computing the gradient of the parameters  
-(see Eq. :eq:`free_energy_grad`). Note that we also return the pre-sigmoid
-activation. To understand why this is so you need to understand a bit about how 
-Theano works. Once you express a computational graph in Theano, it
-will apply to it several optimizations which will lead to a faster 
-and more stable computational graph. One of these optimizations 
-expresses terms of the form log(sigmoid(x)) in terms of softplus. 
-We need this optimization for the cross-entropy since sigmoid of 
-numbers larger than 30. ( or even less) turn to 1. and numbers 
+Note that we also return the pre-sigmoid
+activation. To understand why this is so you need to understand a bit about 
+how Theano works. Whenever you compile a Theano function, the computational
+graph that you pass as input gets optimized for speed and stability. This
+is done by changing several parts of the subgraphs with others. One 
+such optimization expresses terms of the form log(sigmoid(x)) in terms of 
+softplus. We need this optimization for the cross-entropy since sigmoid of 
+numbers larger than 30. (or even less then that) turn to 1. and numbers 
 smaller than  -30. turn to 0 which in terms will force theano 
 to compute log(0) and therefore we will get either -inf or NaN 
 as cost. If the value is expressed in terms of softplus we do 
@@ -494,9 +492,12 @@ the wanted optimization. We can not go and replace the sigmoid
 in scan with something else also, because this only needs to be 
 done on the last step. Therefore the easiest and more efficient way
 is to get also the pre-sigmoid activation as an output of scan, 
-and apply bot the log and sigmoid outside scan such that Theano
+and apply both the log and sigmoid outside scan such that Theano
 can catch and optimize the expression.
 
+The class also has a function that computes the free energy of the model, 
+needed for computing the gradient of the parameters  
+(see Eq. :eq:`free_energy_grad`). Note that we also return the pre-sigmoid
 
 .. code-block:: python
 
