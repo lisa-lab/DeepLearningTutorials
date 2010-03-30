@@ -82,7 +82,9 @@ class RBM(object):
 
 
         # initialize input layer for standalone RBM or layer0 of DBN
-        self.input = input if input else T.dmatrix('input')
+        self.input = input 
+        if not input:
+            self.input = T.dmatrix('input')
 
         self.W          = W
         self.hbias      = hbias
@@ -108,10 +110,10 @@ class RBM(object):
         ''' This function propagates the visible units activation upwards to
         the hidden units 
         
-        Note that we return also the pre_sigmoid_activation of the layer. As 
-        it will turn out later, due to how Theano deals with optimization and 
-        stability this symbolic variable will be needed to write down a more 
-        stable graph (see details in the reconstruction cost function)
+        Note that we return also the pre-sigmoid activation of the layer. As
+        it will turn out later, due to how Theano deals with optimizations,
+        this symbolic variable will be needed to write down a more
+        stable computational graph (see details in the reconstruction cost function)
         '''
         pre_sigmoid_activation = T.dot(vis, self.W) + self.hbias
         return [pre_sigmoid_activation, T.nnet.sigmoid(pre_sigmoid_activation)]
@@ -132,10 +134,10 @@ class RBM(object):
         '''This function propagates the hidden units activation downwards to
         the visible units
         
-        Note that we return also the pre_sigmoid_activation of the layer. As 
-        it will turn out later, due to how Theano deals with optimization and 
-        stability this symbolic variable will be needed to write down a more 
-        stable graph (see details in the reconstruction cost function)
+        Note that we return also the pre_sigmoid_activation of the layer. As
+        it will turn out later, due to how Theano deals with optimizations,
+        this symbolic variable will be needed to write down a more
+        stable computational graph (see details in the reconstruction cost function)
         '''
         pre_sigmoid_activation = T.dot(hid, self.W.T) + self.vbias
         return [pre_sigmoid_activation,T.nnet.sigmoid(pre_sigmoid_activation)]
@@ -270,14 +272,14 @@ class RBM(object):
     def get_reconstruction_cost(self, updates, pre_sigmoid_nv):
         """Approximation to the reconstruction error
         
-        Note that this function requires the pre-sigmoid activation. To 
-        understand why this is so you need to understand a bit about how 
-        Theano works. Once you express a computational graph in Theano, it
-        will apply to it several optimizations which will lead to a faster 
-        and more stable computational graph. One of these optimizations 
-        expresses terms of the form log(sigmoid(x)) in terms of softplus. 
+        Note that this function requires the pre-sigmoid activation as input. To
+        understand why this is so you need to understand a bit about how
+        Theano works. Whenever you compile a Theano function, the computational
+        graph that you pass as input gets optimized for speed and stability. This
+        is done by changing several parts of the subgraphs with others. One 
+        such optimization expresses terms of the form log(sigmoid(x)) in terms of softplus. 
         We need this optimization for the cross-entropy since sigmoid of 
-        numbers larger than 30. ( or even less) turn to 1. and numbers 
+        numbers larger than 30. (or even less then that) turn to 1. and numbers 
         smaller than  -30. turn to 0 which in terms will force theano 
         to compute log(0) and therefore we will get either -inf or NaN 
         as cost. If the value is expressed in terms of softplus we do 
@@ -289,13 +291,13 @@ class RBM(object):
         in scan with something else also, because this only needs to be 
         done on the last step. Therefore the easiest and more efficient way
         is to get also the pre-sigmoid activation as an output of scan, 
-        and apply bot the log and sigmoid outside scan such that Theano
+        and apply both the log and sigmoid outside scan such that Theano
         can catch and optimize the expression.
         """
 
         cross_entropy = T.mean(
-                T.sum(self.input*T.log(T.sigmoid(pre_sigmoid_nv)) + 
-                (1 - self.input)*T.log(1-T.sigmoid(pre_sigmoid_nv)), axis = 1))
+                T.sum(self.input*T.log(T.nnet.sigmoid(pre_sigmoid_nv)) + 
+                (1 - self.input)*T.log(1-T.nnet.sigmoid(pre_sigmoid_nv)), axis = 1))
 
         return cross_entropy
 
