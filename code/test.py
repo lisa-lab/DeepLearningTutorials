@@ -47,9 +47,9 @@ def speed():
     import theano
     algo=['logistic_sgd','logistic_cg','mlp','convolutional_mlp','dA','SdA','DBN','rbm']
     to_exec=[True]*len(algo)
-    to_exec[3]=False
-    to_exec=[False]*len(algo)
-    to_exec[3]=True
+#    to_exec[3]=False
+#    to_exec=[False]*len(algo)
+#    to_exec[3]=True
 
     expected_times_64=numpy.asarray([  12.42313051,   28.09523582,  106.35365391,  153.62705898,  153.12310314,  425.09175086,  642.72824597,  652.52828193])
 
