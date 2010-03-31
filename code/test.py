@@ -43,8 +43,7 @@ def test_SdA():
 
 def test_dbn():
     t0=time.time()
-    DBN.test_DBN(pretraining_epochs = 1, training_epochs = 2, batch_size =300,
-            output_folder = 'tmp_DBN_plots')
+    DBN.test_DBN(pretraining_epochs = 1, training_epochs = 2, batch_size =300)
     print >> sys.stderr, "test_mlp took %.3fs expected ??s in our buildbot"%(time.time()-t0)
 
 

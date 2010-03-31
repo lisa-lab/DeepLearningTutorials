@@ -160,8 +160,7 @@ class DBN(object):
 
             # compile the theano function    
             fn = theano.function(inputs = [index, 
-                              theano.Param(learning_rate, default = 0.1),
-                              theano.Param(k, default = 1)],
+                              theano.Param(learning_rate, default = 0.1)],
                     outputs = cost, 
                     updates = updates,
                     givens  = {self.x :train_set_x[batch_begin:batch_end]})
