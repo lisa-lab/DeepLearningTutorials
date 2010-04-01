@@ -55,7 +55,7 @@ class RBM(object):
            # from -4*sqrt(6./(n_visible+n_hidden)) and 4*sqrt(6./(n_hidden+n_visible))
            # the output of uniform if converted using asarray to dtype 
            # theano.config.floatX so that the code is runable on GPU
-           initial_W = numpy.asarray( numpy.random.uniform( 
+           initial_W = numpy.asarray( numpy_rng.uniform( 
                      low = -4*numpy.sqrt(6./(n_hidden+n_visible)), 
                      high = 4*numpy.sqrt(6./(n_hidden+n_visible)), 
                      size = (n_visible, n_hidden)), 
