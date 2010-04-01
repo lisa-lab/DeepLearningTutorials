@@ -84,7 +84,7 @@ class RBM(object):
         # initialize input layer for standalone RBM or layer0 of DBN
         self.input = input 
         if not input:
-            self.input = T.dmatrix('input')
+            self.input = T.matrix('input')
 
         self.W          = W
         self.hbias      = hbias
@@ -341,7 +341,7 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     theano_rng = RandomStreams( rng.randint(2**30))
 
     # initialize storage for the persistent chain (state = hidden layer of chain)
-    persistent_chain = theano.shared(numpy.zeros((batch_size, 500)))
+    persistent_chain = theano.shared(numpy.zeros((batch_size, 500),dtype=theano.config.floatX))
 
     # construct the RBM class
     rbm = RBM( input = x, n_visible=28*28, \
