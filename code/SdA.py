@@ -349,7 +349,7 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
  
     end_time = time.clock()
 
-    print >> sys.stderr, ('The pretraining code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected 4.58m in our buildbot' % ((end_time-start_time)/60.))
+    print >> sys.stderr, ('The pretraining code for file '+os.path.split(__file__)[1]+' ran for %.2fm' % ((end_time-start_time)/60.))
     
     ########################
     # FINETUNING THE MODEL #
@@ -426,7 +426,7 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
     print(('Optimization complete with best validation score of %f %%,'
            'with test performance %f %%') %  
                  (best_validation_loss * 100., test_score*100.))
-    print >> sys.stderr, ('The training code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected 3.91m in our buildbot' % ((end_time-start_time)/60.))
+    print >> sys.stderr, ('The training code for file '+os.path.split(__file__)[1]+' ran for %.2fm' % ((end_time-start_time)/60.))
 
 
 
