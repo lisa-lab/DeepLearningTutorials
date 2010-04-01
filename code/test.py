@@ -50,9 +50,10 @@ def speed():
 #    to_exec=[False]*len(algo)
 #    to_exec[-1]=True
 
-    expected_times_64=numpy.asarray([  12.42313051,   28.09523582,  106.35365391,  153.62705898,  153.12310314,  425.09175086,  642.72824597,  652.52828193])
-    expected_times_32=numpy.asarray([  13.29699826,   32.42813158,   68.03559947,  142.51003361,  107.00527334,
-  242.41721797,  490.40798998, 528.88854146])
+    expected_times_64=numpy.asarray([  12.42313051,   28.09523582,  106.35365391,  116.79225969,  153.12310314,  
+                                       425.09175086,  642.72824597,  652.52828193])
+    expected_times_32=numpy.asarray([  13.29699826,   32.42813158,   68.03559947,  105.54640913,  107.00527334,
+                                       242.41721797,  490.40798998, 528.88854146])
     def time_test(m,l,idx,f,**kwargs):
         if not to_exec[idx]:
             l[idx]=float('nan')
@@ -89,13 +90,24 @@ def speed():
     float64_times=do_tests()
     print >> sys.stderr, 'float64 times',float64_times
     print >> sys.stderr, 'float64 expected',expected_times_64
-    print >> sys.stderr, '% get/expected',float64_times/expected_times_64
+    print >> sys.stderr, '% expected/get',expected_times_64/float64_times
 
     #test in float32 in FAST_RUN mode on the cpu
     theano.config.floatX='float32'
     float32_times=do_tests()
     print >> sys.stderr, 'float32 times',float32_times
-    print >> sys.stderr, '% get/expected',float32_times/expected_times_32
+    print >> sys.stderr, 'float32 expected',expected_times_32
+    print >> sys.stderr, '% expected/get',expected_times_32/float32_times
+    print >> sys.stderr, 'float64/float32',float64_times/float32_times
+
+    print >> sys.stderr
+    print >> sys.stderr, 'Duplicate the timing to have everything in one place'
+    print >> sys.stderr, 'float64 times',float64_times
+    print >> sys.stderr, 'float64 expected',expected_times_64
+    print >> sys.stderr, '% expected/get',expected_times_64/float64_times
+    print >> sys.stderr, 'float32 times',float32_times
+    print >> sys.stderr, 'float32 expected',expected_times_32
+    print >> sys.stderr, '% expected/get',expected_times_32/float32_times
     print >> sys.stderr, 'float64/float32',float64_times/float32_times
 
     return
@@ -104,6 +116,10 @@ def speed():
     theano.config.device='gpu0'
     import theano.sandbox.cuda
     gpu_times=do_tests()
+    print >> sys.stderr, 'gpu times',gpu_times
+    print >> sys.stderr, 'gpu expected',expected_times_gpu
+    print >> sys.stderr, '% expected/get',expected_times_gpu/gpu_times
+    print >> sys.stderr, 'float64/gpu',float64_times/gpu_times
 
     print >> sys.stderr, 'float64 times',float64_times
     print >> sys.stderr, 'float32 times',float32_times
