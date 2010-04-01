@@ -164,18 +164,18 @@ both upward (activations flowing from inputs to outputs) and backward
         if activation == theano.tensor.tanh:
             W_values = numpy.asarray( rng.uniform(
                     low  = - numpy.sqrt(6./(n_in+n_out)),
-                    high = numpy.sqrt(6./(n_in+n_out)),
+                    high =   numpy.sqrt(6./(n_in+n_out)),
                     size = (n_in, n_out)), dtype = theano.config.floatX)
         elif activation == theano.tensor.nnet.sigmoid:
             W_values = numpy.asarray( 4*rng.uniform(
                     low  = - numpy.sqrt(6./(n_in+n_out)),
-                    high = numpy.sqrt(6./(n_in+n_out)),
+                    high =   numpy.sqrt(6./(n_in+n_out)),
                     size = (n_in, n_out)), dtype = theano.config.floatX)
         else:
             # how should we initialize the weights for your activation function ?
             W_values = numpy.asarray( rng.uniform(
                     low  = - numpy.sqrt(6./(n_in+n_out)),
-                    high = numpy.sqrt(6./(n_in+n_out)),
+                    high =   numpy.sqrt(6./(n_in+n_out)),
                     size = (n_in,n_out)), dtype = theano.config.floatX)
 
         self.W = theano.shared(value = W_values, name ='W')
@@ -402,16 +402,17 @@ properties.
 Weight initialization
 ---------------------
 
-The rationale for initializing the weights by sampling from 
-:math:`uniform[-\frac{1}{\sqrt{fan_{in}}},\frac{1}{\sqrt{fan_{in}}}]` is to
-make learning faster at the beginning on training. By initializing with
-small random values around the origin, we make sure that the sigmoid
-operates in its linear regime, where gradient updates are largest. 
-
-On their own, weights cannot assure that this holds true. As explained in
-explained in `Section 4.6 <http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf>`_, 
-this requires coordination between normalization of inputs (to zero-mean and
-standard deviation of 1) and a proper choice of the sigmoid.
+At initialization we want the weights to be small enough around the origin
+so that the activation function operates in its linear regime, where gradients are
+the largest. Other desirable properties, especially for deep networks,
+are to conserve variance of the activation as well as variance of back-propagated gradients from layer to layer.
+This allows information to flow well upward and downward in the network and
+reduces discrepancies between layers.
+Under some assumptions, a compromise between these two constraints leads to the following
+initialization: :math:`uniform[-\frac{6}{\sqrt{fan_{in}+fan_{out}}},\frac{6}{\sqrt{fan_{in}+fan_{out}}}]`
+for tanh and :math:`uniform[-\4*frac{6}{\sqrt{fan_{in}+fan_{out}}},\4*frac{6}{\sqrt{fan_{in}+fan_{out}}}]`
+for sigmoid. Where :math:`fan_{in}` is the number of inputs and :math:`fan_{out}` the number of hidden units.
+For mathematical considerations please refer to [Xavier10].
 
 Learning rate
 --------------
