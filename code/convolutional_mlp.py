@@ -282,7 +282,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200, dataset='../data/mnist.pkl.
     print('Best validation score of %f %% obtained at iteration %i,'\
           'with test performance %f %%' %  
           (best_validation_loss * 100., best_iter, test_score*100.))
-    print >> sys.stderr, ('The code for file '+os.path.split(__file__)[1]+' ran for %.2fm expected 2.51m in our buildbot' % ((end_time-start_time)/60.))
+    print >> sys.stderr, ('The code for file '+os.path.split(__file__)[1]+' ran for %.2fm' % ((end_time-start_time)/60.))
 
 if __name__ == '__main__':
     evaluate_lenet5()
