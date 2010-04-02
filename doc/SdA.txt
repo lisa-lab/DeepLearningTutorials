@@ -422,18 +422,15 @@ The user can run the code by calling:
   
   python code/SdA.py
 
-By default the code runs 15 pre-training epochs for each layer, with 
-a corruption level of 0.2 and a learning rate of 0.1. Pre-training takes
-76.95 minutes. Fine-tuning is completed after 48 epochs in 115.73 
-minutes and results in a validation score of 1.63 %, with a test 
-performace of 1.68 %. These results were obtained on a machine with an Intel
+By default the code runs 15 pre-training epochs for each layer, with a batch
+size of 1. The  corruption level for the first layer is 0.1, for the second
+0.2 and 0.3 for the third. The pretraining learning rate is was 0.001 and 
+the finetuning learning rate is 0.1. Pre-training takes 585.01 minutes, with 
+an average of 13 minutes per epoch. Fine-tuning is completed after 36 epochs
+in 444.2 minutes, with an average of 12.34 minutes per epoch. The final 
+validation score is 1.39% with a testing score fo 1.3%. 
+These results were obtained on a machine with an Intel
 Xeon E5430 @ 2.66GHz CPU, with a single-threaded GotoBLAS.
-
-For comparison, on a multi-core Intel Xeon X5560 @ 2.80GHz, using multi-threaded MKL
-(with 8 threads), pre-training takes 23.43 minutes and fine-tuning takes 25.61 minutes, 
-meaning a ~4x speed-up at an 8x CPU cost.
-
-Timings accurate as of March 16, 2010.
 
 
 Tips and Tricks
