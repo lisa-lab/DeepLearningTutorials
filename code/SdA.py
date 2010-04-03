@@ -280,7 +280,7 @@ class SdA(object):
 
 
 def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
-              pretrain_lr = 0.05, training_epochs = 1000, \
+              pretrain_lr = 0.001, training_epochs = 1000, \
               dataset='../data/mnist.pkl.gz', batch_size = 1):
     """
     Demonstrates how to train and test a stochastic denoising autoencoder.
@@ -316,7 +316,7 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
     n_train_batches = train_set_x.value.shape[0] / batch_size
 
     # numpy random generator
-    numpy_rng = numpy.random.RandomState(123)
+    numpy_rng = numpy.random.RandomState(89677)
     print '... building the model'
     # construct the stacked denoising autoencoder class
     sda = SdA( numpy_rng = numpy_rng, n_ins = 28*28, 
@@ -335,7 +335,7 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
     print '... pre-training the model'
     start_time = time.clock()  
     ## Pre-train layer-wise 
-    corruption_levels = [.1,.1,.0]
+    corruption_levels = [.1,.2,.3]
     for i in xrange(sda.n_layers):
         # go through pretraining epochs 
         for epoch in xrange(pretraining_epochs):
