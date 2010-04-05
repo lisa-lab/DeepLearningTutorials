@@ -70,7 +70,7 @@ The code to do this in Theano is the following:
 
   # symbolic expression for computing the vector of 
   # class-membership probabilities 
-  p_y_given_x = T.softmax(T.dot(x,w)+b)
+  p_y_given_x = T.nnet.softmax(T.dot(x,W)+b)
 
   # compiled Theano function that returns the vector of class-membership
   # probabilities
@@ -79,7 +79,7 @@ The code to do this in Theano is the following:
   # print the probability of some example represented by x_value 
   # x_value is not a symbolic variable but a numpy array describing the
   # datapoint
-  print 'Probability that x is of class %i is %f' % i, get_p_y_given_x(x_value)[i]
+  print 'Probability that x is of class %i is %f' % (i, get_p_y_given_x(x_value)[i])
 
   # symbolic description of how to compute prediction as class whose probability 
   # is maximal 

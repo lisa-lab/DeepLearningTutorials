@@ -8,7 +8,7 @@ Getting Started
 These tutorials do not attempt to make up for a graduate or undergraduate course
 in machine learning, but we do make a rapid overview of some important concepts
 (and notation) to make sure that we're on the same page.  You'll also need to
-download the datasets mentioned in this chapter in order to run the example code
+download the datasets mentioned in this chapter in order to run the example code of
 the up-coming tutorials.
 
 .. _datasets:
@@ -76,7 +76,7 @@ MNIST Dataset
  into the GPU memory. If you would copy data on request ( each minibatch 
  individually when needed) as the code will do if you do not use shared 
  variables, due to this overhead, the GPU code will not be much faster
- then the CPU code (maybe even slower). If you have your data into a 
+ then the CPU code (maybe even slower). If you have your data in 
  Theano shared variables though, you give Theano the possibility to copy 
  the entire data on the GPU in a single call when the shared variables are constructed.
  Afterwards the GPU can access any minibatch by taking a slice from this 
@@ -118,7 +118,7 @@ MNIST Dataset
         # we need them as ints (we use labels as index, and if they are 
         # floats it doesn't make sense) therefore instead of returning 
         # ``shared_y`` we will have to cast it to int. This little hack
-        # lets ous get around this issue
+        # lets us get around this issue
         return shared_x, T.cast(shared_y, 'int32')
 
     test_set_x, test_set_y = shared_dataset(test_set)
@@ -141,7 +141,7 @@ and then cast it to int.
 .. note::
     
     If you are running your code on the GPU and the dataset you are using 
-    is too large to fit in memory the code will crush. In such a case, do 
+    is too large to fit in memory the code will crash. In such a case, do 
     not store the data in a shared variable. You can however copy a larger chunk
     of it at once (several minibatches) to reduce the overhead of data transfer.
 
@@ -244,7 +244,7 @@ Learning a Classifier
 Zero-One Loss
 -------------
 
-The models presented in these deep learning tutorials are mostly used as
+The models presented in these deep learning tutorials are mostly used
 for classification. The objective in training a classifier is to minimize the number
 of errors (zero-one loss) on unseen examples. If :math:`f: R^D \rightarrow
 \{0,...,L\}` is the prediction function, then this loss can be written as:
@@ -549,7 +549,7 @@ of a strategy based on a geometrically increasing amount of patience.
                                   # considered significant
     validation_frequency  = min(n_train_batches, patience/2)  
                                   # go through this many 
-                                  # minibatche before checking the network 
+                                  # minibatches before checking the network 
                                   # on the validation set; in this case we 
                                   # check every epoch 
 
