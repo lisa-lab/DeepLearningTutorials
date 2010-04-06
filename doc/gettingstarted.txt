@@ -141,9 +141,12 @@ and then cast it to int.
 .. note::
     
     If you are running your code on the GPU and the dataset you are using 
-    is too large to fit in memory the code will crash. In such a case, do 
-    not store the data in a shared variable. You can however copy a larger chunk
-    of it at once (several minibatches) to reduce the overhead of data transfer.
+    is too large to fit in memory the code will crash. In such a case you
+    should store the data in a shared variable. You can however store a 
+    sufficiently small chunk of your data (several minibatches) in a shared
+    variable and use that during trianing. One you got through the chunk,
+    update the values it stores. This way you minimize the number of data 
+    transfers between CPU memory and GPU memory.
 
 
 
@@ -170,7 +173,7 @@ use superscripts to distinguish training set examples: :math:`x^{(i)} \in
 \mathcal{R}^D` is thus the i-th training example of dimensionality :math:`D`. Similarly,
 :math:`y^{(i)} \in \{0, ..., L\}` is the i-th label assigned to input
 :math:`x^{(i)}`. It is straightforward to extend these examples to
-:math:`y^{(i)}` that has other types (e.g. Gaussian for regression,
+ones where :math:`y^{(i)}` has other types (e.g. Gaussian for regression,
 or groups of multinomials for predicting multiple symbols).
 
 .. index:: Math Convetions
