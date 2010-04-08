@@ -428,7 +428,7 @@ size of 1. The  corruption level for the first layer is 0.1, for the second
 the finetuning learning rate is 0.1. Pre-training takes 585.01 minutes, with 
 an average of 13 minutes per epoch. Fine-tuning is completed after 36 epochs
 in 444.2 minutes, with an average of 12.34 minutes per epoch. The final 
-validation score is 1.39% with a testing score fo 1.3%. 
+validation score is 1.39% with a testing score of 1.3%. 
 These results were obtained on a machine with an Intel
 Xeon E5430 @ 2.66GHz CPU, with a single-threaded GotoBLAS.
 

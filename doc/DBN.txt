@@ -472,9 +472,24 @@ The user can run the code by calling:
   
   python code/DBN.py
 
+With the default parameters, the code runs for 100 pre-training epochs with
+mini-batches of size 10. This corresponds to performing 500,000 unsupervised
+parameter updates. We use an unsupervised learning rate of 0.01, with a
+supervised learning rate of 0.1.  The DBN itself consists of three
+hidden layers with 1000 units per layer. With early-stopping, this configuration
+achieved a minimal validation error of 1.27 with corresponding test
+error of 1.34 after 46 supervised epochs.
 
-Sampling a DBN
-++++++++++++++
+On an Intel(R) Xeon(R) CPU X5560 running at 2.80GHz, using a multi-threaded MKL
+library (running on 4 cores), pretraining took 615 minutes with an average of
+2.05 mins/(layer * epoch). Fine-tuning took only 101 minutes or approximately
+2.20 mins/epoch.
+
+Hyper-parameters were selected by optimizing on the validation error. We tested
+unsupervised learning rates in :math:`\{10^{-1}, ..., 10^{-5}\}` and supervised
+learning rates in :math:`\{10^{-1}, ..., 10^{-4}\}`. We did not use any form of
+regularization besides early-stopping, nor did we optimize over the number of
+pretraining updates.
 
 
 Tips and Tricks
