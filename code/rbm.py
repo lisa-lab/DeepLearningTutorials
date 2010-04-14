@@ -126,7 +126,7 @@ class RBM(object):
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
         # for the GPU we need to specify to return the dtype floatX
-        h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, prob = h1_mean,
+        h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, p = h1_mean,
                 dtype = theano.config.floatX)
         return [pre_sigmoid_h1, h1_mean, h1_sample]
 
@@ -150,7 +150,7 @@ class RBM(object):
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
         # for the GPU we need to specify to return the dtype floatX
-        v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,prob = v1_mean,
+        v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,p = v1_mean,
                 dtype = theano.config.floatX)
         return [pre_sigmoid_v1, v1_mean, v1_sample]
 
