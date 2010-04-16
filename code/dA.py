@@ -179,7 +179,7 @@ class dA(object):
                 is always 0 or 1, this don't change the result. This is needed to allow
                 the gpu to work correctly as it only support float32 for now.
         """
-        return  self.theano_rng.binomial( size = input.shape, n = 1, prob =  1 - corruption_level, dtype=theano.config.floatX) * input
+        return  self.theano_rng.binomial( size = input.shape, n = 1, p =  1 - corruption_level, dtype=theano.config.floatX) * input
 
     
     def get_hidden_values(self, input):
