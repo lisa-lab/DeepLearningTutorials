@@ -126,7 +126,7 @@ class RBM(object):
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
         # for the GPU we need to specify to return the dtype floatX
-        h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, prob = h1_mean,
+        h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, p = h1_mean,
                 dtype = theano.config.floatX)
         return [pre_sigmoid_h1, h1_mean, h1_sample]
 
@@ -150,7 +150,7 @@ class RBM(object):
         # Note that theano_rng.binomial returns a symbolic sample of dtype 
         # int64 by default. If we want to keep our computations in floatX 
         # for the GPU we need to specify to return the dtype floatX
-        v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,prob = v1_mean,
+        v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,p = v1_mean,
                 dtype = theano.config.floatX)
         return [pre_sigmoid_v1, v1_mean, v1_sample]
 
@@ -305,7 +305,8 @@ class RBM(object):
 
 def test_rbm(learning_rate=0.1, training_epochs = 15,
              dataset='../data/mnist.pkl.gz', batch_size = 20,
-             n_chains = 20, n_samples = 10, output_folder = 'rbm_plots'):
+             n_chains = 20, n_samples = 10, output_folder = 'rbm_plots',
+             n_hidden = 500):
     """
     Demonstrate how to train and afterwards sample from it using Theano.
 
@@ -341,11 +342,11 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     theano_rng = RandomStreams( rng.randint(2**30))
 
     # initialize storage for the persistent chain (state = hidden layer of chain)
-    persistent_chain = theano.shared(numpy.zeros((batch_size, 500),dtype=theano.config.floatX))
+    persistent_chain = theano.shared(numpy.zeros((batch_size, n_hidden),dtype=theano.config.floatX))
 
     # construct the RBM class
     rbm = RBM( input = x, n_visible=28*28, \
-               n_hidden = 500,numpy_rng = rng, theano_rng = theano_rng)
+               n_hidden = n_hidden, numpy_rng = rng, theano_rng = theano_rng)
 
     # get the cost and the gradient corresponding to one step of CD-15
     cost, updates = rbm.get_cost_updates(lr=learning_rate, persistent=persistent_chain, k = 15)
