@@ -83,7 +83,7 @@ class LeNetConvPoolLayer(object):
                 dtype = theano.config.floatX)
   
         # downsample each feature map individually, using maxpooling
-        pooled_out = downsample.max_pool2D( input = conv_out, 
+        pooled_out = downsample.max_pool_2d( input = conv_out, 
                                     ds = poolsize, ignore_border=True)
 
         # add the bias term. Since the bias is a vector (1D array), we first
