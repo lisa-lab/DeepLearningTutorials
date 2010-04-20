@@ -297,7 +297,7 @@ layer. For max-pooling over a 3x3 window, this jumps to 5/8.
 Since it provides additional robustness to position, max-pooling is thus a
 "smart" way of reducing the dimensionality of intermediate representations.
 
-Max-pooling is done in Theano by way of ``theano.tensor.signal.downsample.max_pool2D``.
+Max-pooling is done in Theano by way of ``theano.tensor.signal.downsample.max_pool_2d``.
 This function takes as input an N dimensional tensor (with N >= 2), a
 downscaling factor and performs max-pooling over the 2 trailing dimensions of
 the tensor.
@@ -310,7 +310,7 @@ An example is worth a thousand words:
 
     input = T.dtensor4('input')
     maxpool_shape = (2,2)
-    pool_out = downsample.max_pool2D(input, maxpool_shape, ignore_border=True)
+    pool_out = downsample.max_pool_2d(input, maxpool_shape, ignore_border=True)
     f = theano.function([input],pool_out)
 
     invals = numpy.random.RandomState(1).rand(3,2,5,5)
@@ -318,7 +318,7 @@ An example is worth a thousand words:
     print 'invals[0,0,:,:] =\n', invals[0,0,:,:]
     print 'output[0,0,:,:] =\n', f(invals)[0,0,:,:]
 
-    pool_out = downsample.max_pool2D(input, maxpool_shape, ignore_border=False)
+    pool_out = downsample.max_pool_2d(input, maxpool_shape, ignore_border=False)
     f = theano.function([input],pool_out)
     print 'With ignore_border set to False:'
     print 'invals[1,0,:,:] =\n ', invals[1,0,:,:]
@@ -351,7 +351,7 @@ This should generate the following output:
          [ 0.66379465  0.94459476  0.58655504]
          [ 0.90340192  0.80739129  0.39767684]]
 
-Note that contrary to most Theano code, the ``max_pool2D`` operation is a little
+Note that contrary to most Theano code, the ``max_pool_2d`` operation is a little
 *special*. It requires the downscaling factor ``ds`` (tuple of length 2 containing
 downscaling factors for image width and height) to be known at graph build
 time. This may change in the near future.
@@ -431,7 +431,7 @@ layer.
                     filter_shape=filter_shape, image_shape=image_shape)
 
             # downsample each feature map individually, using maxpooling
-            pooled_out = downsample.max_pool2D(conv_out, poolsize, ignore_border=True)
+            pooled_out = downsample.max_pool_2d(conv_out, poolsize, ignore_border=True)
 
             # add the bias term. Since the bias is a vector (1D array), we first
             # reshape it to a tensor of shape (1,n_filters,1,1). Each bias will thus
