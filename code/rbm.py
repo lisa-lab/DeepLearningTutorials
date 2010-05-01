@@ -241,7 +241,7 @@ class RBM(object):
         bit_i_idx = theano.shared(value=0, name = 'bit_i_idx')
 
         # binarize the input image by rounding to nearest integer
-        xi = T.iround(self.input)
+        xi = T.round(self.input)
 
         # calculate free energy for the given bit configuration
         fe_xi = self.free_energy(xi)
