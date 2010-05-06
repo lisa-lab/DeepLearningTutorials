@@ -171,7 +171,7 @@ the ConvOp (once instantiated) takes two symbolic inputs:
 
 * a 4D tensor corresponding to the weight matrix :math:`W`. The shape of the
   tensor is: [number of feature maps at layer m, number of feature maps at
-  layer m-1, image height, image width]
+  layer m-1, filter height, filter width]
 
 
 Below is the Theano code for implementing a convolutional layer similar to the
