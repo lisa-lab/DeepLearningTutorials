@@ -50,6 +50,13 @@ class RBM(object):
         self.n_hidden  = n_hidden
 
 
+        if numpy_rng is None:    
+            # create a number generator 
+            numpy_rng = numpy.random.RandomState(1234)
+
+        if theano_rng is None : 
+            theano_rng = RandomStreams(numpy_rng.randint(2**30))
+
         if W is None : 
            # W is initialized with `initial_W` which is uniformely sampled
            # from -4*sqrt(6./(n_visible+n_hidden)) and 4*sqrt(6./(n_hidden+n_visible))
@@ -72,13 +79,6 @@ class RBM(object):
             # create shared variable for visible units bias
             vbias = theano.shared(value =numpy.zeros(n_visible, 
                                 dtype = theano.config.floatX),name='vbias')
-
-        if numpy_rng is None:    
-            # create a number generator 
-            numpy_rng = numpy.random.RandomState(1234)
-
-        if theano_rng is None : 
-            theano_rng = RandomStreams(numpy_rng.randint(2**30))
 
 
         # initialize input layer for standalone RBM or layer0 of DBN
