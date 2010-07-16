@@ -41,7 +41,7 @@ class DBN(object):
         :param n_ins: dimension of the input to the DBN
 
         :type n_layers_sizes: list of ints
-        :param n_layers_sizes: intermidiate layers size, must contain 
+        :param n_layers_sizes: intermediate layers size, must contain 
                                at least one value
 
         :type n_outs: int
@@ -63,7 +63,7 @@ class DBN(object):
         self.y  = T.ivector('y') # the labels are presented as 1D vector of 
                                  # [int] labels
 
-        # The DBN is an MLP, for which all weights of intermidiate layers are shared with a
+        # The DBN is an MLP, for which all weights of intermediate layers are shared with a
         # different RBM.  We will first construct the DBN as a deep multilayer perceptron, and
         # when constructing each sigmoidal layer we also construct an RBM that shares weights
         # with that layer. During pretraining we will train these RBMs (which will lead

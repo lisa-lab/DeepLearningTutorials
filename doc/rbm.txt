@@ -574,7 +574,7 @@ op provided by Theano, therefore we urge the reader to look it up by following t
 
 Once we have the generated the chain we take the sample at the end of the 
 chain to get the free energy of the negative phase. Note that the
-``chain_end`` is a symbolical Theano variable express in terms of the model
+``chain_end`` is a symbolical Theano variable expressed in terms of the model
 parameters, and if we would apply ``T.grad`` naively, the function will 
 try to go through the Gibbs chain to get the gradients. This is not what we 
 want (it will mess up our gradients) and therefire we need to indicate to
@@ -585,7 +585,7 @@ want (it will mess up our gradients) and therefire we need to indicate to
 
 
         # determine gradients on RBM parameters
-        # not that we only need the sample at the end of the chain
+        # note that we only need the sample at the end of the chain
         chain_end = nv_samples[-1]
 
         cost = T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))

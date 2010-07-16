@@ -70,7 +70,7 @@ class SdA(object):
         :param n_ins: dimension of the input to the sdA
 
         :type n_layers_sizes: list of ints
-        :param n_layers_sizes: intermidiate layers size, must contain 
+        :param n_layers_sizes: intermediate layers size, must contain 
                                at least one value
 
         :type n_outs: int
@@ -95,7 +95,7 @@ class SdA(object):
         self.y  = T.ivector('y') # the labels are presented as 1D vector of 
                                  # [int] labels
 
-        # The SdA is an MLP, for which all weights of intermidiate layers
+        # The SdA is an MLP, for which all weights of intermediate layers
         # are shared with a different denoising autoencoders 
         # We will first construct the SdA as a deep multilayer perceptron,
         # and when constructing each sigmoidal layer we also construct a 
