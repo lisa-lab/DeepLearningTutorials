@@ -93,10 +93,6 @@ class RBM(object):
         # **** WARNING: It is not a good idea to put things in this list 
         # other than shared variables created in this function.
         self.params     = [self.W, self.hbias, self.vbias]
-        # cast batch_size to floatX, because its type is int64,
-        # and otherwise the gradients are upcasted to float64,
-        # even when floatX == float32
-        self.batch_size = T.cast(self.input.shape[0], dtype = theano.config.floatX)
 
 
     def free_energy(self, v_sample):
