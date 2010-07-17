@@ -138,7 +138,7 @@ layer on top.
 
 The initial values for the weights of a hidden layer :math:`i` should be uniformly
 sampled from a symmetric interval that depends on the activation function. For
-:math:`tanh` activation function results obtained in [Xavier10] show that the
+:math:`tanh` activation function results obtained in [Xavier10]_ show that the
 interval should be 
 :math:`[-\sqrt{\frac{6}{fan_{in}+fan_{out}}},\sqrt{\frac{6}{fan_{in}+fan_{out}}}]`, where 
 :math:`fan_{in}` is the number of units in the :math:`(i-1)`-th layer,
@@ -154,11 +154,11 @@ both upward (activations flowing from inputs to outputs) and backward
         # `W` is initialized with `W_values` which is uniformely sampled
         # from sqrt(-6./(n_in+n_hidden)) and sqrt(6./(n_in+n_hidden))
         # for tanh activation function
-        # the output of uniform if converted using asarray to dtype 
+        # the output of uniform is converted using asarray to dtype 
         # theano.config.floatX so that the code is runable on GPU
         # Note : optimal initialization of weights is dependent on the
         #        activation function used (among other things).
-        #        For example, results presented in [Xavier10] suggest that you 
+        #        For example, results presented in [Xavier10]_ suggest that you 
         #        should use 4 times larger initial weights for sigmoid 
         #        compared to tanh
         if activation == theano.tensor.tanh:
@@ -207,7 +207,7 @@ the ``MLP`` class :
 
     A multilayer perceptron is a feedforward artificial neural network model 
     that has one layer or more of hidden units and nonlinear activations. 
-    Intermidiate layers usually have as activation function thanh or the 
+    Intermediate layers usually have as activation function tanh or the 
     sigmoid function (defined here by a ``HiddenLayer`` class)  while the 
     top layer is a softamx layer (defined here by a ``LogisticRegression`` 
     class). 
@@ -412,7 +412,7 @@ Under some assumptions, a compromise between these two constraints leads to the 
 initialization: :math:`uniform[-\frac{6}{\sqrt{fan_{in}+fan_{out}}},\frac{6}{\sqrt{fan_{in}+fan_{out}}}]`
 for tanh and :math:`uniform[-4*\frac{6}{\sqrt{fan_{in}+fan_{out}}},4*\frac{6}{\sqrt{fan_{in}+fan_{out}}}]`
 for sigmoid. Where :math:`fan_{in}` is the number of inputs and :math:`fan_{out}` the number of hidden units.
-For mathematical considerations please refer to [Xavier10].
+For mathematical considerations please refer to [Xavier10]_.
 
 Learning rate
 --------------

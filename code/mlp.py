@@ -3,7 +3,7 @@ This tutorial introduces the multilayer perceptron using Theano.
 
  A multilayer perceptron is a logistic regressor where
 instead of feeding the input to the logistic regression you insert a
-intermidiate layer, called the hidden layer, that has a nonlinear 
+intermediate layer, called the hidden layer, that has a nonlinear 
 activation function (usually tanh or sigmoid) . One can use many such 
 hidden layers making the architecture deep. The tutorial will also tackle 
 the problem of MNIST digit classification.
@@ -101,7 +101,7 @@ class MLP(object):
 
     A multilayer perceptron is a feedforward artificial neural network model 
     that has one layer or more of hidden units and nonlinear activations. 
-    Intermidiate layers usually have as activation function thanh or the 
+    Intermediate layers usually have as activation function thanh or the 
     sigmoid function (defined here by a ``SigmoidalLayer`` class)  while the 
     top layer is a softamx layer (defined here by a ``LogisticRegression`` 
     class). 
