@@ -161,6 +161,7 @@ both upward (activations flowing from inputs to outputs) and backward
         #        For example, results presented in [Xavier10]_ suggest that you 
         #        should use 4 times larger initial weights for sigmoid 
         #        compared to tanh
+        #        We have no info for other function, so we use the same as tanh.
         W_values = numpy.asarray( rng.uniform(
                 low  = - numpy.sqrt(6./(n_in+n_out)),
                 high =   numpy.sqrt(6./(n_in+n_out)),

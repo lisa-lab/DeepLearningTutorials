@@ -1,4 +1,4 @@
-"""
+7"""
 This tutorial introduces the multilayer perceptron using Theano.  
 
  A multilayer perceptron is a logistic regressor where
@@ -69,6 +69,7 @@ class HiddenLayer(object):
         #        For example, results presented in [Xavier10] suggest that you 
         #        should use 4 times larger initial weights for sigmoid 
         #        compared to tanh
+        #        We have no info for other function, so we use the same as tanh.
         W_values = numpy.asarray( rng.uniform(
                 low  = - numpy.sqrt(6./(n_in+n_out)),
                 high = numpy.sqrt(6./(n_in+n_out)),
