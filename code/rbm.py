@@ -50,6 +50,13 @@ class RBM(object):
         self.n_hidden  = n_hidden
 
 
+        if numpy_rng is None:    
+            # create a number generator 
+            numpy_rng = numpy.random.RandomState(1234)
+
+        if theano_rng is None : 
+            theano_rng = RandomStreams(numpy_rng.randint(2**30))
+
         if W is None : 
            # W is initialized with `initial_W` which is uniformely sampled
            # from -4*sqrt(6./(n_visible+n_hidden)) and 4*sqrt(6./(n_hidden+n_visible))
@@ -73,13 +80,6 @@ class RBM(object):
             vbias = theano.shared(value =numpy.zeros(n_visible, 
                                 dtype = theano.config.floatX),name='vbias')
 
-        if numpy_rng is None:    
-            # create a number generator 
-            numpy_rng = numpy.random.RandomState(1234)
-
-        if theano_rng is None : 
-            theano_rng = RandomStreams(numpy_rng.randint(2**30))
-
 
         # initialize input layer for standalone RBM or layer0 of DBN
         self.input = input 
@@ -93,10 +93,6 @@ class RBM(object):
         # **** WARNING: It is not a good idea to put things in this list 
         # other than shared variables created in this function.
         self.params     = [self.W, self.hbias, self.vbias]
-        # cast batch_size to floatX, because its type is int64,
-        # and otherwise the gradients are upcasted to float64,
-        # even when floatX == float32
-        self.batch_size = T.cast(self.input.shape[0], dtype = theano.config.floatX)
 
 
     def free_energy(self, v_sample):
