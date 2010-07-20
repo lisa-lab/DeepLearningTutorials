@@ -1,4 +1,4 @@
-"""
+7"""
 This tutorial introduces the multilayer perceptron using Theano.  
 
  A multilayer perceptron is a logistic regressor where
@@ -69,22 +69,13 @@ class HiddenLayer(object):
         #        For example, results presented in [Xavier10] suggest that you 
         #        should use 4 times larger initial weights for sigmoid 
         #        compared to tanh
-        if activation == theano.tensor.tanh:
-            W_values = numpy.asarray( rng.uniform(
-                    low  = - numpy.sqrt(6./(n_in+n_out)),
-                    high = numpy.sqrt(6./(n_in+n_out)),
-                    size = (n_in, n_out)), dtype = theano.config.floatX)
-        elif activation == theano.tensor.nnet.sigmoid:
-            W_values = numpy.asarray( 4*rng.uniform(
-                    low  = - numpy.sqrt(6./(n_in+n_out)),
-                    high = numpy.sqrt(6./(n_in+n_out)),
-                    size = (n_in, n_out)), dtype = theano.config.floatX)
-        else:
-            # how should we initialize the weights for your activation function ?
-            W_values = numpy.asarray( rng.uniform(
-                    low  = - numpy.sqrt(6./(n_in+n_out)),
-                    high = numpy.sqrt(6./(n_in+n_out)),
-                    size = (n_in,n_out)), dtype = theano.config.floatX)
+        #        We have no info for other function, so we use the same as tanh.
+        W_values = numpy.asarray( rng.uniform(
+                low  = - numpy.sqrt(6./(n_in+n_out)),
+                high = numpy.sqrt(6./(n_in+n_out)),
+                size = (n_in, n_out)), dtype = theano.config.floatX)
+        if activation == theano.tensor.nnet.sigmoid:
+            W_values *= 4
 
         self.W = theano.shared(value = W_values, name ='W')
 
