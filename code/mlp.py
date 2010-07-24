@@ -1,4 +1,4 @@
-7"""
+"""
 This tutorial introduces the multilayer perceptron using Theano.  
 
  A multilayer perceptron is a logistic regressor where
