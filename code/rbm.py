@@ -223,12 +223,12 @@ class RBM(object):
             # Note that this works only if persistent is a shared variable
             updates[persistent] = nh_samples[-1]
             # pseudo-likelihood is a better proxy for PCD
-            cost = self.get_pseudo_likelihood_cost(updates)
+            monitoring_cost = self.get_pseudo_likelihood_cost(updates)
         else:
             # reconstruction cross-entropy is a better proxy for CD
-            cost = self.get_reconstruction_cost(updates, pre_sigmoid_nvs[-1])
+            monitoring_cost = self.get_reconstruction_cost(updates, pre_sigmoid_nvs[-1])
 
-        return cost, updates
+        return monitoring_cost, updates
 
     def get_pseudo_likelihood_cost(self, updates):
         """Stochastic approximation to the pseudo-likelihood"""
