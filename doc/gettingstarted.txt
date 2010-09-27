@@ -11,6 +11,18 @@ in machine learning, but we do make a rapid overview of some important concepts
 download the datasets mentioned in this chapter in order to run the example code of
 the up-coming tutorials.
 
+.. _download:
+
+.. index:: Download:
+
+Download
+========
+
+On each learning algorithm page, you will be able to download the corresponding files. If you want to download all of them at the same time, you can clone the git repository of the tutorial::
+
+    git clone git://github.com/lisa-lab/DeepLearningTutorials.git
+
+
 .. _datasets:
 
 .. index:: Datasets
