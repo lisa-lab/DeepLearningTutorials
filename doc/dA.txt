@@ -330,7 +330,7 @@ does just that :
 
 .. code-block:: python
 
-  from theano.tensor.shared_randomstreals import RandomStreams
+  from theano.tensor.shared_randomstreams import RandomStreams
 
   def get_corrupted_input(self, input, corruption_level):
         """ This function keeps ``1-corruption_level`` entries of the inputs the same 
