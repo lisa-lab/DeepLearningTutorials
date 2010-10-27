@@ -155,6 +155,12 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
             non_sequences=[stepsize],
             n_steps=n_steps-1)
 
+    # NOTE: Scan always returns an updates dictionary, in case the scanned function draws
+    # samples from a RandomStream. These updates must then be used when compiling the Theano
+    # function, to avoid drawing the same random numbers each time the function is called. In
+    # this case however, we consciously ignore "scan_updates" because we know it is empty.
+    assert not scan_updates
+ 
     # The last velocity returned by scan is vel(t + (n_steps-1/2)*stepsize)
     # We therefore perform one more half-step to return vel(t + n_steps*stepsize)
     energy = energy_fn(final_pos)

@@ -17,13 +17,13 @@ Theory
 ++++++
 
 Maximum likelihood learning of energy-based models requires a robust algorithm
-to sample negative phase particles (see Eq. :ref:`free_energy_grad` of the
-:doc:`rbm` tutorial). When training RBMs with CD or PCD, this is typically
-done with block Gibbs sampling, where the conditional distributions
-:math:`p(h|v)` and :math:`p(v|h)` are used as the transition operators of the
-Markov chain. While Gibbs sampling may be computationally efficient, it
-nevertheless operates via a random walk which might not be statistically
-efficient for some distributions.
+to sample negative phase particles (see Eq.(4) of the :doc:`rbm` tutorial).
+When training RBMs with CD or PCD, this is typically done with block Gibbs
+sampling, where the conditional distributions :math:`p(h|v)` and
+:math:`p(v|h)` are used as the transition operators of the Markov chain. While
+Gibbs sampling may be computationally efficient, it nevertheless operates via
+a random walk which might not be statistically efficient for some
+distributions.
 
 Hybrid Monte Carlo (HMC) [Duane87]_ avoids random walk behavior by simulating
 a physical system governed by Hamiltonian dynamics. Model samples are obtained
@@ -252,6 +252,12 @@ and full-step of :math:`s`, and then scan over the `leapfrog` method
                 non_sequences=[stepsize],
                 n_steps=n_steps-1)
 
+        # NOTE: Scan always returns an updates dictionary, in case the scanned function draws
+        # samples from a RandomStream. These updates must then be used when compiling the Theano
+        # function, to avoid drawing the same random numbers each time the function is called. In
+        # this case however, we consciously ignore "scan_updates" because we know it is empty.
+        assert not scan_updates
+     
         # The last velocity returned by scan is vel(t + (n_steps-1/2)*stepsize)
         # We therefore perform one more half-step to return vel(t + n_steps*stepsize)
         energy = energy_fn(final_pos)
@@ -648,7 +654,7 @@ The above code can be run using the command: `nosetests -s code/mcrbm/test_hmc.p
 
 .. code-block:: bash
 
-    [desjagui@atchoum mcRBM]$ python test_hmc.py
+    [desjagui@atchoum mcrbm]$ python test_hmc.py
 
     ****** TARGET VALUES ******
     target mean: [ 6.96469186  2.86139335  2.26851454  5.51314769  7.1946897 ]
