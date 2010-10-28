@@ -24,6 +24,8 @@ References
 
 .. [Lee09] H. Lee, R. Grosse, R. Ranganath, and A.Y. Ng, "Convolutional deep belief networks for scalable unsupervised learning of hierarchical representations.", ICML 2009
 
+.. [Ranzato10] M. Ranzato, A. Krizhevsky, G. Hinton, "Factored 3-Way Restricted Boltzmann Machines for Modeling Natural Images". Proc. of the 13-th International Conference on Artificial Intelligence and Statistics (AISTATS 2010), Italy, 2010
+
 .. [Ranzato07] M.A. Ranzato, C. Poultney, S. Chopra and Y. LeCun, in J. Platt et al., `Efficient Learning of Sparse Representations with an Energy-Based Model <http://yann.lecun.com/exdb/publis/pdf/ranzato-06.pdf>`_, Advances in Neural Information Processing Systems (NIPS 2006), MIT Press, 2007.
 
 .. [Serre07] Serre, T., Wolf, L., Bileschi, S., and Riesenhuber, M. (2007).  Robust object recog- nition with cortex-like mechanisms. IEEE Trans. Pattern Anal. Mach. Intell., 29(3), 411–426. Member-Poggio, Tomaso.
