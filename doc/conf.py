@@ -10,7 +10,6 @@
 #
 # All configuration values have a default value; values that are commented out
 # serve to show the default value.
-
 import sys, os
 
 # If your extensions are in another directory, add it here. If the directory
@@ -23,7 +22,7 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo'] #, 'ext']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo']
 
 try:
     from sphinx.ext import pngmath
@@ -31,7 +30,6 @@ try:
 except ImportError:
     print >>sys.stderr, 'Warning: could not import sphinx.ext.pngmath'
     pass
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
@@ -43,7 +41,7 @@ source_suffix = '.txt'
 master_doc = 'contents'
 
 # General substitutions.
-project = 'Deep Learning'
+project = 'DeepLearning'
 copyright = '2008--2010, LISA lab'
 
 # The default replacements for |version| and |release|, also used in various
@@ -103,7 +101,7 @@ html_theme = 'sphinxdoc'
 
 # The name of an image file (within the static path) to place at the top of
 # the sidebar.
-#html_logo = ''
+#html_logo = None
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -172,7 +170,6 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = 'images/snake_theta2-trans.png'
 latex_logo = None
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
@@ -187,3 +184,24 @@ latex_logo = None
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+default_role = 'math'
+pngmath_divpng_args = ['-gamma 1.5','-D 110']
+pngmath_latex_preamble =  '\\usepackage{amsmath}\n'+\
+                          '\\usepackage{amsfonts}\n'+\
+                          '\\usepackage{amssymb}\n'+\
+                          '\\def\\E{\\mathbf{E}}\n'+\
+                          '\\def\\F{\\mathbf{F}}\n'+\
+                          '\\def\\x{\\mathbf{x}}\n'+\
+                          '\\def\\h{\\mathbf{h}}\n'+\
+                          '\\def\\v{\\mathbf{v}}\n'+\
+                          '\\def\\nv{\\mathbf{v^{{\bf -}}}}\n'+\
+                          '\\def\\nh{\\mathbf{h^{{\bf -}}}}\n'+\
+                          '\\def\\s{\\mathbf{s}}\n'+\
+                          '\\def\\b{\\mathbf{b}}\n'+\
+                          '\\def\\c{\\mathbf{c}}\n'+\
+                          '\\def\\W{\\mathbf{W}}\n'+\
+                          '\\def\\C{\\mathbf{C}}\n'+\
+                          '\\def\\P{\\mathbf{P}}\n'+\
+                          '\\def\\T{{\\bf \\mathcal T}}\n'+\
+                          '\\def\\B{{\\bf \\mathcal B}}\n'
