@@ -1,0 +1,155 @@
+.. _RBM:
+
+Restricted Boltzmann Machines (RBM)
+===================================
+
+.. raw:: latex
+    :label: bigskip
+
+   \bigskip
+
+Notation
+++++++++
+
+* :math:`\v \in \mathbb{R}^{D\times 1}`: D Gaussian visible units
+* :math:`\h^c \in \{0,1\}^{N\times 1}`: N covariance-hidden units
+* :math:`\P \in \mathbb{R}^{F\times N}`: weight matrix connecting N covariance-hidden units to F factors
+* :math:`\C \in \mathbb{R}^{D\times F}`: weight matrix connecting F factors to D visible units
+* :math:`\b^c \in \mathbb{R}^{N\times 1}`: biases of N covariance-hidden units
+* :math:`\h^m \in \{0,1\}^{M\times 1}`: M mean-hidden units
+* :math:`\W \in \mathbb{R}^{D\times M}`: weight matrix connecting M mean-hidden units to D visible units
+* :math:`\b^m \in \mathbb{R}^{M\times 1}`: biases of M mean-hidden units
+
+Energy Functions
+++++++++++++++++
+
+Covariance Energy
+-----------------
+
+.. math::
+    :label: cov_energy
+
+    \E^c(\v,\h^c) = -\frac{1}{2} 
+                    \sum_{f=1}^F \sum_{k=1}^N P_{fk} h_k^c (\sum_{i=1}^D C_{if} v_i)^2 - 
+                    \sum_{k=1}^N b_k^c h_k^c
+
+Mean Energy
+-----------
+
+.. math::
+    :label: mean_energy
+
+    \E^m(\v,\h^m) = - \sum_{j=1}^M \sum_{i=1}^D W_{ij} h_j^m v_i 
+                    - \sum_{j=1}^M b_j^m h_j^m
+
+
+Conditionals: :math:`p(\h^m | \v)`
+----------------------------------
+
+This is the same derivation as with standard RBMs. We start with the observation
+that the mean-hidden units are conditionally-independent given the visible
+units, hence :math:`p(\h^m | \v) = \prod_{j=1}^M p(\h_j^m | \v)`.
+
+We can then derive :math:`p(\h_j^m | \v)` as follows:
+
+.. math::
+
+    p(\h_j^m | \v)
+    &= \frac {p(\h_j^m, \v)} {p(\v)} \nonumber \\
+    &= \frac {p(\h_j^m, \v)} {\sum_{h_j^m} p(\h_j^m, \v)} \nonumber \\
+    &= \frac 
+    {\exp(\sum_{i=1}^D W_{ij} h_j^m v_i + b_j^m h_j^m)}
+    {\sum_{h_j} \exp(\sum_{i=1}^D W_{ij} h_j^m v_i + b_j^m h_j^m)} \nonumber \\
+    &= \frac
+    {\exp(\sum_{i=1}^D W_{ij} h_j^m v_i + b_j^m h_j^m)}
+    {1 + \exp(\sum_{i=1}^D W_{ij} v_i + b_j^m)} \nonumber 
+
+The activation probability of a mean-hidden unit, :math:`p(\h_j^m=1 |\v)`, is thus:
+
+.. math::
+
+    p(\h_j^m=1 |\v) &= \sigma(\sum_{i=1}^D W_{ij} v_i + b_j^m) \nonumber
+
+
+Conditionals: :math:`p(\h^c | \v)`
+----------------------------------
+
+It is straightforward to show that the covariance-hidden units are also
+conditionally independent. This is due to the fact that :math:`\E^c(\v,\h^c)` is
+linear in :math:`\h^c`, thus:
+
+.. math::
+
+   p(\h^c, \v) 
+   &= \frac{1}{Z} \exp(-\E^c(\v,\h^c) \nonumber \\
+   &= \frac{1}{Z} \exp(\frac{1}{2} \sum_{f=1}^F \sum_{k=1}^N P_{fk} h_k^c (\sum_{i=1}^D C_{if} v_i)^2 + 
+                   \sum_{k=1}^N b_k^c h_k^c) \nonumber \\
+   &= \frac{1}{Z} \prod_{k=1}^N \exp(\frac{1}{2} \sum_{f=1}^F P_{fk} h_k^c (\sum_{i=1}^D C_{if} v_i)^2 + b_k^c h_k^c) \nonumber \\
+   &= \frac{1}{Z} \prod_{k=1}^N p(\h_k^c, \v) \nonumber
+
+The rest of the derivation is equivalent to \ref{sec:hm_given_v}, substituting
+:math:`\E^m(\v,\h^m)` for :math:`\E^c(\v,\h^c)`. This yields:
+
+.. math::
+
+    p(\h_k^c=1 |\v) &= \sigma(\frac{1}{2} \sum_{f=1}^F P_{fk} (\sum_{i=1}^D
+    C_{if} v_i)^2 + b_k^c) \nonumber
+
+
+Conditionals: :math:`p(\v | \h^c,\h^m)`
+---------------------------------------
+
+From basic probability, we can write:
+
+.. math::
+
+    p(\v | \h^c, \h^m) &= \frac {p(\v,\h)} {p(\h)} \nonumber \\
+    &= \frac{1}{p(\h)} \frac{1}{Z} \exp(
+       \frac{1}{2} \sum_{f=1}^F \sum_{k=1}^N P_{fk} h_k^c (\sum_{i=1}^D C_{if} v_i)^2 + \sum_{k=1}^N b_k^c h_k^c +
+       \sum_{j=1}^M \sum_{i=1}^D W_{ij} h_j^m v_i + \sum_{j=1}^M b_j^m h_j^m) \nonumber \\
+       &= \frac{1}{Z_2} \exp( \frac{1}{2} \v^T(\C \text{diag}(\P\h^c) \C^T)\v + {\b^c}^T\h^c + \v^T\W\h^m + {\b^m}^T\h^m) \nonumber 
+
+
+
+
+Setting :math:`\Sigma^{-1} = - \C\text{diag}(P\h^c)\C^T`, we can now write:
+
+.. math::
+
+    p(\v | \h^c, \h^m) &= 
+    \frac{1}{Z_2} \exp(-\frac{1}{2} \v^T\Sigma^{-1}\v + {\b^c}^T\h^c + \v^T\W\h^m + {\b^m}^T\h^m) \nonumber \\
+    &= \frac{1}{Z_2} \exp(-\frac{1}{2} \v^T\Sigma^{-1}\v + \v\W\h^m) \exp({\b^c}^T\h^c + {\b^m}^T\h^m) \nonumber \\
+    &= \frac{1}{Z_3} \exp(-\frac{1}{2} \v^T\Sigma^{-1}\v + \v\W\h^m) \nonumber
+
+Since we know that :math:`\v` are Gaussian random variables, we need to get
+the above in the form :math:`\frac{1}{Z} \exp(-\frac{1}{2} (\v-\mu)^T
+\Sigma^{-1} (\v-\mu))`. We can do this by completing the squares and then
+solving for :math:`\mu` in the cross-term, which gives 
+:math:`\v^T \Sigma^{-1} \mu = \v \W \h^m`, and :math:`\mu = \Sigma \W \h^m`.
+
+Our conditional distribution can thus be written as:
+   
+.. math::
+    p(\v | \h^c, \h^m) &= \mathcal{N}(\Sigma \W \h^m, \Sigma) \nonumber \\
+    \text{ with } \Sigma^{-1} &= - \C\text{diag}(P\h^c)\C^T \nonumber
+
+
+Free-Energy
+-----------
+
+By definition, the free-energy :math:`\F(\v)` of a given visible configuration :math:`\v`
+is: :math:`\F(v) = -\log \sum_h e^{-\E(\v,\h)}`. We can derive the free-energy for
+the mcRBM as follows:
+
+.. math::
+
+    \F(\v) = &-\log \sum_{h^c} \sum_{h^m} \exp(-\E^c(\v,\h^c) - \E^m(\v,\h^m)) \nonumber \\
+    = &-\log \sum_{h^c} \sum_{h^m} \left[ \prod_{k=1}^N \exp(-\E^c(\v,\h_k^c))
+                                   \prod_{j=1}^M \exp(-\E^m(\v,\h_j^m)) \right] \nonumber \\
+    = &-\log \left[ \prod_{k=1}^N (1 + \exp(-\E^c(\v,\h_k^c=1)))
+                    \prod_{j=1}^M (1 + \exp(-\E^m(\v,\h_j^m=1))) \right]\nonumber \\
+    = &-\sum_{k=1}^N \log(1 + \exp(-\E^c(\v,\h_k^c=1)))
+      -\sum_{j=1}^M \log(1 + \exp(-\E^m(\v,\h_j^m=1))) \nonumber \\
+    = &-\sum_{k=1}^N \log(1 + \exp(\frac{1}{2} \sum_{f=1}^F P_{fk} (\sum_{i=1}^D C_{if} v_i)^2 + b_k^c)) \nonumber \\
+      &-\sum_{j=1}^M \log(1 + \exp(\sum_{i=1}^D W_{ij} v_i + b_j^m)) \nonumber
+
