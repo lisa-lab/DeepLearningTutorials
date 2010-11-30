@@ -119,7 +119,7 @@ class dA(object):
 
         # create a Theano random generator that gives symbolic random values
         if not theano_rng : 
-            theano_rng = RandomStreams(rng.randint(2**30))
+            theano_rng = RandomStreams(numpy_rng.randint(2**30))
 
         # note : W' was written as `W_prime` and b' as `b_prime`
         if not W:
