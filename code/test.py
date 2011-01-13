@@ -149,4 +149,8 @@ def speed():
     print >> sys.stderr, 'expected float64/gpu',expected_times_64/gpu_times
     print >> sys.stderr, 'expected float32/gpu',expected_times_32/gpu_times
 
+    print >> sys.stderr, 'speed_failure_float64='+str(sum((expected_times_64/float64_times)>0.95))
+    print >> sys.stderr, 'speed_failure_float32='+str(sum((expected_times_32/float32_times)>0.95))
+    print >> sys.stderr, 'speed_failure_gpu='+str(sum((expected_times_gpu/gpu_times)>0.95))
+
     assert not numpy.isnan(gpu_times).any()
