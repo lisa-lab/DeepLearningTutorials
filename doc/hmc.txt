@@ -20,21 +20,26 @@ Maximum likelihood learning of energy-based models requires a robust algorithm
 to sample negative phase particles (see Eq.(4) of the :doc:`rbm` tutorial).
 When training RBMs with CD or PCD, this is typically done with block Gibbs
 sampling, where the conditional distributions :math:`p(h|v)` and
-:math:`p(v|h)` are used as the transition operators of the Markov chain. While
-Gibbs sampling may be computationally efficient, it nevertheless operates via
-a random walk which might not be statistically efficient for some
-distributions.
+:math:`p(v|h)` are used as the transition operators of the Markov chain.
 
-Hybrid Monte Carlo (HMC) [Duane87]_ avoids random walk behavior by simulating
-a physical system governed by Hamiltonian dynamics. Model samples are obtained
-by simulating a physical system, where particles move about a high-dimensional
-landscape, subject to potential and kinetic energies.  Adapting the notation
-from [Neal93]_, particles are characterized by a position vector or state
-:math:`s \in \mathcal{R}^D` and velocity vector :math:`\phi \in
-\mathcal{R}^D`. The combined state of a particle is denoted as
-:math:`\chi=(s,\phi)`. The Hamiltonian is then defined as the sum of potential
-energy :math:`E(s)` (same energy function defined by energy-based models) and
-kinetic energy :math:`K(\phi)`, as follows:
+In certain cases however, these conditional distributions might be difficult
+to sample from (i.e. requiring expensive matrix inversions, as in the case of
+the "mean-covariance RBM"). Also, even if Gibbs sampling can be done
+efficiently, it nevertheless operates via a random walk which might not be
+statistically efficient for some distributions. 
+In this context, and when sampling from continuous variables, Hybrid Monte
+Carlo (HMC) can prove to be a powerful tool [Duane87]_. It avoids random walk
+behavior by simulating a physical system governed by Hamiltonian dynamics,
+potentially avoiding tricky conditional distributions in the process. 
+
+In HMC, model samples are obtained by simulating a physical system, where
+particles move about a high-dimensional landscape, subject to potential and
+kinetic energies.  Adapting the notation from [Neal93]_, particles are
+characterized by a position vector or state :math:`s \in \mathcal{R}^D` and
+velocity vector :math:`\phi \in \mathcal{R}^D`. The combined state of a
+particle is denoted as :math:`\chi=(s,\phi)`. The Hamiltonian is then defined
+as the sum of potential energy :math:`E(s)` (same energy function defined by
+energy-based models) and kinetic energy :math:`K(\phi)`, as follows:
 
 .. math::
     
