@@ -119,7 +119,6 @@ def speed():
     print >> sys.stderr, 'expected float64/float32',expected_times_64/float32_times
 
     #test in float64 in FAST_RUN mode on the gpu
-    theano.config.device='gpu0'
     import theano.sandbox.cuda
     theano.sandbox.cuda.use('gpu')
     gpu_times=do_tests()

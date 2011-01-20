@@ -20,21 +20,26 @@ Maximum likelihood learning of energy-based models requires a robust algorithm
 to sample negative phase particles (see Eq.(4) of the :doc:`rbm` tutorial).
 When training RBMs with CD or PCD, this is typically done with block Gibbs
 sampling, where the conditional distributions :math:`p(h|v)` and
-:math:`p(v|h)` are used as the transition operators of the Markov chain. While
-Gibbs sampling may be computationally efficient, it nevertheless operates via
-a random walk which might not be statistically efficient for some
-distributions.
+:math:`p(v|h)` are used as the transition operators of the Markov chain.
 
-Hybrid Monte Carlo (HMC) [Duane87]_ avoids random walk behavior by simulating
-a physical system governed by Hamiltonian dynamics. Model samples are obtained
-by simulating a physical system, where particles move about a high-dimensional
-landscape, subject to potential and kinetic energies.  Adapting the notation
-from [Neal93]_, particles are characterized by a position vector or state
-:math:`s \in \mathcal{R}^D` and velocity vector :math:`\phi \in
-\mathcal{R}^D`. The combined state of a particle is denoted as
-:math:`\chi=(s,\phi)`. The Hamiltonian is then defined as the sum of potential
-energy :math:`E(s)` (same energy function defined by energy-based models) and
-kinetic energy :math:`K(\phi)`, as follows:
+In certain cases however, these conditional distributions might be difficult
+to sample from (i.e. requiring expensive matrix inversions, as in the case of
+the "mean-covariance RBM"). Also, even if Gibbs sampling can be done
+efficiently, it nevertheless operates via a random walk which might not be
+statistically efficient for some distributions. 
+In this context, and when sampling from continuous variables, Hybrid Monte
+Carlo (HMC) can prove to be a powerful tool [Duane87]_. It avoids random walk
+behavior by simulating a physical system governed by Hamiltonian dynamics,
+potentially avoiding tricky conditional distributions in the process. 
+
+In HMC, model samples are obtained by simulating a physical system, where
+particles move about a high-dimensional landscape, subject to potential and
+kinetic energies.  Adapting the notation from [Neal93]_, particles are
+characterized by a position vector or state :math:`s \in \mathcal{R}^D` and
+velocity vector :math:`\phi \in \mathcal{R}^D`. The combined state of a
+particle is denoted as :math:`\chi=(s,\phi)`. The Hamiltonian is then defined
+as the sum of potential energy :math:`E(s)` (same energy function defined by
+energy-based models) and kinetic energy :math:`K(\phi)`, as follows:
 
 .. math::
     
@@ -57,9 +62,9 @@ The differential equations are given by:
 .. math::
     :label: ds_dt
 
-    \frac{ds_i}{dt} &= \frac{\partial \mathcal{H}}{\partial s_i} = s_i \\
-    \frac{d\phi_i}{dt} &= - \frac{\partial \mathcal{H}}{\partial \phi_i} 
-                     = - \frac{\partial E}{\partial \phi_i}
+    \frac{ds_i}{dt} &= \frac{\partial \mathcal{H}}{\partial \phi_i} = \phi_i \\
+    \frac{d\phi_i}{dt} &= - \frac{\partial \mathcal{H}}{\partial s_i} 
+                     = - \frac{\partial E}{\partial s_i}
 
 As shown in [Neal93]_, the above transformation preserves volume and is
 reversible. The above dynamics can thus be used as transition operators of a
@@ -85,7 +90,7 @@ preserve the properties of volume conservation and time reversibility.  The
 
   \phi_i(t + \epsilon/2) &= \phi_i(t) - \frac{\epsilon}{2} \frac{\partial{}}{\partial s_i} E(s(t)) \\
   s_i(t + \epsilon) &= s_i(t) + \epsilon \phi_i(t + \epsilon/2) \\
-  \phi_i(t + \epsilon) &= \phi_i(t + \epsilon/2) - \frac{\epsilon}{2} \frac{\partial{}}{\partial s_i} E(s(t + \sigma)) \\
+  \phi_i(t + \epsilon) &= \phi_i(t + \epsilon/2) - \frac{\epsilon}{2} \frac{\partial{}}{\partial s_i} E(s(t + \epsilon)) \\
 
 We thus perform a half-step update of the velocity at time
 :math:`t+\epsilon/2`, which is then used to compute :math:`s(t + \epsilon)`
@@ -126,15 +131,14 @@ the updates dictionary of a Theano function.
 
 We breakdown the HMC algorithm into the following sub-components:
 
-* `simulate_dynamics`: a symbolic Python function which, given an initial position and velocity, will perform `n_steps` leapfrog updates and return the symbolic variables for the proposed state :math:`\chi'`.
-* `hmc_move`: a symbolic Python function which given a starting position,
+* `simulate\_dynamics`: a symbolic Python function which, given an initial position and velocity, will perform `n\_steps` leapfrog updates and return the symbolic variables for the proposed state :math:`\chi'`.
+* `hmc\_move`: a symbolic Python function which given a starting position,
   generates :math:`\chi` by randomly sampling a velocity vector. It then
-  calls `simulate_dynamics` and determines whether the transition :math:`\chi
+  calls `simulate\_dynamics` and determines whether the transition :math:`\chi
   \rightarrow \chi'` is to be accepted.
-* `hmc_updates`: a Python function which, given the symbolic outputs of
-  `hmc_move`, generates the dictionary of updates for a single iteration of
-  HMC. 
-* `HMC_sampler`: a Python helper class which wraps everything together.
+* `hmc\_updates`: a Python function which, given the symbolic outputs of `hmc\_move`, 
+  generates the dictionary of updates for a single iteration of HMC. 
+* `HMC\_sampler`: a Python helper class which wraps everything together.
 
   
 **simulate_dynamics**
@@ -202,7 +206,7 @@ respectively.
 The `simulate_dynamics` function performs the full algorithm of Eqs.
 :eq:`leap-frog2`. We start with the initial half-step update of :math:`\phi`
 and full-step of :math:`s`, and then scan over the `leapfrog` method
-`n_steps-1` times.
+`n\_steps-1` times.
 
 .. code-block:: python
 
@@ -272,11 +276,11 @@ final proposed state :math:`\chi'` is returned.
 
 **hmc_move**
 
-The `hmc_move` function implements the remaining steps (steps 1 and 3) of an
-HMC move proposal (while wrapping the `simulate_dynamics` function). Given a
+The `hmc\_move` function implements the remaining steps (steps 1 and 3) of an
+HMC move proposal (while wrapping the `simulate\_dynamics` function). Given a
 matrix of initial states :math:`s \in \mathcal{R}^{N \times D}` (`positions`) and
-energy function :math:`E(s)` (`energy_fn`), it defines the symbolic graph for
-computing `n_steps` of HMC, using a given `stepsize`. The function prototype
+energy function :math:`E(s)` (`energy\_fn`), it defines the symbolic graph for
+computing `n\_steps` of HMC, using a given `stepsize`. The function prototype
 is as follows:
 
 .. code-block:: python
@@ -323,7 +327,7 @@ particle under simulation, yielding a :math:`N \times D` matrix.
 
 
 Since we now have an initial position and velocity, we can now call the
-`simulate_dynamics` to obtain the proposal for the new state :math:`\chi'`.
+`simulate\_dynamics` to obtain the proposal for the new state :math:`\chi'`.
 
 
 .. code-block:: python
@@ -346,7 +350,7 @@ We then accept/reject the proposed state based on the Metropolis algorithm.
             energy_next = hamiltonian(final_pos, final_vel, energy_fn),
             s_rng=s_rng)
 
-where `metropolis_hastings_accept` and `hamiltonian` are helper functions,
+where `metropolis\_hastings\_accept` and `hamiltonian` are helper functions,
 defined as follows.
 
 .. code-block:: python
@@ -385,7 +389,7 @@ defined as follows.
         """ ... """
         return 0.5 * (vel**2).sum(axis=1)
 
-`hmc_move` finally returns the tuple `(accept, final_pos)`. `accept` is a
+`hmc\_move` finally returns the tuple `(accept, final\_pos)`. `accept` is a
 symbolic boolean variable indicating whether or not the new state `final_pos`
 should be used or not.
 
@@ -397,10 +401,10 @@ should be used or not.
 
 .. _dimshuffle: http://deeplearning.net/software/theano/library/tensor/basic.html#tensor._tensor_py_operators.dimshuffle
 
-The purpose of `hmc_updates` is to generate the dictionary of updates to
-perform, whenever our HMC sampling function is called. `hmc_updates` thus
+The purpose of `hmc\_updates` is to generate the dictionary of updates to
+perform, whenever our HMC sampling function is called. `hmc\_updates` thus
 receives as parameters, a series of shared variables to update (`positions`, `stepsize` and
-`avg_acceptance_rate`), and the parameters required to compute their new
+`avg\_acceptance\_rate`), and the parameters required to compute their new
 state.
 
 .. code-block:: python
@@ -415,21 +419,21 @@ state.
         # if accept is True, update to `final_pos` else stay put
         new_positions = TT.switch(accept_matrix, final_pos, positions)
 
-Using the above code, the dictionary `{positions: new_positions}` can be used
-to update the state of the sampler with either (1) the new state `final_pos`
+Using the above code, the dictionary `{positions: new\_positions}` can be used
+to update the state of the sampler with either (1) the new state `final\_pos`
 if `accept` is True, or (2) the old state if `accept` is False.  This
 conditional assignment is performed by the `switch`_ op.  
 
 `switch` expects as its first argument, a boolean mask with the same
 broadcastable dimensions as the second and third argument. Since `accept` is
 scalar-valued, we must first use `dimshuffle`_ to transform it to a tensor with
-`final_pos.ndim` broadcastable dimensions (`accept_matrix`).
+`final\_pos.ndim` broadcastable dimensions (`accept\_matrix`).
 
-`hmc_updates` additionally implements an adaptive version of HMC, as
+`hmc\_updates` additionally implements an adaptive version of HMC, as
 implemented in the accompanying code to [Ranzato10]_. We start by tracking the
 average acceptance rate of the HMC move proposals (across many simulations),
 using an exponential moving average with time constant
-`1-avg_acceptance_slowness`.
+`1-avg\_acceptance\_slowness`.
 
 .. code-block:: python
 
@@ -439,12 +443,12 @@ using an exponential moving average with time constant
                 avg_acceptance_slowness * avg_acceptance_rate,
                 (1.0 - avg_acceptance_slowness) * accept.mean())
 
-If the average acceptance rate is larger than the `target_acceptance_rate`, we
-increase the `stepsize` by a factor of `stepsize_inc` in order to increase the
+If the average acceptance rate is larger than the `target\_acceptance\_rate`, we
+increase the `stepsize` by a factor of `stepsize\_inc` in order to increase the
 mixing rate of our chain. If the average acceptance rate is too low however,
-`stepsize` is decreased by a factor of `stepsize_dec`, yielding a more
+`stepsize` is decreased by a factor of `stepsize\_dec`, yielding a more
 conservative mixing rate. The `clip`_ op allows us to maintain the `stepsize`
-in the range [`stepsize_min`, `stepsize_max`].
+in the range [`stepsize\_min`, `stepsize\_max`].
 
 .. code-block:: python
 
@@ -467,13 +471,13 @@ The final updates dictionary is then returned:
 
 **HMC_sampler**
 
-We finally tie everything together using the `HMC_Sampler` class. Its main
+We finally tie everything together using the `HMC\_Sampler` class. Its main
 elements are:
 
-* `new_from_shared_positions`: a constructor method which allocates various
-  shared variables and strings together the calls to `hmc_move` and
-  `hmc_updates`. It also builds the theano function `simulate`, whose sole
-  purpose is to execute the updates generated by `hmc_updates`.
+* `new\_from\_shared\_positions`: a constructor method which allocates various
+  shared variables and strings together the calls to `hmc\_move` and
+  `hmc\_updates`. It also builds the theano function `simulate`, whose sole
+  purpose is to execute the updates generated by `hmc\_updates`.
 * `draw`: a convenience method which calls the Theano function `simulate`
   and returns a copy of the contents of the shared variable `self.positions`.
 
@@ -588,9 +592,9 @@ Testing our Sampler
 We test our implementation of HMC by sampling from a multi-variate Gaussian
 distribution. We start by generating a random mean vector `mu` and covariance
 matrix `cov`, which allows us to define the energy function of the
-corresponding Gaussian distribution: `gaussian_energy`.
+corresponding Gaussian distribution: `gaussian\_energy`.
 We then initialize the state of the sampler by allocating a `position` shared
-variable. It is passed to the constructor of `HMC_sampler` along with our
+variable. It is passed to the constructor of `HMC\_sampler` along with our
 target energy function.
 
 Following a burn-in period, we then generate a large number of samples and
@@ -650,7 +654,7 @@ compare the empirical mean and covariance matrix to their true values.
         assert sampler.stepsize.value <= sampler.stepsize_max
 
 
-The above code can be run using the command: `nosetests -s code/mcrbm/test_hmc.py`. The output is as follows:
+The above code can be run using the command: "nosetests -s code/mcrbm/test\_hmc.py". The output is as follows:
 
 .. code-block:: bash
 
