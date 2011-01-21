@@ -151,12 +151,12 @@ To get around this shortcomming for the labels, we store them as float,
 and then cast it to int. 
 
 .. note::
-    
+
     If you are running your code on the GPU and the dataset you are using 
     is too large to fit in memory the code will crash. In such a case you
     should store the data in a shared variable. You can however store a 
     sufficiently small chunk of your data (several minibatches) in a shared
-    variable and use that during trianing. One you got through the chunk,
+    variable and use that during training. Once you got through the chunk,
     update the values it stores. This way you minimize the number of data 
     transfers between CPU memory and GPU memory.
 
@@ -289,7 +289,7 @@ In this tutorial, :math:`f` is defined as:
 In python, using Theano this can be written as :
 
 .. code-block:: python
-  
+
   # zero_one_loss is a Theano variable representing a symbolic
   # expression of the zero one loss ; to get the actual value this
   # symbolic expression has to be compiled into a Theano function (see
@@ -334,7 +334,7 @@ supervised learning signal for deep learning of a classifier.
 This can be computed using the following line of code : 
 
 .. code-block:: python
- 
+
   # NLL is a symbolic variable ; to get the actual value of NLL, this symbolic
   # expression has to be compiled into a Theano function (see the Theano
   # tutorial for more details)
@@ -600,6 +600,7 @@ of a strategy based on a geometrically increasing amount of patience.
                     best_validation_loss = this_validation_loss
 
             if patience <= iter:
+                done_looping = True
                 break
 
     # POSTCONDITION:
