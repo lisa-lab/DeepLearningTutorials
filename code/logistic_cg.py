@@ -75,7 +75,8 @@ class LogisticRegression(object):
         # initialize theta = (W,b) with 0s; W gets the shape (n_in, n_out), 
         # while b is a vector of n_out elements, making theta a vector of
         # n_in*n_out + n_out elements
-        self.theta = theano.shared( value = numpy.zeros(n_in*n_out+n_out, dtype = theano.config.floatX) )
+        self.theta = theano.shared(value=numpy.zeros(n_in*n_out+n_out, dtype=theano.config.floatX),
+                                   name='theta')
         # W is represented by the fisr n_in*n_out elements of theta
         self.W     = self.theta[0:n_in*n_out].reshape((n_in,n_out))
         # b is the rest (last n_out elements)
@@ -225,19 +226,21 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
     test_model = theano.function([minibatch_offset], classifier.errors(y),
             givens={
                 x:test_set_x[minibatch_offset:minibatch_offset+batch_size],
-                y:test_set_y[minibatch_offset:minibatch_offset+batch_size]})
+                y:test_set_y[minibatch_offset:minibatch_offset+batch_size]},
+            name="test")
 
     validate_model = theano.function([minibatch_offset],classifier.errors(y),
             givens={
                 x:valid_set_x[minibatch_offset:minibatch_offset+batch_size],
-                y:valid_set_y[minibatch_offset:minibatch_offset+batch_size]})
+                y:valid_set_y[minibatch_offset:minibatch_offset+batch_size]},
+            name="validate")
 
     #  compile a thenao function that returns the cost of a minibatch 
     batch_cost = theano.function([minibatch_offset], cost, 
             givens= {
                 x : train_set_x[minibatch_offset:minibatch_offset+batch_size],
-                y : train_set_y[minibatch_offset:minibatch_offset+batch_size]})
-
+                y : train_set_y[minibatch_offset:minibatch_offset+batch_size]},
+            name="batch_cost")
 
     
     # compile a theano function that returns the gradient of the minibatch 
@@ -245,7 +248,8 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
     batch_grad = theano.function([minibatch_offset], T.grad(cost,classifier.theta), 
             givens= {
                 x : train_set_x[minibatch_offset:minibatch_offset+batch_size],
-                y : train_set_y[minibatch_offset:minibatch_offset+batch_size]})
+                y : train_set_y[minibatch_offset:minibatch_offset+batch_size]},
+            name="batch_grad")
 
 
     # creates a function that computes the average cost on the training set
