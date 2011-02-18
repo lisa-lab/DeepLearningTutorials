@@ -360,7 +360,8 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     # the purpose of train_rbm is solely to update the RBM parameters
     train_rbm = theano.function([index], cost,
            updates = updates, 
-           givens = { x: train_set_x[index*batch_size:(index+1)*batch_size]})
+           givens = { x: train_set_x[index*batch_size:(index+1)*batch_size]},
+           name = 'train_rbm')
 
     plotting_time = 0.
     start_time = time.clock()
@@ -423,7 +424,8 @@ def test_rbm(learning_rate=0.1, training_epochs = 15,
     # we generate the "mean field" activations for plotting and the actual
     # samples for reinitializing the state of our persistent chain
     sample_fn = theano.function([], [vis_mfs[-1], vis_samples[-1]],
-                                                         updates = updates)
+                                updates = updates,
+                                name = 'sample_fn')
 
 
     # create a space to store the image for plotting ( we need to leave 
