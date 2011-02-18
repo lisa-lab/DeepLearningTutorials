@@ -1,11 +1,11 @@
 """
-This tutorial introduces logistic regression using Theano and conjugate 
-gradient descent.  
+This tutorial introduces logistic regression using Theano and conjugate
+gradient descent.
 
 Logistic regression is a probabilistic, linear classifier. It is parametrized
 by a weight matrix :math:`W` and a bias vector :math:`b`. Classification is
 done by projecting data points onto a set of hyperplanes, the distance to
-which is used to determine a class membership probability. 
+which is used to determine a class membership probability.
 
 Mathematically, this can be written as:
 
@@ -14,7 +14,7 @@ Mathematically, this can be written as:
                 &= \frac {e^{W_i x + b_i}} {\sum_j e^{W_j x + b_j}}
 
 
-The output of the model or prediction is then done by taking the argmax of 
+The output of the model or prediction is then done by taking the argmax of
 the vector whose i'th element is P(Y=i|x).
 
 .. math::
@@ -22,14 +22,14 @@ the vector whose i'th element is P(Y=i|x).
   y_{pred} = argmax_i P(Y=i|x,W,b)
 
 
-This tutorial presents a stochastic gradient descent optimization method 
-suitable for large datasets, and a conjugate gradient optimization method 
+This tutorial presents a stochastic gradient descent optimization method
+suitable for large datasets, and a conjugate gradient optimization method
 that is suitable for smaller datasets.
 
 
 References:
 
-   - textbooks: "Pattern Recognition and Machine Learning" - 
+   - textbooks: "Pattern Recognition and Machine Learning" -
                  Christopher M. Bishop, section 4.3.2
 
 
@@ -46,10 +46,10 @@ import theano.tensor as T
 class LogisticRegression(object):
     """Multi-class Logistic Regression Class
 
-    The logistic regression is fully described by a weight matrix :math:`W` 
-    and bias vector :math:`b`. Classification is done by projecting data 
-    points onto a set of hyperplanes, the distance to which is used to 
-    determine a class membership probability. 
+    The logistic regression is fully described by a weight matrix :math:`W`
+    and bias vector :math:`b`. Classification is done by projecting data
+    points onto a set of hyperplanes, the distance to which is used to
+    determine a class membership probability.
     """
 
 
@@ -59,20 +59,20 @@ class LogisticRegression(object):
         """ Initialize the parameters of the logistic regression
 
         :type input: theano.tensor.TensorType
-        :param input: symbolic variable that describes the input of the 
+        :param input: symbolic variable that describes the input of the
                       architecture ( one minibatch)
 
         :type n_in: int
-        :param n_in: number of input units, the dimension of the space in 
+        :param n_in: number of input units, the dimension of the space in
                      which the datapoint lies
 
         :type n_out: int
-        :param n_out: number of output units, the dimension of the space in 
+        :param n_out: number of output units, the dimension of the space in
                       which the target lies
 
-        """ 
+        """
 
-        # initialize theta = (W,b) with 0s; W gets the shape (n_in, n_out), 
+        # initialize theta = (W,b) with 0s; W gets the shape (n_in, n_out),
         # while b is a vector of n_out elements, making theta a vector of
         # n_in*n_out + n_out elements
         self.theta = theano.shared(value=numpy.zeros(n_in*n_out+n_out, dtype=theano.config.floatX),
@@ -86,7 +86,7 @@ class LogisticRegression(object):
         # compute vector of class-membership probabilities in symbolic form
         self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W)+self.b)
 
-        # compute prediction as class whose probability is maximal in 
+        # compute prediction as class whose probability is maximal in
         # symbolic form
         self.y_pred=T.argmax(self.p_y_given_x, axis=1)
 
@@ -96,13 +96,13 @@ class LogisticRegression(object):
 
     def negative_log_likelihood(self, y):
         """Return the negative log-likelihood of the prediction of this model
-        under a given target distribution.  
+        under a given target distribution.
 
         .. math::
 
-            \frac{1}{|\mathcal{D}|}\mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+            \frac{1}{|\mathcal{D}|}\mathcal{L} (\theta=\{W,b\}, \mathcal{D}) =
             \frac{1}{|\mathcal{D}|}\sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
-                \ell (\theta=\{W,b\}, \mathcal{D}) 
+                \ell (\theta=\{W,b\}, \mathcal{D})
 
         :type y: theano.tensor.TensorType
         :param y: corresponds to a vector that gives for each example the
@@ -115,19 +115,19 @@ class LogisticRegression(object):
 
 
     def errors(self, y):
-        """Return a float representing the number of errors in the minibatch 
-        over the total number of examples of the minibatch 
+        """Return a float representing the number of errors in the minibatch
+        over the total number of examples of the minibatch
 
         :type y: theano.tensor.TensorType
         :param y: corresponds to a vector that gives for each example
                   the correct label
         """
 
-        # check if y has same dimension of y_pred 
+        # check if y has same dimension of y_pred
         if y.ndim != self.y_pred.ndim:
-            raise TypeError('y should have the same shape as self.y_pred', 
+            raise TypeError('y should have the same shape as self.y_pred',
                 ('y', target.type, 'y_pred', self.y_pred.type))
-        # check if y is of the correct datatype        
+        # check if y is of the correct datatype
         if y.dtype.startswith('int'):
             # the T.neq operator returns a vector of 0s and 1s, where 1
             # represents a mistake in prediction
@@ -142,15 +142,15 @@ class LogisticRegression(object):
 
 
 def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
-    """Demonstrate conjugate gradient optimization of a log-linear model 
+    """Demonstrate conjugate gradient optimization of a log-linear model
 
     This is demonstrated on MNIST.
-    
+
     :type n_epochs: int
-    :param n_epochs: number of epochs to run the optimizer 
+    :param n_epochs: number of epochs to run the optimizer
 
     :type mnist_pkl_gz: string
-    :param mnist_pkl_gz: the path of the mnist training file from 
+    :param mnist_pkl_gz: the path of the mnist training file from
                          http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz
 
     """
@@ -159,18 +159,18 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
     #############
     print '... loading data'
 
-    # Load the dataset 
+    # Load the dataset
     f = gzip.open(mnist_pkl_gz,'rb')
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
     def shared_dataset(data_xy):
         """ Function that loads the dataset into shared variables
-        
-        The reason we store our dataset in shared variables is to allow 
-        Theano to copy it into the GPU memory (when code is run on GPU). 
+
+        The reason we store our dataset in shared variables is to allow
+        Theano to copy it into the GPU memory (when code is run on GPU).
         Since copying data into the GPU is slow, copying a minibatch everytime
-        is needed (the default behaviour if the data is not in a shared 
+        is needed (the default behaviour if the data is not in a shared
         variable) would lead to a large decrease in performance.
         """
         data_x, data_y = data_xy
@@ -179,8 +179,8 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
         # When storing data on the GPU it has to be stored as floats
         # therefore we will store the labels as ``floatX`` as well
         # (``shared_y`` does exactly that). But during our computations
-        # we need them as ints (we use labels as index, and if they are 
-        # floats it doesn't make sense) therefore instead of returning 
+        # we need them as ints (we use labels as index, and if they are
+        # floats it doesn't make sense) therefore instead of returning
         # ``shared_y`` we will have to cast it to int. This little hack
         # lets ous get around this issue
         return shared_x, T.cast(shared_y, 'int32')
@@ -204,24 +204,24 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
 
     ######################
     # BUILD ACTUAL MODEL #
-    ###################### 
+    ######################
     print '... building the model'
 
     # allocate symbolic variables for the data
-    minibatch_offset = T.lscalar() # offset to the start of a [mini]batch 
+    minibatch_offset = T.lscalar() # offset to the start of a [mini]batch
     x = T.matrix()   # the data is presented as rasterized images
-    y = T.ivector()  # the labels are presented as 1D vector of 
+    y = T.ivector()  # the labels are presented as 1D vector of
                      # [int] labels
 
- 
+
     # construct the logistic regression class
     classifier = LogisticRegression( input=x, n_in=28*28, n_out=10)
 
-    # the cost we minimize during training is the negative log likelihood of 
+    # the cost we minimize during training is the negative log likelihood of
     # the model in symbolic format
-    cost = classifier.negative_log_likelihood(y).mean() 
+    cost = classifier.negative_log_likelihood(y).mean()
 
-    # compile a theano function that computes the mistakes that are made by 
+    # compile a theano function that computes the mistakes that are made by
     # the model on a minibatch
     test_model = theano.function([minibatch_offset], classifier.errors(y),
             givens={
@@ -235,17 +235,17 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
                 y:valid_set_y[minibatch_offset:minibatch_offset+batch_size]},
             name="validate")
 
-    #  compile a thenao function that returns the cost of a minibatch 
-    batch_cost = theano.function([minibatch_offset], cost, 
+    #  compile a thenao function that returns the cost of a minibatch
+    batch_cost = theano.function([minibatch_offset], cost,
             givens= {
                 x : train_set_x[minibatch_offset:minibatch_offset+batch_size],
                 y : train_set_y[minibatch_offset:minibatch_offset+batch_size]},
             name="batch_cost")
 
-    
-    # compile a theano function that returns the gradient of the minibatch 
+
+    # compile a theano function that returns the gradient of the minibatch
     # with respect to theta
-    batch_grad = theano.function([minibatch_offset], T.grad(cost,classifier.theta), 
+    batch_grad = theano.function([minibatch_offset], T.grad(cost,classifier.theta),
             givens= {
                 x : train_set_x[minibatch_offset:minibatch_offset+batch_size],
                 y : train_set_y[minibatch_offset:minibatch_offset+batch_size]},
@@ -258,7 +258,7 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
         train_losses = [batch_cost(i*batch_size) for i in xrange(n_train_batches)]
         return numpy.mean(train_losses)
 
-    # creates a function that computes the average gradient of cost with 
+    # creates a function that computes the average gradient of cost with
     # respect to theta
     def train_fn_grad(theta_value):
         classifier.theta.value = theta_value
@@ -269,7 +269,7 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
 
 
     validation_scores = [float('inf'), 0]
- 
+
     # creates the validation function
     def callback(theta_value):
         classifier.theta.value = theta_value
@@ -277,10 +277,10 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
         validation_losses = [validate_model(i*batch_size) for i in xrange(n_valid_batches)]
         this_validation_loss = numpy.mean(validation_losses)
         print('validation error %f %%' % (this_validation_loss*100.,))
-        
+
         # check if it is better then best validation score got until now
         if this_validation_loss < validation_scores[0]:
-            # if so, replace the old one, and compute the score on the 
+            # if so, replace the old one, and compute the score on the
             # testing dataset
             validation_scores[0] = this_validation_loss
             test_loses = [test_model(i*batch_size) for i in xrange(n_test_batches)]
@@ -289,13 +289,13 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
     ###############
     # TRAIN MODEL #
     ###############
- 
-    # using scipy conjugate gradient optimizer 
+
+    # using scipy conjugate gradient optimizer
     import scipy.optimize
     print ("Optimizing using scipy.optimize.fmin_cg...")
     start_time = time.clock()
     best_w_b = scipy.optimize.fmin_cg(
-               f        = train_fn, 
+               f        = train_fn,
                x0       = numpy.zeros((n_in+1)*n_out, dtype=x.dtype),
                fprime   = train_fn_grad,
                callback = callback,
@@ -303,7 +303,7 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
                maxiter  = n_epochs)
     end_time = time.clock()
     print(('Optimization complete with best validation score of %f %%, with '
-          'test performance %f %%') % 
+          'test performance %f %%') %
                (validation_scores[0]*100., validation_scores[1]*100.))
 
     print >> sys.stderr, ('The code for file '+os.path.split(__file__)[1]+' ran for %.1fs' % ((end_time-start_time)))
@@ -311,4 +311,3 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
 
 if __name__ == '__main__':
     cg_optimization_mnist()
-
