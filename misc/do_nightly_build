@@ -1,0 +1,25 @@
+#!/bin/bash
+#we set the compiledir to the /Tmp dir to make the test faster by bypassing the nfs network.
+date
+ROOT_CWD=~/nightly_build
+
+FLAGS=warn.argmax_pushdown_bug=False,warn.gpusum_01_011_0111_bug=False,warn.sum_sum_bug=False,warn.sum_div_dimshuffle_bug=False,compiledir=/Tmp/lisa_theano_compile_dir_deeplearning,seed=0
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64/python2.5/config/
+export LIBRARY_PATH=$LIBRARY_PATH:/usr/lib64/python2.5/config/
+export PYTHONPATH=${ROOT_CWD}:$PYTHONPATH
+
+cd ${ROOT_CWD}/DeepLearningTutorials/code
+#echo "executing nosetests with mode=FAST_COMPILE"
+#THEANO_FLAGS=${FLAGS},mode=FAST_COMPILE /usr/bin/nosetests
+echo "executing nosetests speed with mode=FAST_RUN"
+THEANO_FLAGS=${FLAGS},mode=FAST_RUN /usr/bin/nosetests test.py:speed
+#echo "executing nosetests speed with mode=FAST_RUN and OMP_NUM_THREADS=2"
+#OMP_NUM_THREADS=2 THEANO_FLAGS=${FLAGS},mode=FAST_RUN /usr/bin/nosetests test.py:speed
+echo "executing nosetests with mode=FAST_RUN,floatX=float32"
+THEANO_FLAGS=${FLAGS},mode=FAST_RUN,floatX=float32 /usr/bin/nosetests
+
+#we change the seed and record it everyday to test different combination. We record it to be able to reproduce bug caused by different seed. We don't want multiple test in DEBUG_MODE each day as this take too long.
+#seed=$RANDOM
+#echo "executing nosetests with mode=DEBUG_MODE with seed of the day $seed"
+#THEANO_DEBUGMODE_CHECK_STRIDES=0 THEANO_DEBUGMODE_PATIENCE=3 THEANO_COMPILEDIR=/Tmp/lisa_theano_compile_dir_deeplearning THEANO_UNITTEST_SEED=$seed THEANO_DEFAULT_MODE=DEBUG_MODE /usr/bin/nosetests
+
