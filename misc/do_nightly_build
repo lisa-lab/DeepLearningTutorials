@@ -1,7 +1,7 @@
 #!/bin/bash
 #we set the compiledir to the /Tmp dir to make the test faster by bypassing the nfs network.
 date
-ROOT_CWD=~/nightly_build
+ROOT_CWD=/Tmp/nightly_build
 
 FLAGS=warn.argmax_pushdown_bug=False,warn.gpusum_01_011_0111_bug=False,warn.sum_sum_bug=False,warn.sum_div_dimshuffle_bug=False,compiledir=/Tmp/lisa_theano_compile_dir_deeplearning,seed=0
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64/python2.5/config/
