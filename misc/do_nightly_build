@@ -6,7 +6,7 @@ ROOT_CWD=/Tmp/nightly_build
 FLAGS=warn.argmax_pushdown_bug=False,warn.gpusum_01_011_0111_bug=False,warn.sum_sum_bug=False,warn.sum_div_dimshuffle_bug=False,compiledir=/Tmp/lisa_theano_compile_dir_deeplearning,seed=0
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64/python2.5/config/
 export LIBRARY_PATH=$LIBRARY_PATH:/usr/lib64/python2.5/config/
-export PYTHONPATH=${ROOT_CWD}:$PYTHONPATH
+export PYTHONPATH=${ROOT_CWD}/Theano:${ROOT_CWD}/Pylearn:$PYTHONPATH
 
 cd ${ROOT_CWD}/DeepLearningTutorials/code
 #echo "executing nosetests with mode=FAST_COMPILE"
