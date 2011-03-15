@@ -78,10 +78,11 @@ class LeNetConvPoolLayer(object):
         fan_out = filter_shape[0] * numpy.prod(filter_shape[2:]) / numpy.prod(poolsize)
         # replace weight values with random weights
         W_bound = numpy.sqrt(6./(fan_in + fan_out))
-        self.W.value = numpy.asarray( 
+        self.W.set_value(numpy.asarray(
                 rng.uniform(low=-W_bound, high=W_bound, size=filter_shape),
-                dtype = theano.config.floatX)
-  
+                dtype = theano.config.floatX),
+            borrow=True)
+
         # downsample each feature map individually, using maxpooling
         pooled_out = downsample.max_pool_2d( input = conv_out, 
                                     ds = poolsize, ignore_border=True)
@@ -124,9 +125,9 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200, dataset='../data/mnist.pkl.
 
 
     # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.value.shape[0] / batch_size
-    n_valid_batches = valid_set_x.value.shape[0] / batch_size
-    n_test_batches  = test_set_x.value.shape[0]  / batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] / batch_size
+    n_test_batches  = test_set_x.get_value(borrow=True).shape[0]  / batch_size
 
     # allocate symbolic variables for the data
     index = T.lscalar()    # index to a [mini]batch 

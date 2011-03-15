@@ -372,7 +372,7 @@ class mcRBM(object):
         
         """
         try:
-            return self.W.value.shape[0]
+            return self.W.get_value(borrow=True).shape[0]
         except AttributeError:
             return self.W.shape[0]
 
@@ -384,7 +384,7 @@ class mcRBM(object):
         
         """
         try:
-            return self.U.value.shape[1]
+            return self.U.get_value(borrow=True).shape[1]
         except AttributeError:
             return self.U.shape[1]
 
@@ -396,7 +396,7 @@ class mcRBM(object):
         
         """
         try:
-            return self.W.value.shape[1]
+            return self.W.get_value(borrow=True).shape[1]
         except AttributeError:
             return self.W.shape[1]
 
@@ -545,7 +545,7 @@ class mcRBM_withP(mcRBM):
         
         """
         try:
-            return self.P.value.shape[1]
+            return self.P.get_value(borrow=True).shape[1]
         except AttributeError:
             return self.P.shape[1]
 
@@ -630,7 +630,7 @@ class mcRBMTrainer(object):
         rval = cls.alloc(rbm, visible_batch, batchsize, initial_lr_per_example, rng, l1_penalty,
                 l1_penalty_start, learn_rate_multipliers, lr_anneal_start, persistent_chains)
 
-        rval.p_mask = sharedX((rbm.P.value!=0).astype('float32'), 'p_mask')
+        rval.p_mask = sharedX((rbm.P.get_value(borrow=True) !=0 ).astype('float32'), 'p_mask')
 
         rval.p_lr = p_lr
         rval.p_training_start=p_training_start

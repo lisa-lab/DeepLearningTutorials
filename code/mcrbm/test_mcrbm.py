@@ -82,31 +82,31 @@ def test_reproduce_ranzato_hinton_2010(dataset='MAR',
         if print_jj:
             tile(imgs_fn(jj), "imgs_%06i.png"%jj)
             if persistent_chains:
-                tile(smplr.positions.value, "sample_%06i.png"%jj)
-            tile(rbm.U.value.T, "U_%06i.png"%jj)
-            tile(rbm.W.value.T, "W_%06i.png"%jj)
+                tile(smplr.positions.get_value(borrow=True), "sample_%06i.png"%jj)
+            tile(rbm.U.get_value(borrow=True).T, "U_%06i.png"%jj)
+            tile(rbm.W.get_value(borrow=True).T, "W_%06i.png"%jj)
 
             print 'saving samples', jj, 'epoch', jj/(epoch_size/batchsize)
 
-            print 'l2(U)', l2(rbm.U.value),
-            print 'l2(W)', l2(rbm.W.value),
+            print 'l2(U)', l2(rbm.U.get_value(borrow=True)),
+            print 'l2(W)', l2(rbm.W.get_value(borrow=True)),
             print 'l1_penalty', 
             try:
-                print trainer.effective_l1_penalty.value
+                print trainer.effective_l1_penalty.get_value()
             except:
                 print trainer.effective_l1_penalty
 
-            print 'U min max', rbm.U.value.min(), rbm.U.value.max(),
-            print 'W min max', rbm.W.value.min(), rbm.W.value.max(),
-            print 'a min max', rbm.a.value.min(), rbm.a.value.max(),
-            print 'b min max', rbm.b.value.min(), rbm.b.value.max(),
-            print 'c min max', rbm.c.value.min(), rbm.c.value.max()
+            print 'U min max', rbm.U.get_value(borrow=True).min(), rbm.U.get_value(borrow=True).max(),
+            print 'W min max', rbm.W.get_value(borrow=True).min(), rbm.W.get_value(borrow=True).max(),
+            print 'a min max', rbm.a.get_value(borrow=True).min(), rbm.a.get_value(borrow=True).max(),
+            print 'b min max', rbm.b.get_value(borrow=True).min(), rbm.b.get_value(borrow=True).max(),
+            print 'c min max', rbm.c.get_value(borrow=True).min(), rbm.c.get_value(borrow=True).max()
 
             if persistent_chains:
-                print 'parts min', smplr.positions.value.min(), 
-                print 'max',smplr.positions.value.max(),
-            print 'HMC step', smplr.stepsize.value,
-            print 'arate', smplr.avg_acceptance_rate.value
+                print 'parts min', smplr.positions.get_value(borrow=True).min(),
+                print 'max',smplr.positions.get_value(borrow=True).max(),
+            print 'HMC step', smplr.stepsize.get_value(),
+            print 'arate', smplr.avg_acceptance_rate.get_value()
 
 
         l2_of_Ugrad = learn_fn(jj)

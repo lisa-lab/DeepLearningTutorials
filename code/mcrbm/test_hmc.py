@@ -41,8 +41,8 @@ def sampler_on_nd_gaussian(sampler_cls, burnin, n_samples, dim=10):
     print 'empirical_cov:\n', np.cov(samples.T)
 
     print '****** HMC INTERNALS ******' 
-    print 'final stepsize', sampler.stepsize.value
-    print 'final acceptance_rate', sampler.avg_acceptance_rate.value
+    print 'final stepsize', sampler.stepsize.get_value()
+    print 'final acceptance_rate', sampler.avg_acceptance_rate.get_value()
 
     return sampler
 
@@ -50,6 +50,6 @@ def test_hmc():
     sampler = sampler_on_nd_gaussian(HMC_sampler.new_from_shared_positions,
             burnin=1000, n_samples=1000, dim=5)
     assert abs(sampler.avg_acceptance_rate - sampler.target_acceptance_rate) < .1
-    assert sampler.stepsize.value >= sampler.stepsize_min
-    assert sampler.stepsize.value <= sampler.stepsize_max
+    assert sampler.stepsize.get_value() >= sampler.stepsize_min
+    assert sampler.stepsize.get_value() <= sampler.stepsize_max
 

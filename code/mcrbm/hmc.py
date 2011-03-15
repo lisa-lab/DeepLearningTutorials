@@ -392,4 +392,4 @@ class HMC_sampler(object):
             Numpy matrix whose of dimensions similar to `initial_position`.
        """
         self.simulate()
-        return self.positions.value.copy()
+        return self.positions.get_value(borrow=False)
