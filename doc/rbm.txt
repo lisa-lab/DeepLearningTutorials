@@ -696,16 +696,9 @@ compute the pseudo-likelihood:
         fe_xi = self.free_energy(xi)
 
         # flip bit x_i of matrix xi and preserve all other bits x_{\i}
-        # Equivalent to xi[:,bit_i_idx] = 1-xi[:, bit_i_idx]
-        # NB: slice(start,stop,step) is the python object used for
-        # slicing, e.g. to index matrix x as follows: x[start:stop:step]
-        # In our case, idx_list is a tuple. The first element of the tuple
-        # describes what slice we want from the first dimension. 
-        # ``slice(None,None,None)`` means that we want all values, equivalent
-        # to numpy notation ``:``. The second element of the tuple is the 
-        # value bit_i_idx, meaning that we are looking for [:,bit_i_idx]. 
-        xi_flip = T.setsubtensor(xi, 1-xi[:, bit_i_idx], 
-                                 idx_list=(slice(None,None,None),bit_i_idx))
+        # Equivalent to xi[:,bit_i_idx] = 1-xi[:, bit_i_idx], but assigns
+        # the result to xi_flip, instead of working in place on xi.
+        xi_flip = T.set_subtensor(xi[:,bit_i_idx], 1-xi[:,bit_i_idx])
 
         # calculate free energy with bit flipped
         fe_xi_flip = self.free_energy(xi_flip)
