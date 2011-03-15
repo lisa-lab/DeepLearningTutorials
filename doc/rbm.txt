@@ -754,7 +754,8 @@ been shown to lead to a better generative model ([Tieleman08]_).
         # Plot filters after each training epoch
         plotting_start = time.clock()
         # Construct image from the weight matrix 
-        image = PIL.Image.fromarray(tile_raster_images( X = rbm.W.value.T,
+        image = PIL.Image.fromarray(tile_raster_images(
+                 X = rbm.W.get_value(borrow=True).T,
                  img_shape = (28,28),tile_shape = (10,10), 
                  tile_spacing=(1,1)))
         image.save('filters_at_epoch_%i.png'%epoch)
@@ -781,11 +782,13 @@ each plotting.
     #################################
 
     # find out the number of test samples  
-    number_of_test_samples = test_set_x.value.shape[0]
+    number_of_test_samples = test_set_x.get_value(borrow=True).shape[0]
 
     # pick random test examples, with which to initialize the persistent chain
     test_idx = rng.randint(number_of_test_samples-20)
-    persistent_vis_chain = theano.shared(test_set_x.value[test_idx:test_idx+20])
+    persistent_vis_chain = theano.shared(numpy.asarray(
+        test_set_x.get_value(borrow=True)[test_idx:test_idx+20],
+        dtype=theano.config.floatX))
 
 Next we create the 20 persistent chains in parallel to get our
 samples. To do so, we compile a theano function which performs one Gibbs step
@@ -797,12 +800,13 @@ samples at every 1000 steps.
 
 
     # find out the number of test 
-    number_of_test_samples = test_set_x.value.shape[0]
+    number_of_test_samples = test_set_x.get_value(borrow=True).shape[0]
 
     # pick random test examples, with which to initialize the persistent chain
     test_idx = rng.randint(number_of_test_samples-n_chains)
-    persistent_vis_chain = theano.shared(
-            numpy.array(test_set_x.value[test_idx:test_idx+100], dtype=theano.config.floatX))
+    persistent_vis_chain = theano.shared(numpy.array(
+        test_set_x.get_value(borrow=True)[test_idx:test_idx+100],
+        dtype=theano.config.floatX))
 
     plot_every = 1000
     # define one step of Gibbs sampling (mf = mean-field)
