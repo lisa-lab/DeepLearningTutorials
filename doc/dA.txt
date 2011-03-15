@@ -588,7 +588,7 @@ save the filters as an image :
 
 .. code-block:: python 
 
-    image = PIL.Image.fromarray(tile_raster_images( X = da.W.value.T,
+    image = PIL.Image.fromarray(tile_raster_images(X = da.W.get_value(borrow=True).T,
                  img_shape = (28,28),tile_shape = (10,10), 
                  tile_spacing=(1,1)))
     image.save('filters_corruption_30.png') 

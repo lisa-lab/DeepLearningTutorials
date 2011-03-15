@@ -239,7 +239,7 @@ def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='../data/mnist.
     train_set_x, train_set_y = datasets[0]
 
     # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.value.shape[0] / batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
 
     # allocate symbolic variables for the data
     index = T.lscalar()    # index to a [mini]batch 
@@ -286,7 +286,7 @@ def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='../data/mnist.
     training_time = (end_time - start_time)
 
     print >> sys.stderr, ('The no corruption code for file '+os.path.split(__file__)[1]+' ran for %.2fm' % ((training_time)/60.))
-    image = PIL.Image.fromarray(tile_raster_images( X = da.W.value.T,
+    image = PIL.Image.fromarray(tile_raster_images(X = da.W.get_value(borrow=True).T,
                  img_shape = (28,28),tile_shape = (10,10), 
                  tile_spacing=(1,1)))
     image.save('filters_corruption_0.png') 
@@ -329,7 +329,7 @@ def test_dA( learning_rate = 0.1, training_epochs = 15, dataset ='../data/mnist.
 
     print >> sys.stderr, ('The 30% corruption code for file '+os.path.split(__file__)[1]+' ran for %.2fm' % (training_time/60.))
 
-    image = PIL.Image.fromarray(tile_raster_images( X = da.W.value.T,
+    image = PIL.Image.fromarray(tile_raster_images(X = da.W.get_value(borrow=True).T,
                  img_shape = (28,28),tile_shape = (10,10), 
                  tile_spacing=(1,1)))
     image.save('filters_corruption_30.png') 

@@ -682,9 +682,9 @@ like:
 
     >>> import cPickle
     >>> save_file = open('path', 'wb')  # this will overwrite current contents
-    >>> cPickle.dump(w.value, save_file, -1) # the -1 is for HIGHEST_PROTOCOL
-    >>> cPickle.dump(v.value, save_file, -1) # .. and it triggers much more efficient
-    >>> cPickle.dump(u.value, save_file, -1) # .. storage than numpy's default
+    >>> cPickle.dump(w.get_value(borrow=True), save_file, -1) # the -1 is for HIGHEST_PROTOCOL
+    >>> cPickle.dump(v.get_value(borrow=True), save_file, -1) # .. and it triggers much more efficient
+    >>> cPickle.dump(u.get_value(borrow=True), save_file, -1) # .. storage than numpy's default
     >>> save_file.close()
 
 Then later, you can load your data back like this:
@@ -692,9 +692,9 @@ Then later, you can load your data back like this:
 .. code-block:: python
 
     >>> save_file = open('path')
-    >>> w.value = cPickle.load(save_file) 
-    >>> v.value = cPickle.load(save_file)
-    >>> u.value = cPickle.load(save_file)
+    >>> w.set_value(cPickle.load(save_file), borrow=True)
+    >>> v.set_value(cPickle.load(save_file), borrow=True)
+    >>> u.set_value(cPickle.load(save_file), borrow=True)
 
 This technique is a bit verbose, but it is tried and true.  You will be able
 to load your data and render it in matplotlib without trouble, years after
