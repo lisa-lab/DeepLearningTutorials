@@ -186,7 +186,7 @@ class SdA(object):
         corruption_level = T.scalar('corruption')    # amount of corruption to use
         learning_rate    = T.scalar('lr')    # learning rate to use
         # number of batches
-        n_batches = train_set_x.value.shape[0] / batch_size
+        n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
         # begining of a batch, given `index`
         batch_begin = index * batch_size
         # ending of a batch given `index`
@@ -234,8 +234,8 @@ class SdA(object):
         (test_set_x , test_set_y ) = datasets[2]
 
         # compute number of minibatches for training, validation and testing
-        n_valid_batches = valid_set_x.value.shape[0] / batch_size
-        n_test_batches  = test_set_x.value.shape[0]  / batch_size
+        n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] / batch_size
+        n_test_batches  = test_set_x.get_value(borrow=True).shape[0]  / batch_size
 
         index   = T.lscalar('index')    # index to a [mini]batch 
 
@@ -313,7 +313,7 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
 
 
     # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.value.shape[0] / batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
 
     # numpy random generator
     numpy_rng = numpy.random.RandomState(89677)
