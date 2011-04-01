@@ -151,6 +151,15 @@ def load_data(dataset):
     #############
     # LOAD DATA #
     #############
+
+    # Download the MNIST dataset if it is not present
+    data_dir, data_file = os.path.split(dataset)
+    if (not os.path.isfile(dataset)) and data_file == 'mnist.pkl.gz':
+        import urllib
+        origin = 'http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz'
+        print 'Downloading data from %s' % origin
+        urllib.urlretrieve(origin, dataset)
+
     print '... loading data'
 
     # Load the dataset 
