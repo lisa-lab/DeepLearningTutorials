@@ -302,7 +302,7 @@ at each step.
 
 .. code-block:: python
 
-    # compute the gradient of cost with respect to theta (sotred in params)
+    # compute the gradient of cost with respect to theta (stored in params)
     # the resulting gradients will be stored in a list gparams
     gparams = []
     for param in classifier.params:
