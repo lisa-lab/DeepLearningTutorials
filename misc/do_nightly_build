@@ -8,7 +8,11 @@ NOSETESTS=/usr/bin/nosetests
 FLAGS=warn.argmax_pushdown_bug=False,warn.gpusum_01_011_0111_bug=False,warn.sum_sum_bug=False,warn.sum_div_dimshuffle_bug=False,compiledir=${COMPILEDIR}
 export PYTHONPATH=${ROOT_CWD}/Theano:${ROOT_CWD}/Pylearn:$PYTHONPATH
 
+cd ${ROOT_CWD}/Theano
+hg summary
 cd ${ROOT_CWD}/DeepLearningTutorials/code
+echo "git version:" `git rev-parse HEAD`
+
 #echo "executing nosetests with mode=FAST_COMPILE"
 #THEANO_FLAGS=${FLAGS},mode=FAST_COMPILE ${NOSETESTS}
 echo "executing nosetests speed with mode=FAST_RUN"
