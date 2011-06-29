@@ -184,7 +184,7 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
         rng = numpy.random.RandomState(23455)
 
         # instantiate 4D tensor for input
-        input = T.Tensor4(name = 'input')
+        input = T.tensor4(name = 'input')
 
         # initialize shared variable for weights.
         w_shp = (2, 3, 9, 9)
