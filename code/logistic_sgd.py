@@ -300,7 +300,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000, dataset='../data/m
                                   # check every epoch 
 
     best_params          = None
-    best_validation_loss = float('inf')
+    best_validation_loss = numpy.inf
     test_score           = 0.
     start_time = time.clock()
 

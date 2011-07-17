@@ -376,7 +376,7 @@ def test_SdA( finetune_lr = 0.1, pretraining_epochs = 15, \
 
 
     best_params          = None
-    best_validation_loss = float('inf')
+    best_validation_loss = numpy.inf
     test_score           = 0.
     start_time = time.clock()
 

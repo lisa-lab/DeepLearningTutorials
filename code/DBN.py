@@ -324,7 +324,7 @@ def test_DBN( finetune_lr = 0.1, pretraining_epochs = 100, \
 
 
     best_params          = None
-    best_validation_loss = float('inf')
+    best_validation_loss = numpy.inf
     test_score           = 0.
     start_time = time.clock()
 

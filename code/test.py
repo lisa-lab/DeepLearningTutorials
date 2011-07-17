@@ -59,7 +59,7 @@ def speed():
 
     def time_test(m,l,idx,f,**kwargs):
         if not to_exec[idx]:
-            l[idx]=float('nan')
+            l[idx]=numpy.nan
             return
         print algo[idx]
         ts=m.call_time
@@ -67,7 +67,7 @@ def speed():
             f(**kwargs)
         except Exception, e:
             print >> sys.stderr, 'test', algo[idx], 'FAILED', e
-            l[idx]=float('nan')
+            l[idx]=numpy.nan
             return
         te=m.call_time
         l[idx]=te-ts

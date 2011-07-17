@@ -284,7 +284,7 @@ def test_mlp( learning_rate=0.01, L1_reg = 0.00, L2_reg = 0.0001, n_epochs=1000,
 
 
     best_params          = None
-    best_validation_loss = float('inf')
+    best_validation_loss = numpy.inf
     best_iter            = 0
     test_score           = 0.
     start_time = time.clock()

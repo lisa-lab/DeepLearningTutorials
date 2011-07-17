@@ -268,7 +268,7 @@ def cg_optimization_mnist( n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz' ):
         return grad/n_train_batches
 
 
-    validation_scores = [float('inf'), 0]
+    validation_scores = [numpy.inf, 0]
 
     # creates the validation function
     def callback(theta_value):

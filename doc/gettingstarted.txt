@@ -569,7 +569,7 @@ of a strategy based on a geometrically increasing amount of patience.
                                   # check every epoch 
 
     best_params          = None
-    best_validation_loss = float('inf')
+    best_validation_loss = numpy.inf
     test_score           = 0.
     start_time = time.clock()
 

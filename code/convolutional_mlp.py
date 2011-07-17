@@ -226,7 +226,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200, dataset='../data/mnist.pkl.
                                   # check every epoch 
 
     best_params          = None
-    best_validation_loss = float('inf')
+    best_validation_loss = numpy.inf
     best_iter            = 0
     test_score           = 0.
     start_time = time.clock()
