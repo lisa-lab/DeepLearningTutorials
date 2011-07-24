@@ -353,7 +353,7 @@ The output one should expect is of the form :
   The code ran for 55.57 minutes
 
 On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
-approximately 0.56 epoch/minute and it took 99 epochs to reach a test
+approximately 1.78 epoch/minute and it took 99 epochs to reach a test
 error of 2.18%. 
 
 To put this into perspective, we refer the reader to the results section of `this
