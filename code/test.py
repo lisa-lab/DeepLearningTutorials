@@ -74,7 +74,7 @@ def speed():
             f(**kwargs)
         except Exception, e:
             print >> sys.stderr, 'test', algo[idx], 'FAILED', e
-            l[idx]=numpy.nan
+            l.append(numpy.nan)
             return
         te=m.call_time
         l.append(te-ts)
