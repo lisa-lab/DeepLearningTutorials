@@ -144,14 +144,15 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
 
     # perform leapfrog updates: the scan op is used to repeatedly compute 
     # vel(t + (m-1/2)*stepsize) and pos(t + m*stepsize) for m in [2,n_steps].
-    (final_pos, final_vel), scan_updates = theano.scan(leapfrog, 
+    (all_pos, all_vel), scan_updates = theano.scan(leapfrog,
             outputs_info=[
-                dict(initial=pos_full_step, return_steps=1),
-                dict(initial=vel_half_step, return_steps=1),
+                dict(initial=pos_full_step),
+                dict(initial=vel_half_step),
                 ],
             non_sequences=[stepsize],
             n_steps=n_steps-1)
-
+    final_pos = all_pos[-1]
+    final_vel = all_vel[-1]
     # NOTE: Scan always returns an updates dictionary, in case the scanned function draws
     # samples from a RandomStream. These updates must then be used when compiling the Theano
     # function, to avoid drawing the same random numbers each time the function is called. In
