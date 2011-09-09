@@ -1,11 +1,11 @@
-import sys
-from pylearn.algorithms.mcRBM import *
-import pylearn.datasets.cifar10
-import pylearn.dataset_ops.tinyimages
+import cPickle
 
-import pylearn.dataset_ops.cifar10
+import numpy
+from pylearn.algorithms.mcRBM import mcRBM, mcRBMTrainer
+import pylearn.datasets.cifar10
+import theano
 from theano import tensor
-from pylearn.shared.layers.logreg import LogisticRegression
+
 
 def l2(X):
     return numpy.sqrt((X**2).sum())
@@ -35,12 +35,12 @@ def test_reproduce_ranzato_hinton_2010(dataset='MAR',
 
     tile = pylearn.dataset_ops.image_patches.save_filters_of_ranzato_hinton_2010
 
-    batch_idx = TT.iscalar()
-    batch_range =batch_idx * batchsize + np.arange(batchsize)
+    batch_idx = tensor.iscalar()
+    batch_range =batch_idx * batchsize + numpy.arange(batchsize)
 
     train_batch = pylearn.dataset_ops.image_patches.ranzato_hinton_2010_op(batch_range)
 
-    imgs_fn = function([batch_idx], outputs=train_batch)
+    imgs_fn = theano.function([batch_idx], outputs=train_batch)
 
     trainer = trainer_alloc(
             rbm_alloc(n_I=n_vis),
@@ -54,11 +54,11 @@ def test_reproduce_ranzato_hinton_2010(dataset='MAR',
 
     if persistent_chains:
         grads = trainer.contrastive_grads()
-        learn_fn = function([batch_idx], 
+        learn_fn = theano.function([batch_idx],
                 outputs=[grads[0].norm(2), grads[0].norm(2), grads[1].norm(2)],
                 updates=trainer.cd_updates())
     else:
-        learn_fn = function([batch_idx], outputs=[], updates=trainer.cd_updates())
+        learn_fn = theano.function([batch_idx], outputs=[], updates=trainer.cd_updates())
 
     if persistent_chains:
         smplr = trainer.sampler

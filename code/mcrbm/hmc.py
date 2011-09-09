@@ -1,11 +1,8 @@
 """
 TODO
 """
-import sys
-import logging
 
 import numpy
-import numpy as np
 
 from theano import function, shared
 from theano import tensor as TT
