@@ -13,7 +13,8 @@ def l2(X):
 def _default_rbm_alloc(n_I, n_K=256, n_J=100):
     return mcRBM.alloc(n_I, n_K, n_J)
 
-def _default_trainer_alloc(rbm, train_batch, batchsize, l1_penalty, l1_penalty_start):
+def _default_trainer_alloc(rbm, train_batch, batchsize, initial_lr_per_example,
+                           l1_penalty, l1_penalty_start, persistent_chains):
     return mcRBMTrainer.alloc(rbm, train_batch, batchsize, l1_penalty=l1_penalty,
             l1_penalty_start=l1_penalty_start,persistent_chains=persistent_chains)
 
