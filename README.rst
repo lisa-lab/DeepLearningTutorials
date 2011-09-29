@@ -26,6 +26,7 @@ Subdirectories:
 - code - Python files corresponding to each tutorial
 - data - data and scripts to download data that is used by the tutorials
 - doc  - restructured text used by Sphinx to build the tutorial website
+- html - built automatically by doc/Makefile, contains tutorial website
 - issues_closed - issue tracking
 - issues_open - issue tracking
 - misc - administrative scripts
