@@ -12,7 +12,7 @@ makes writing deep learning models easy, and gives the option of training them
 on a GPU.
 
 The easiest way to follow the tutorials is to `browse them online
-<http://deeplearning.net/tutorial/`_.
+<http://deeplearning.net/tutorial/>`_.
 
 `Main development <http://github.com/lisa-lab/DeepLearningTutorials>`_
 of this project.
