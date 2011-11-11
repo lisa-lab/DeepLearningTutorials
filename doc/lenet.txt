@@ -216,7 +216,7 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
         #   but also to insert new ones along which the tensor will be 
         #   broadcastable;
         #   dimshuffle('x', 2, 'x', 0, 1)
-        #   This will work on 3d tensors whith no broadcastable
+        #   This will work on 3d tensors with no broadcastable
         #   dimensions. The first dimension will be broadcastable,
         #   then we will have the third dimension of the input tensor as
         #   the second of the resulting tensor, etc. If the tensor has
