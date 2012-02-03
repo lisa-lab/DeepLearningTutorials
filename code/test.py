@@ -185,11 +185,20 @@ def speed():
                 print >> sys.stderr, 'float32/gpu',float32_times/gpu_times
                 print >> sys.stderr, 'expected float32/gpu',expected_times_32/gpu_times
 
+    def compare(x, y):
+        ratio = x / y
+        # If there is more then 5% difference between the expected
+        # time and the real time, we consider this an error.
+        return sum((ratio < 0.95) + (ratio > 1.05))
+
     if do_float64:
-        print >> sys.stderr, 'speed_failure_float64='+str(sum((expected_times_64/float64_times)>0.95))
+        err = compare(expected_times_64, float64_times)
+        print >> sys.stderr, 'speed_failure_float64=' + str(err)
     if do_float32:
-        print >> sys.stderr, 'speed_failure_float32='+str(sum((expected_times_32/float32_times)>0.95))
+        err = compare(expected_times_32, float32_times)
+        print >> sys.stderr, 'speed_failure_float32=' + str(err)
     if do_gpu:
-        print >> sys.stderr, 'speed_failure_gpu='+str(sum((expected_times_gpu/gpu_times)>0.95))
+        err = compare(expected_times_gpu, gpu_times)
+        print >> sys.stderr, 'speed_failure_gpu=' + str(err)
 
         assert not numpy.isnan(gpu_times).any()
