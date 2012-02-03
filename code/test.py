@@ -55,12 +55,28 @@ def speed():
 
     algo_executed = [s for idx,s in enumerate(algo) if to_exec[idx]]
 
-    expected_times_64=numpy.asarray([  12.42313051,   28.09523582,  106.35365391,  116.79225969,  153.12310314,  
-                                       425.09175086,  642.72824597,  652.52828193])
-    expected_times_32=numpy.asarray([  13.29699826,   32.42813158,   68.03559947,  105.54640913,  107.00527334,
-                                       242.41721797,  490.40798998, 528.88854146])
-    expected_times_gpu=numpy.asarray([   3.07663488,  7.55523491,   18.99226785,   9.58915591,   24.13007045,
-                                         24.77524018,  92.66246653,  322.34032917])
+    expected_times_64 = numpy.asarray([10.7, 23.7, 84.8, 74.9, 124.6,
+                                       384.9, 414.6, 558.1])
+    expected_times_32 = numpy.asarray([9.8, 25.1, 56.7, 66.5, 85.4,
+                                       211.0, 245.7, 432.8])
+    # Number with just 1 decimal are new value that are faster with
+    # the Theano version 0.5rc2 Other number are older. They are not
+    # updated, as we where faster in the past!
+    # TODO: find why and fix this!
+
+# Here is the value for the buildbot on February 3th 2012.
+#              sgd,         cg           mlp          conv        da
+#              sda          dbn          rbm
+#    gpu times[3.72957802,  9.94316864,  29.1772666,  9.13857198, 25.91144657,
+#              18.30802011, 53.38651466, 285.41386175]
+#    expected [3.076634879, 7.555234910, 18.99226785, 9.58915591, 24.130070450,
+#              24.77524018, 92.66246653, 322.340329170]
+#              sgd,         cg           mlp          conv        da
+#              sda          dbn          rbm
+#expected/get [0.82492841,  0.75984178,  0.65092691,  1.04930573, 0.93125138
+#              1.35324519 1.7356905   1.12937868]
+    expected_times_gpu = numpy.asarray([3.07663488, 7.55523491, 18.99226785, 9.1, 24.13007045,
+                                        18.3,  53.4, 285.4])
     expected_times_64 = [s for idx,s in enumerate(expected_times_64) if to_exec[idx]]
     expected_times_32 = [s for idx,s in enumerate(expected_times_32) if to_exec[idx]]
     expected_times_gpu = [s for idx,s in enumerate(expected_times_gpu) if to_exec[idx]]
