@@ -1,7 +1,10 @@
-import convolutional_mlp, logistic_cg, logistic_sgd, mlp, SdA, dA, rbm , DBN
-from nose.plugins.skip import SkipTest
-import numpy, theano
-import time, sys
+import sys
+
+import numpy
+import theano
+
+import convolutional_mlp, logistic_cg, logistic_sgd
+import mlp, SdA, dA, rbm, DBN
 
 
 def test_logistic_sgd():
@@ -44,7 +47,6 @@ def speed():
     I want it to be compatible with python2.4 so using try: finaly: is not an option.
     """
 
-    import theano
     algo=['logistic_sgd','logistic_cg','mlp','convolutional_mlp','dA','SdA','DBN','rbm']
     to_exec=[True]*len(algo)
 #    to_exec=[False]*len(algo)
