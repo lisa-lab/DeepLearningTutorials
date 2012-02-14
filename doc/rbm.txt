@@ -663,7 +663,7 @@ log-PL:
 where the expectation is taken over the uniform random choice of index :math:`i`,
 and :math:`N` is the number of visible units. In order to work with binary
 units, we further introduce the notation :math:`\tilde{x}_i` to refer to
-:math:`x` with bit-i being flipped (1->0, 0->1). The log-PL for an RBM with binary unit is
+:math:`x` with bit-i being flipped (1->0, 0->1). The log-PL for an RBM with binary units is
 then written as:
 
 .. math::
@@ -671,9 +671,9 @@ then written as:
        \frac {e^{-FE(x)}} {e^{-FE(x)} + e^{-FE(\tilde{x}_i)}} \\
     &\approx N \cdot \log[ sigm (FE(\tilde{x}_i) - FE(x)) ]
 
-We therefore return this cost as well as the RBM updates in the  `get_cost_updates` function of the `RBM` class. 
+We therefore return this cost as well as the RBM updates in the  ``get_cost_updates`` function of the ``RBM`` class. 
 Notice that we modify the updates dictionary to increment the
-index of bit :math:`i`. This will result in bit i cycling over all possible
+index of bit :math:`i`. This will result in bit :math:`i` cycling over all possible
 values :math:`\{0,1,...,N\}`, from one update to another.
 
 Note that for CD training the cost-entropy cost between the input and the 
@@ -721,7 +721,7 @@ himself with the function ``tile_raster_images`` (see :ref:`how-to-plot`). Since
 RBMs are generative models, we are interested in sampling from them and
 plotting/visualizing these samples. We also want to visualize the filters
 (weights) learnt by the RBM, to gain insights into what the RBM is actually
-doing. Bare in mind however, that this does not provide the entire story,
+doing. Bear in mind however, that this does not provide the entire story,
 since we neglect the biases and plot the weights up to a multiplicative
 constant (weights are converted to values between 0 and 1). 
 
