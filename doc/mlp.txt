@@ -175,7 +175,7 @@ both upward (activations flowing from inputs to outputs) and backward
         self.b = theano.shared(value= b_values, name ='b')
 
 
-Note that we used a given non linear function as the activation function of the hidden layer. By default this is ``tanh``, but in many cases we might want
+Note that we used a given non-linear function as the activation function of the hidden layer. By default this is ``tanh``, but in many cases we might want
 to use something else.
 
 .. code-block:: python 
