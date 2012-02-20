@@ -113,7 +113,7 @@ def speed():
         time_test(m, l, 3, convolutional_mlp.evaluate_lenet5, n_epochs=5,
                   nkerns=[5, 5])
         time_test(m, l, 4, dA.test_dA, training_epochs=2,
-                  output_folde='tmp_dA_plots')
+                  output_folder='tmp_dA_plots')
         time_test(m, l, 5, SdA.test_SdA, pretraining_epochs=1,
                   training_epochs=2, batch_size=300)
         time_test(m, l, 6, DBN.test_DBN, pretraining_epochs=1,
