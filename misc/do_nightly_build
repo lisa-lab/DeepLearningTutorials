@@ -5,11 +5,11 @@ ROOT_CWD=/Tmp/nightly_build
 COMPILEDIR=/Tmp/lisa_theano_compile_dir_deeplearning
 NOSETESTS=/usr/bin/nosetests
 
-FLAGS=warn.argmax_pushdown_bug=False,warn.gpusum_01_011_0111_bug=False,warn.sum_sum_bug=False,warn.sum_div_dimshuffle_bug=False,compiledir=${COMPILEDIR}
+FLAGS=warn.argmax_pushdown_bug=False,warn.gpusum_01_011_0111_bug=False,warn.sum_sum_bug=False,warn.sum_div_dimshuffle_bug=False,warn.subtensor_merge_bug=False,compiledir=${COMPILEDIR}
 export PYTHONPATH=${ROOT_CWD}/Theano:${ROOT_CWD}/Pylearn:$PYTHONPATH
 
 cd ${ROOT_CWD}/Theano
-hg summary
+echo "git version for Theano:" `git rev-parse HEAD`
 cd ${ROOT_CWD}/DeepLearningTutorials/code
 echo "git version:" `git rev-parse HEAD`
 
