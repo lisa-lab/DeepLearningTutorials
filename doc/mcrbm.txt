@@ -1,7 +1,7 @@
 .. _MCRBM:
 
 Mean Covariance Restricted Boltzmann Machines (mcRBM)
-===================================================
+=====================================================
 
 .. raw:: latex
     :label: bigskip
