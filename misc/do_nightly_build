@@ -3,9 +3,9 @@
 date
 ROOT_CWD=/Tmp/nightly_build
 COMPILEDIR=/Tmp/lisa_theano_compile_dir_deeplearning
-NOSETESTS=/usr/bin/nosetests
+NOSETESTS=${ROOT_CWD}/Theano/bin/theano-nose
 
-FLAGS=warn.argmax_pushdown_bug=False,warn.gpusum_01_011_0111_bug=False,warn.sum_sum_bug=False,warn.sum_div_dimshuffle_bug=False,warn.subtensor_merge_bug=False,compiledir=${COMPILEDIR}
+FLAGS=warn.ignore_bug_before=0.5,compiledir=${COMPILEDIR}
 export PYTHONPATH=${ROOT_CWD}/Theano:${ROOT_CWD}/Pylearn:$PYTHONPATH
 
 cd ${ROOT_CWD}/Theano
