@@ -31,7 +31,7 @@ from logistic_sgd import LogisticRegression, load_data
 
 
 class HiddenLayer(object):
-    def __init__(self, rng, input, n_in, n_out, activation = T.tanh):
+    def __init__(self, rng, input, n_in, n_out, W = None, b = None, activation = T.tanh):
         """
         Typical hidden layer of a MLP: units are fully-connected and have
         sigmoidal activation function. Weight matrix W is of shape (n_in,n_out)
@@ -70,19 +70,25 @@ class HiddenLayer(object):
         #        should use 4 times larger initial weights for sigmoid 
         #        compared to tanh
         #        We have no info for other function, so we use the same as tanh.
-        W_values = numpy.asarray( rng.uniform(
-                low  = - numpy.sqrt(6./(n_in+n_out)),
-                high = numpy.sqrt(6./(n_in+n_out)),
-                size = (n_in, n_out)), dtype = theano.config.floatX)
-        if activation == theano.tensor.nnet.sigmoid:
-            W_values *= 4
+        if W is None:
+            W_values = numpy.asarray( rng.uniform(
+                    low  = - numpy.sqrt(6./(n_in+n_out)),
+                    high = numpy.sqrt(6./(n_in+n_out)),
+                    size = (n_in, n_out)), dtype = theano.config.floatX)
+            if activation == theano.tensor.nnet.sigmoid:
+                W_values *= 4
 
-        self.W = theano.shared(value = W_values, name ='W')
+            W = theano.shared(value = W_values, name ='W')
 
-        b_values = numpy.zeros((n_out,), dtype= theano.config.floatX)
-        self.b = theano.shared(value= b_values, name ='b')
+        if b is None:
+            b_values = numpy.zeros((n_out,), dtype= theano.config.floatX)
+            b = theano.shared(value= b_values, name ='b')
 
-        self.output = activation(T.dot(input, self.W) + self.b)
+        self.W = W
+        self.b = b
+
+        lin_output = T.dot(input, self.W) + self.b
+        self.output = lin_output if activation is None else activation(lin_output)
         # parameters of the model
         self.params = [self.W, self.b]
 

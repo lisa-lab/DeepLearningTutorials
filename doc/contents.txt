@@ -18,5 +18,6 @@ Contents
    SdA
    rbm
    DBN
+   hmc
    utilities
    references

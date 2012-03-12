@@ -1,25 +1,28 @@
+import numpy
 from scipy import linalg
+import theano
 
-from hmc import *
+from hmc import HMC_sampler
 
 def sampler_on_nd_gaussian(sampler_cls, burnin, n_samples, dim=10):
     batchsize=3
 
-    rng = np.random.RandomState(123)
+    rng = numpy.random.RandomState(123)
 
     # Define a covariance and mu for a gaussian
-    mu  = np.array(rng.rand(dim) * 10, dtype=theano.config.floatX)
-    cov = np.array(rng.rand(dim, dim), dtype=theano.config.floatX)
+    mu  = numpy.array(rng.rand(dim) * 10, dtype=theano.config.floatX)
+    cov = numpy.array(rng.rand(dim, dim), dtype=theano.config.floatX)
     cov = (cov + cov.T) / 2.
     cov[numpy.arange(dim), numpy.arange(dim)] = 1.0
     cov_inv = linalg.inv(cov)
 
     # Define energy function for a multi-variate Gaussian
     def gaussian_energy(x):
-        return 0.5 * (TT.dot((x-mu),cov_inv)*(x-mu)).sum(axis=1)
+        return 0.5 * (theano.tensor.dot((x-mu),cov_inv)*(x-mu)).sum(axis=1)
 
     # Declared shared random variable for positions
-    position = shared(rng.randn(batchsize, dim).astype(theano.config.floatX))
+    position = rng.randn(batchsize, dim).astype(theano.config.floatX)
+    position = theano.shared(position)
     
     # Create HMC sampler
     sampler = sampler_cls(position, gaussian_energy, 
@@ -28,7 +31,7 @@ def sampler_on_nd_gaussian(sampler_cls, burnin, n_samples, dim=10):
     # Start with a burn-in process
     garbage = [sampler.draw() for r in xrange(burnin)] #burn-in
     # Draw `n_samples`: result is a 3D tensor of dim [n_samples, batchsize, dim]
-    _samples = np.asarray([sampler.draw() for r in xrange(n_samples)])
+    _samples = numpy.asarray([sampler.draw() for r in xrange(n_samples)])
     # Flatten to [n_samples * batchsize, dim]
     samples = _samples.T.reshape(dim,-1).T
 
@@ -38,7 +41,7 @@ def sampler_on_nd_gaussian(sampler_cls, burnin, n_samples, dim=10):
 
     print '****** EMPIRICAL MEAN/COV USING HMC ******'
     print 'empirical mean: ', samples.mean(axis=0)
-    print 'empirical_cov:\n', np.cov(samples.T)
+    print 'empirical_cov:\n', numpy.cov(samples.T)
 
     print '****** HMC INTERNALS ******' 
     print 'final stepsize', sampler.stepsize.get_value()

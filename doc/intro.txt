@@ -33,12 +33,18 @@ The purely supervised learning algorithms are meant to be read in order:
   #. :ref:`Multilayer perceptron <mlp>` - introduction to layers
   #. :ref:`Deep Convolutional Network <lenet>` - a simplified version of LeNet5
 
-The unsupervised and semi-supervised learning algorithms are here (the auto-encoders can be read independently of the RBM/DBN thread):
+The unsupervised and semi-supervised learning algorithms can be read in any
+order (the auto-encoders can be read independently of the RBM/DBN thread):
 
   * :ref:`Auto Encoders, Denoising Autoencoders <daa>` - description of autoencoders
   * :ref:`Stacked Denoising Auto-Encoders <SdA>` - easy steps into unsupervised pre-training for deep nets
   * :ref:`Restricted Boltzmann Machines <rbm>` - single layer generative RBM model
   * :ref:`Deep Belief Networks <DBN>` - unsupervised generative pre-training of stacked RBMs followed by supervised fine-tuning
+
+Building towards including the mcRBM model, we have a new tutorial on sampling
+from energy models:
+
+  * :ref:`HMC Sampling <HMC>` - hybrid (aka Hamiltonian) Monte-Carlo sampling with scan()
 
 .. _Theano: http://deeplearning.net/software/theano
 
