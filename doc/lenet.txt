@@ -184,17 +184,17 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
         rng = numpy.random.RandomState(23455)
 
         # instantiate 4D tensor for input
-        input = T.tensor4(name = 'input')
+        input = T.tensor4(name='input')
 
         # initialize shared variable for weights.
         w_shp = (2, 3, 9, 9)
-        w_bound =  numpy.sqrt(3 * 9 * 9)
+        w_bound = numpy.sqrt(3 * 9 * 9)
         W = theano.shared( numpy.asarray(
                     rng.uniform(
                         low=-1.0 / w_bound,
                         high=1.0 / w_bound,
                         size=w_shp),
-                    dtype=input.dtype),name ='W')
+                    dtype=input.dtype), name ='W')
         
         # initialize shared variable for bias (1D tensor) with random values
         # IMPORTANT: biases are usually initialized to zero. However in this
@@ -202,7 +202,7 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
         # an image without learning the parameters. We therefore initialize
         # them to random values to "simulate" learning.
         b_shp = (2,)
-        b = theano.shared( numpy.asarray(
+        b = theano.shared(numpy.asarray(
                     rng.uniform(low=-.5, high=.5, size=b_shp),
                     dtype=input.dtype), name ='b')
 
@@ -246,19 +246,19 @@ Let's have a little bit of fun with this...
 
         # open random image of dimensions 639x516
         img = Image.open(open('images/3wolfmoon.jpg'))
-        img = numpy.asarray(img, dtype='float64')/256.
+        img = numpy.asarray(img, dtype='float64') / 256.
 
-        # put image in 4D tensor of shape (1,3,height,width)
-        img_ = img.swapaxes(0,2).swapaxes(1,2).reshape(1,3,639,516)
+        # put image in 4D tensor of shape (1, 3, height, width)
+        img_ = img.swapaxes(0, 2).swapaxes(1, 2).reshape(1, 3, 639, 516)
         filtered_img = f(img_)
 
         # plot original image and first and second components of output
-        pylab.subplot(1,3,1); pylab.axis('off'); pylab.imshow(img)
+        pylab.subplot(1, 3, 1); pylab.axis('off'); pylab.imshow(img)
         pylab.gray();
         # recall that the convOp output (filtered image) is actually a "minibatch", 
         # of size 1 here, so we take index 0 in the first dimension:
-        pylab.subplot(1,3,2); pylab.axis('off'); pylab.imshow(filtered_img[0,0,:,:])
-        pylab.subplot(1,3,3); pylab.axis('off'); pylab.imshow(filtered_img[0,1,:,:])
+        pylab.subplot(1, 3, 2); pylab.axis('off'); pylab.imshow(filtered_img[0, 0, :, :])
+        pylab.subplot(1, 3, 3); pylab.axis('off'); pylab.imshow(filtered_img[0, 1, :, :])
         pylab.show()
 
 
@@ -309,44 +309,44 @@ An example is worth a thousand words:
     from theano.tensor.signal import downsample
 
     input = T.dtensor4('input')
-    maxpool_shape = (2,2)
+    maxpool_shape = (2, 2)
     pool_out = downsample.max_pool_2d(input, maxpool_shape, ignore_border=True)
     f = theano.function([input],pool_out)
 
-    invals = numpy.random.RandomState(1).rand(3,2,5,5)
+    invals = numpy.random.RandomState(1).rand(3, 2, 5, 5)
     print 'With ignore_border set to True:'
-    print 'invals[0,0,:,:] =\n', invals[0,0,:,:]
-    print 'output[0,0,:,:] =\n', f(invals)[0,0,:,:]
+    print 'invals[0, 0, :, :] =\n', invals[0, 0, :, :]
+    print 'output[0, 0, :, :] =\n', f(invals)[0, 0, :, :]
 
     pool_out = downsample.max_pool_2d(input, maxpool_shape, ignore_border=False)
     f = theano.function([input],pool_out)
     print 'With ignore_border set to False:'
-    print 'invals[1,0,:,:] =\n ', invals[1,0,:,:]
-    print 'output[1,0,:,:] =\n ', f(invals)[1,0,:,:]
+    print 'invals[1, 0, :, :] =\n ', invals[1, 0, :, :]
+    print 'output[1, 0, :, :] =\n ', f(invals)[1, 0, :, :]
 
 This should generate the following output:
 
 .. code-block:: bash
 
     With ignore_border set to True:
-        invals[0,0,:,:] =
+        invals[0, 0, :, :] =
         [[  4.17022005e-01   7.20324493e-01   1.14374817e-04   3.02332573e-01 1.46755891e-01]
          [  9.23385948e-02   1.86260211e-01   3.45560727e-01   3.96767474e-01 5.38816734e-01]
          [  4.19194514e-01   6.85219500e-01   2.04452250e-01   8.78117436e-01 2.73875932e-02]
          [  6.70467510e-01   4.17304802e-01   5.58689828e-01   1.40386939e-01 1.98101489e-01]
          [  8.00744569e-01   9.68261576e-01   3.13424178e-01   6.92322616e-01 8.76389152e-01]]
-        output[0,0,:,:] =
+        output[0, 0, :, :] =
         [[ 0.72032449  0.39676747]
          [ 0.6852195   0.87811744]]
 
     With ignore_border set to False:
-        invals[1,0,:,:] =
+        invals[1, 0, :, :] =
         [[ 0.01936696  0.67883553  0.21162812  0.26554666  0.49157316]
          [ 0.05336255  0.57411761  0.14672857  0.58930554  0.69975836]
          [ 0.10233443  0.41405599  0.69440016  0.41417927  0.04995346]
          [ 0.53589641  0.66379465  0.51488911  0.94459476  0.58655504]
          [ 0.90340192  0.1374747   0.13927635  0.80739129  0.39767684]]
-        output[1,0,:,:] =
+        output[1, 0, :, :] =
         [[ 0.67883553  0.58930554  0.69975836]
          [ 0.66379465  0.94459476  0.58655504]
          [ 0.90340192  0.80739129  0.39767684]]
@@ -389,7 +389,7 @@ layer.
 
     class LeNetConvPoolLayer(object):
 
-        def __init__(self, rng, input, filter_shape, image_shape, poolsize=(2,2)):
+        def __init__(self, rng, input, filter_shape, image_shape, poolsize=(2, 2)):
             """
             Allocate a LeNetConvPoolLayer with shared variable internal parameters.
 
@@ -410,21 +410,21 @@ layer.
             :type poolsize: tuple or list of length 2
             :param poolsize: the downsampling (pooling) factor (#rows,#cols)
             """
-            assert image_shape[1]==filter_shape[1]
+            assert image_shape[1] == filter_shape[1]
             self.input = input
 
             # initialize weight values: the fan-in of each hidden neuron is
             # restricted by the size of the receptive fields.
             fan_in =  numpy.prod(filter_shape[1:])
-            W_values = numpy.asarray( rng.uniform( \
-                  low = -numpy.sqrt(3./fan_in), \
-                  high = numpy.sqrt(3./fan_in), \
-                  size = filter_shape), dtype = theano.config.floatX)
-            self.W = theano.shared(value = W_values, name = 'W')
+            W_values = numpy.asarray(rng.uniform(
+                  low=-numpy.sqrt(3./fan_in),
+                  high=numpy.sqrt(3./fan_in),
+                  size=filter_shape), dtype=theano.config.floatX)
+            self.W = theano.shared(value=W_values, name='W')
 
             # the bias is a 1D tensor -- one bias per output feature map
-            b_values = numpy.zeros((filter_shape[0],), dtype= theano.config.floatX)
-            self.b = theano.shared(value= b_values, name = 'b')
+            b_values = numpy.zeros((filter_shape[0],), dtype=theano.config.floatX)
+            self.b = theano.shared(value=b_values, name='b')
 
             # convolve input feature maps with filters
             conv_out = conv.conv2d(input, self.W,
@@ -434,7 +434,7 @@ layer.
             pooled_out = downsample.max_pool_2d(conv_out, poolsize, ignore_border=True)
 
             # add the bias term. Since the bias is a vector (1D array), we first
-            # reshape it to a tensor of shape (1,n_filters,1,1). Each bias will thus
+            # reshape it to a tensor of shape (1, n_filters, 1, 1). Each bias will thus
             # be broadcasted across mini-batches and feature map width & height
             self.output = T.tanh(pooled_out + self.b.dimshuffle('x', 0, 'x', 'x'))
 
@@ -454,8 +454,8 @@ instantiate the network as follows.
     learning_rate = 0.1
     rng = numpy.random.RandomState(23455)
 
-    ishape = (28,28)     # this is the size of MNIST images
-    batch_size = 20    # sized of the minibatch
+    ishape = (28, 28)  # this is the size of MNIST images
+    batch_size = 20  # sized of the minibatch
 
     # allocate symbolic variables for the data
     x = theano.floatX.xmatrix(theano.config.floatX)  # rasterized images
@@ -474,26 +474,26 @@ instantiate the network as follows.
     # maxpooling reduces this further to (24/2,24/2) = (12,12)
     # 4D output tensor is thus of shape (20,20,12,12)
     layer0 = LeNetConvPoolLayer(rng, input=layer0_input,
-            image_shape=(batch_size,1,28,28), 
-            filter_shape=(20,1,5,5), poolsize=(2,2))
+            image_shape=(batch_size, 1, 28, 28),
+            filter_shape=(20, 1, 5, 5), poolsize=(2, 2))
 
     # Construct the second convolutional pooling layer
-    # filtering reduces the image size to (12-5+1,12-5+1)=(8,8)
-    # maxpooling reduces this further to (8/2,8/2) = (4,4)
+    # filtering reduces the image size to (12 - 5 + 1, 12 - 5 + 1)=(8, 8)
+    # maxpooling reduces this further to (8/2,8/2) = (4, 4)
     # 4D output tensor is thus of shape (20,50,4,4)
     layer1 = LeNetConvPoolLayer(rng, input=layer0.output,
-            image_shape=(batch_size,20,12,12), 
-            filter_shape=(50,20,5,5), poolsize=(2,2))
+            image_shape=(batch_size, 20, 12, 12),
+            filter_shape=(50, 20, 5, 5), poolsize=(2, 2))
 
     # the SigmoidalLayer being fully-connected, it operates on 2D matrices of
     # shape (batch_size,num_pixels) (i.e matrix of rasterized images).
-    # This will generate a matrix of shape (20,32*4*4) = (20,512)
+    # This will generate a matrix of shape (20, 32 * 4 * 4) = (20, 512)
     layer2_input = layer1.output.flatten(2)
 
     # construct a fully-connected sigmoidal layer
     layer2 = HiddenLayer(rng, input=layer2_input, 
-                         n_in=50*4*4, n_out=500,
-                         activation = T.tanh    )
+                         n_in=50 * 4 * 4, n_out=500,
+                         activation=T.tanh    )
 
     # classify the values of the fully-connected sigmoidal layer
     layer3 = LogisticRegression(input=layer2.output, n_in=500, n_out=10)
@@ -503,10 +503,10 @@ instantiate the network as follows.
     cost = layer3.negative_log_likelihood(y)
 
     # create a function to compute the mistakes that are made by the model
-    test_model = theano.function([x,y], layer3.errors(y))
+    test_model = theano.function([x, y], layer3.errors(y))
 
     # create a list of all model parameters to be fit by gradient descent
-    params = layer3.params+ layer2.params+ layer1.params + layer0.params
+    params = layer3.params + layer2.params + layer1.params + layer0.params
 
     # create a list of gradients for all model parameters
     grads = T.grad(cost, params)
@@ -520,8 +520,8 @@ instantiate the network as follows.
         updates[param_i] = param_i - learning_rate * grad_i
     train_model = theano.function([index], cost, updates = updates,
             givens={
-                x:train_set_x[index*batch_size:(index+1)*batch_size],
-                y:train_set_y[index*batch_size:(index+1)*batch_size]})
+                x: train_set_x[index * batch_size: (index + 1) * batch_size],
+                y: train_set_y[index * batch_size: (index + 1) * batch_size]})
 
 
 
