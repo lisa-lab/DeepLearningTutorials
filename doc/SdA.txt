@@ -77,9 +77,9 @@ representations of intermediate layers of the MLP.
 
   class SdA(object):
 
-    def __init__(self, numpy_rng, theano_rng = None, n_ins = 784, 
-                 hidden_layers_sizes = [500,500], n_outs = 10, 
-                 corruption_levels = [0.1, 0.1]):
+    def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
+                 hidden_layers_sizes=[500, 500], n_outs=10,
+                 corruption_levels=[0.1, 0.1]):
         """ This class is made to support a variable number of layers. 
 
         :type numpy_rng: numpy.random.RandomState
@@ -106,18 +106,18 @@ representations of intermediate layers of the MLP.
         """
         
         self.sigmoid_layers = []
-        self.dA_layers      = []
-        self.params         = []
-        self.n_layers       = len(hidden_layers_sizes)
+        self.dA_layers = []
+        self.params = []
+        self.n_layers = len(hidden_layers_sizes)
 
         assert self.n_layers > 0
 
         if not theano_rng:
-            theano_rng = RandomStreams(numpy_rng.randint(2**30))
+            theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
         # allocate symbolic variables for the data
-        self.x  = T.matrix('x')  # the data is presented as rasterized images
-        self.y  = T.ivector('y') # the labels are presented as 1D vector of 
-                                 # [int] labels
+        self.x = T.matrix('x')  # the data is presented as rasterized images
+        self.y = T.ivector('y')  # the labels are presented as 1D vector of
+                                  # [int] labels
 
 
 
@@ -136,30 +136,31 @@ bias of the encoding part with its corresponding sigmoid layer.
 
 .. code-block:: python
 
-       for i in xrange( self.n_layers ):
+       for i in xrange(self.n_layers):
             # construct the sigmoidal layer
 
             # the size of the input is either the number of hidden units of 
             # the layer below or the input size if we are on the first layer
-            if i == 0 :
+            if i == 0:
                 input_size = n_ins
             else:
-                input_size = hidden_layers_sizes[i-1]
+                input_size = hidden_layers_sizes[i - 1]
 
             # the input to this layer is either the activation of the hidden
             # layer below or the input of the SdA if you are on the first
             # layer
-            if i == 0 : 
+            if i == 0:
                 layer_input = self.x
             else:
                 layer_input = self.sigmoid_layers[-1].output
 
-            sigmoid_layer = SigmoidalLayer(rng   = rng, 
-                                           input = layer_input, 
-                                           n_in  = input_size, 
-                                           n_out = hidden_layers_sizes[i] )
+            sigmoid_layer = SigmoidalLayer(rng=rng,
+                                           input=layer_input,
+                                           n_in=input_size, 
+                                           n_out=hidden_layers_sizes[i])
             # add the layer to our list of layers 
             self.sigmoid_layers.append(sigmoid_layer)
+
             # its arguably a philosophical question...
             # but we are going to only declare that the parameters of the 
             # sigmoid_layers are parameters of the StackedDAA
@@ -169,11 +170,12 @@ bias of the encoding part with its corresponding sigmoid layer.
         
             # Construct a denoising autoencoder that shared weights with this
             # layer
-            dA_layer = dA(rng = rng, trng = trng, input = layer_input, 
-                          n_visible = input_size, 
-                          n_hidden  = hidden_layers_sizes[i], 
-                          corruption_level = corruption_levels[0],
-                          W = sigmoid_layer.W, bhid = sigmoid_layer.b)
+            dA_layer = dA(rng=rng, trng=trng, input=layer_input, 
+                          n_visible=input_size, 
+                          n_hidden=hidden_layers_sizes[i], 
+                          corruption_level=corruption_levels[0],
+                          W=sigmoid_layer.W,
+                          bhid=sigmoid_layer.b)
             self.dA_layers.append(dA_layer)        
 
 
@@ -184,9 +186,9 @@ use the ``LogisticRegression`` class introduced in :ref:`logreg`.
 .. code-block:: python
 
         # We now need to add a logistic layer on top of the MLP
-        self.logLayer = LogisticRegression(\
-                         input = self.sigmoid_layers[-1].output,\
-                         n_in = hidden_layers_sizes[-1], n_out = n_outs)
+        self.logLayer = LogisticRegression(
+                         input=self.sigmoid_layers[-1].output,
+                         n_in=hidden_layers_sizes[-1], n_out=n_outs)
 
         self.params.extend(self.logLayer.params)
         # construct a function that implements one step of finetunining
@@ -228,33 +230,33 @@ implements one step of training the ``dA`` correspoinding to layer
         '''
 
         # index to a [mini]batch
-        index            = T.lscalar('index')   # index to a minibatch
+        index = T.lscalar('index')  # index to a minibatch
 
 In order to be able to change the corruption level or the learning rate
 during training we associate a Theano variable to them.
 
 .. code-block:: python 
 
-        corruption_level = T.scalar('corruption')    # amount of corruption to use
-        learning_rate    = T.scalar('lr')    # learning rate to use
+        corruption_level = T.scalar('corruption')  # amount of corruption to use
+        learning_rate = T.scalar('lr')  # learning rate to use
         # number of batches
         n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
         # begining of a batch, given `index`
         batch_begin = index * batch_size
         # ending of a batch given `index`
-        batch_end = batch_begin+batch_size
+        batch_end = batch_begin + batch_size
 
         pretrain_fns = []
         for dA in self.dA_layers:
             # get the cost and the updates list
-            cost,updates = dA.get_cost_updates( corruption_level, learning_rate)
+            cost,updates = dA.get_cost_updates(corruption_level, learning_rate)
             # compile the theano function    
-            fn = theano.function( inputs = [index, 
-                              theano.Param(corruption_level, default = 0.2),
-                              theano.Param(learning_rate, default = 0.1)], 
-                    outputs = cost, 
-                    updates = updates,
-                    givens  = {self.x :train_set_x[batch_begin:batch_end]})
+            fn = theano.function(inputs=[index, 
+                              theano.Param(corruption_level, default=0.2),
+                              theano.Param(learning_rate, default=0.1)], 
+                    outputs=cost, 
+                    updates=updates,
+                    givens={self.x: train_set_x[batch_begin:batch_end]})
             # append `fn` to the list of functions
             pretrain_fns.append(fn)
 
@@ -295,13 +297,13 @@ during finetuning ( a ``train_model``, a ``validate_model`` and a
 
         (train_set_x, train_set_y) = datasets[0]
         (valid_set_x, valid_set_y) = datasets[1]
-        (test_set_x , test_set_y ) = datasets[2]
+        (test_set_x, test_set_y) = datasets[2]
 
         # compute number of minibatches for training, validation and testing
         n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] / batch_size
-        n_test_batches  = test_set_x.get_value(borrow=True).shape[0]  / batch_size
+        n_test_batches = test_set_x.get_value(borrow=True).shape[0] / batch_size
 
-        index   = T.lscalar('index')    # index to a [mini]batch 
+        index = T.lscalar('index')  # index to a [mini]batch 
 
         # compute the gradients with respect to the model parameters
         gparams = T.grad(self.finetune_cost, self.params)
@@ -309,24 +311,24 @@ during finetuning ( a ``train_model``, a ``validate_model`` and a
         # compute list of fine-tuning updates
         updates = {}
         for param, gparam in zip(self.params, gparams):
-            updates[param] = param - gparam*learning_rate
+            updates[param] = param - gparam * learning_rate
 
-        train_fn = theano.function(inputs = [index], 
-              outputs =   self.finetune_cost, 
-              updates = updates,
-              givens  = {
-                self.x : train_set_x[index*batch_size:(index+1)*batch_size],
-                self.y : train_set_y[index*batch_size:(index+1)*batch_size]})
+        train_fn = theano.function(inputs=[index], 
+              outputs=self.finetune_cost, 
+              updates=updates,
+              givens={
+                self.x: train_set_x[index * batch_size: (index + 1) * batch_size],
+                self.y: train_set_y[index * batch_size: (index + 1) * batch_size]})
 
         test_score_i = theano.function([index], self.errors,
-                 givens = {
-                   self.x: test_set_x[index*batch_size:(index+1)*batch_size],
-                   self.y: test_set_y[index*batch_size:(index+1)*batch_size]})
+                 givens={
+                   self.x: test_set_x[index * batch_size: (index+1) * batch_size],
+                   self.y: test_set_y[index * batch_size: (index+1) * batch_size]})
 
         valid_score_i = theano.function([index], self.errors,
-              givens = {
-                 self.x: valid_set_x[index*batch_size:(index+1)*batch_size],
-                 self.y: valid_set_y[index*batch_size:(index+1)*batch_size]})
+              givens={
+                 self.x: valid_set_x[index * batch_size: (index + 1) * batch_size],
+                 self.y: valid_set_y[index * batch_size: (index + 1) * batch_size]})
 
         # Create a function that scans the entire validation set
         def valid_score():
@@ -359,9 +361,9 @@ autoencoder :
     numpy_rng = numpy.random.RandomState(123)
     print '... building the model'
     # construct the stacked denoising autoencoder class
-    sda = SdA( numpy_rng = numpy_rng, n_ins = 28*28, 
-                      hidden_layers_sizes = [100,100,100],
-                      n_outs = 10)
+    sda = SdA(numpy_rng=numpy_rng, n_ins=28 * 28, 
+              hidden_layers_sizes=[100, 100, 100],
+              n_outs=10)
  
 
 
@@ -382,26 +384,26 @@ to the training set for a fixed number of epochs given by
     # PRETRAINING THE MODEL #
     #########################
     print '... getting the pretraining functions'
-    pretraining_fns = sda.pretraining_functions( 
-                                        train_set_x   = train_set_x, 
-                                        batch_size    = batch_size ) 
+    pretraining_fns = sda.pretraining_functions(
+                                        train_set_x=train_set_x,
+                                        batch_size=batch_size)
 
     print '... pre-training the model'
-    start_time = time.clock()  
-    ## Pre-train layer-wise 
+    start_time = time.clock()
+    ## Pre-train layer-wise
     for i in xrange(sda.n_layers):
-        # go through pretraining epochs 
+        # go through pretraining epochs
         for epoch in xrange(pretraining_epochs):
             # go through the training set
             c = []
             for batch_index in xrange(n_train_batches):
-                c.append( pretraining_fns[i](index = batch_index, 
-                         corruption = 0.2, lr = pretrain_lr ) )
-            print 'Pre-training layer %i, epoch %d, cost '%(i,epoch),numpy.mean(c)
+                c.append( pretraining_fns[i](index=batch_index, 
+                         corruption=0.2, lr=pretrain_lr ) )
+            print 'Pre-training layer %i, epoch %d, cost '%(i,epoch), numpy.mean(c)
  
     end_time = time.clock()
 
-    print ('Pretraining took %f minutes' %((end_time-start_time)/60.))
+    print ('Pretraining took %f minutes' %((end_time - start_time) / 60.))
  
 
 
