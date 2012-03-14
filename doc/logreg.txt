@@ -65,16 +65,16 @@ The code to do this in Theano is the following:
   y = T.lvector('y')
 
   # allocate shared variables model params
-  b = theano.shared(numpy.zeros((10,)), name = 'b')
-  W = theano.shared(numpy.zeros((784,10)), name = 'W')
+  b = theano.shared(numpy.zeros((10,)), name='b')
+  W = theano.shared(numpy.zeros((784, 10)), name='W')
 
   # symbolic expression for computing the vector of
   # class-membership probabilities
-  p_y_given_x = T.nnet.softmax(T.dot(x,W)+b)
+  p_y_given_x = T.nnet.softmax(T.dot(x, W) + b)
 
   # compiled Theano function that returns the vector of class-membership
   # probabilities
-  get_p_y_given_x = theano.function( inputs = [x], outputs = p_y_given_x)
+  get_p_y_given_x = theano.function(inputs=[x], outputs=p_y_given_x)
 
   # print the probability of some example represented by x_value
   # x_value is not a symbolic variable but a numpy array describing the
@@ -86,7 +86,7 @@ The code to do this in Theano is the following:
   y_pred = T.argmax(p_y_given_x)
 
   # compiled theano function that returns this value
-  classify = theano.function( inputs = [x], outputs = y_pred)
+  classify = theano.function(inputs=[x], outputs=y_pred)
 
 
 We first start by allocating symbolic variables for the inputs :math:`x,y`.
@@ -170,7 +170,6 @@ similar to what we have covered so far, and should be self explanatory.
 
     class LogisticRegression(object):
 
-
         def __init__(self, input, n_in, n_out):
             """ Initialize the parameters of the logistic regression
 
@@ -188,14 +187,14 @@ similar to what we have covered so far, and should be self explanatory.
             """
 
             # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
-            self.W = theano.shared( value=numpy.zeros((n_in,n_out),
-                                                dtype = theano.config.floatX), name ='W' )
+            self.W = theano.shared(value=numpy.zeros((n_in, n_out),
+                                                dtype=theano.config.floatX), name='W' )
             # initialize the baises b as a vector of n_out 0s
-            self.b = theano.shared( value=numpy.zeros((n_out,),
-                                                dtype = theano.config.floatX), name = 'b' )
+            self.b = theano.shared(value=numpy.zeros((n_out,),
+                                                dtype=theano.config.floatX), name='b' )
 
             # compute vector of class-membership probabilities in symbolic form
-            self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W)+self.b)
+            self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W) + self.b)
 
             # compute prediction as class whose probability is maximal in
             # symbolic form
@@ -219,7 +218,7 @@ similar to what we have covered so far, and should be self explanatory.
             Note: we use the mean instead of the sum so that
                   the learning rate is less dependent on the batch size
             """
-            return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
+            return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]), y])
 
 
 We instantiate this class as follows:
@@ -231,8 +230,8 @@ We instantiate this class as follows:
     y = T.lvector()  # the labels are presented as 1D vector of [long int] labels
 
     # construct the logistic regression class
-    classifier = LogisticRegression( \
-                   input=x.reshape((batch_size,28*28)), n_in=28*28, n_out=10)
+    classifier = LogisticRegression(
+                   input=x.reshape((batch_size, 28 * 28)), n_in=28 * 28, n_out=10)
 
 Note that the inputs x and y are defined outside the scope of the
 ``LogisticRegression`` object. Since the class requires the input x to build its
@@ -285,22 +284,22 @@ follows:
 .. code-block:: python
 
     # compute the gradient of cost with respect to theta = (W,b)
-    g_W = T.grad(cost = cost, wrt = classifier.W)
-    g_b = T.grad(cost = cost, wrt = classifier.b)
+    g_W = T.grad(cost=cost, wrt=classifier.W)
+    g_b = T.grad(cost=cost, wrt=classifier.b)
 
     # specify how to update the parameters of the model as a dictionary
-    updates ={classifier.W: classifier.W - learning_rate*g_W,\
-              classifier.b: classifier.b - learning_rate*g_b}
+    updates ={classifier.W: classifier.W - learning_rate * g_W,\
+              classifier.b: classifier.b - learning_rate * g_b}
 
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
-    train_model = theano.function(inputs = [index],
-            outputs = cost,
-            updates = updates,
+    train_model = theano.function(inputs=[index],
+            outputs=cost,
+            updates=updates,
             givens={
-                x:train_set_x[index*batch_size:(index+1)*batch_size],
-                y:train_set_y[index*batch_size:(index+1)*batch_size]})
+                x: train_set_x[index * batch_size: (index + 1) * batch_size],
+                y: train_set_y[index * batch_size: (index + 1) * batch_size]})
 
 
 
@@ -363,17 +362,17 @@ the other from the validation set.
 
     # compiling a Theano function that computes the mistakes that are made by
     # the model on a minibatch
-    test_model = theano.function(inputs = [index],
-            outputs = classifier.errors(y),
+    test_model = theano.function(inputs=[index],
+            outputs=classifier.errors(y),
             givens={
-                x:test_set_x[index*batch_size:(index+1)*batch_size],
-                y:test_set_y[index*batch_size:(index+1)*batch_size]})
+                x: test_set_x[index * batch_size: (index + 1) * batch_size],
+                y: test_set_y[index * batch_size: (index + 1) * batch_size]})
 
-    validate_model = theano.function( inputs = [index],
-            outputs = classifier.errors(y),
+    validate_model = theano.function(inputs=[index],
+            outputs=classifier.errors(y),
             givens={
-                x:valid_set_x[index*batch_size:(index+1)*batch_size],
-                y:valid_set_y[index*batch_size:(index+1)*batch_size]})
+                x: valid_set_x[index * batch_size: (index + 1) * batch_size],
+                y: valid_set_y[index * batch_size: (index + 1) * batch_size]})
 
 
 
