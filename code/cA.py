@@ -1,12 +1,6 @@
 """
-<<<<<<< HEAD
  This tutorial introduces Contractive auto-encoders (cA) using Theano.
 
-=======
- This tutorial introduces denoising auto-encoders (dA) using Theano.
-
- Denoising autoencoders are the building blocks for SdA. 
->>>>>>> 528aad7... added CAE code for tutorial
  They are based on auto-encoders as the ones used in Bengio et al. 2007.
  An autoencoder takes an input x and first maps it to a hidden representation
  y = f_{\theta}(x) = s(Wx+b), parameterized by \theta={W,b}. The resulting 
@@ -15,34 +9,19 @@
  matrix W' can optionally be constrained such that W' = W^T, in which case 
  the autoencoder is said to have tied weights. The network is trained such 
  that to minimize the reconstruction error (the error between x and z).
-
-<<<<<<< HEAD
- Adding the squarred Frobenius norm of the Jacobian of the hidden mapping h
+ Adding the squared Frobenius norm of the Jacobian of the hidden mapping h
  with respect to the visible units yields the contractive auto-encoder:
 
       - \sum_{k=1}^d[ x_k \log z_k + (1-x_k) \log( 1-z_k)]  + \| \frac{\partial h(x)}{\partial x} \|^2
-=======
- For the denosing autoencoder, during training, first x is corrupted into 
- \tilde{x}, where \tilde{x} is a partially destroyed version of x by means 
- of a stochastic mapping. Afterwards y is computed as before (using 
- \tilde{x}), y = s(W\tilde{x} + b) and z as s(W'y + b'). The reconstruction 
- error is now measured between z and the uncorrupted input x, which is 
- computed as the cross-entropy : 
-      - \sum_{k=1}^d[ x_k \log z_k + (1-x_k) \log( 1-z_k)]
-
->>>>>>> 528aad7... added CAE code for tutorial
 
  References :
    - S. Rifai, P. Vincent, X. Muller, X. Glorot, Y. Bengio: Contractive 
    Auto-Encoders: Explicit Invariance During Feature Extraction, ICML-11
 
-<<<<<<< HEAD
    - S. Rifai, X. Muller, X. Glorot, G. Mesnil, Y. Bengio, and Pascal
      Vincent. Learning invariant features through local space
      contraction. Technical Report 1360, Universite de Montreal
 
-=======
->>>>>>> 528aad7... added CAE code for tutorial
    - Y. Bengio, P. Lamblin, D. Popovici, H. Larochelle: Greedy Layer-Wise
    Training of Deep Networks, Advances in Neural Information Processing 
    Systems 19, 2007
@@ -79,15 +58,9 @@ class cA(object):
   
     .. math::
 
-<<<<<<< HEAD
         h_i = s(W_i x + b_i)                                             (1)
 
         J_i = h_i (1 - h_i) * W_i                                        (2)
-=======
-        h = s(W x + b)                                                   (1)
-
-        J = h (1 - h) * W                                                (2)
->>>>>>> 528aad7... added CAE code for tutorial
 
         x' = s(W' h  + b')                                               (3)
 
@@ -234,12 +207,7 @@ class cA(object):
 
 
 def test_cA( learning_rate = 0.01, training_epochs = 20, dataset ='../data/mnist.pkl.gz',
-<<<<<<< HEAD
              batch_size = 10, output_folder = 'cA_plots',contraction_level = .1 ):
-=======
-        batch_size = 1, output_folder = 'cA_plots' ):
->>>>>>> 528aad7... added CAE code for tutorial
-
     """
     This demo is tested on MNIST
 
@@ -276,12 +244,8 @@ def test_cA( learning_rate = 0.01, training_epochs = 20, dataset ='../data/mnist
     ca = cA(numpy_rng = rng, input = x,
             n_visible = 28*28, n_hidden = 500, n_batchsize=batch_size )
 
-<<<<<<< HEAD
     cost, updates = ca.get_cost_updates(contraction_level = contraction_level,
-=======
-    cost, updates = ca.get_cost_updates(contraction_level = .1,
->>>>>>> 528aad7... added CAE code for tutorial
-                                learning_rate = learning_rate)
+                                        learning_rate = learning_rate)
 
     
     train_ca = theano.function([index], [T.mean(ca.L_rec),ca.L_jacob], updates = updates,
@@ -309,12 +273,9 @@ def test_cA( learning_rate = 0.01, training_epochs = 20, dataset ='../data/mnist
 
     print >> sys.stderr, ('The code for file '+os.path.split(__file__)[1]+' ran for %.2fm' % ((training_time)/60.))
     image = PIL.Image.fromarray(tile_raster_images(X = ca.W.get_value(borrow=True).T,
-<<<<<<< HEAD
-                 img_shape = (28,28),tile_shape = (10,10), 
-=======
-                 img_shape = (28,28),tile_shape = (50,10), 
->>>>>>> 528aad7... added CAE code for tutorial
-                 tile_spacing=(1,1)))
+                                                   img_shape = (28,28),tile_shape = (10,10), 
+                                                   tile_spacing=(1,1)))
+
     image.save('cae_filters.png') 
  
     os.chdir('../')
