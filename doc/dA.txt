@@ -111,8 +111,8 @@ autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
  
     class AutoEncoder(object):
 
-      def __init__(self, numpy_rng, input = None, n_visible= 784, n_hidden= 500, 
-               W = None, bhid = None, bvis = None):
+      def __init__(self, numpy_rng, input=None, n_visible=784, n_hidden=500, 
+               W=None, bhid=None, bvis=None):
         """
    
         :type numpy_rng: numpy.random.RandomState
@@ -147,7 +147,7 @@ autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
     
         """
         self.n_visible = n_visible
-        self.n_hidden  = n_hidden
+        self.n_hidden = n_hidden
         
     
         # note : W' was written as `W_prime` and b' as `b_prime`
@@ -156,19 +156,19 @@ autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
             # from -4*sqrt(6./(n_visible+n_hidden)) and 4*sqrt(6./(n_hidden+n_visible))
             # the output of uniform if converted using asarray to dtype 
             # theano.config.floatX so that the code is runable on GPU
-            initial_W = numpy.asarray( numpy_rng.uniform(
-                      low  = -4*numpy.sqrt(6./(n_hidden+n_visible)),
-                      high =  4*numpy.sqrt(6./(n_hidden+n_visible)),
-                      size = (n_visible, n_hidden)), dtype = theano.config.floatX)
-            W = theano.shared(value = initial_W, name ='W')  
+            initial_W = numpy.asarray(numpy_rng.uniform(
+                      low=-4 * numpy.sqrt(6. / (n_hidden + n_visible)),
+                      high=4 * numpy.sqrt(6. / (n_hidden + n_visible)),
+                      size=(n_visible, n_hidden)), dtype=theano.config.floatX)
+            W = theano.shared(value=initial_W, name='W')  
     
         if not bvis:
-            bvis = theano.shared(value = numpy.zeros(n_visible, 
-                                         dtype = theano.config.floatX), name = 'bvis')
+            bvis = theano.shared(value=numpy.zeros(n_visible, 
+                                        dtype=theano.config.floatX), name='bvis')
 
         if not bhid:
-            bhid = theano.shared(value = numpy.zeros(n_hidden,
-                                              dtype = theano.config.floatX), name = 'bhid')
+            bhid = theano.shared(value=numpy.zeros(n_hidden,
+                                              dtype=theano.config.floatX), name='bhid')
 
 
         self.W = W
@@ -179,10 +179,10 @@ autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
         # tied weights, therefore W_prime is W transpose
         self.W_prime = self.W.T 
         # if no input is given, generate a variable representing the input
-        if input == None : 
+        if input == None:
             # we use a matrix because we expect a minibatch of several examples,
             # each example being a row
-            self.x = T.dmatrix(name = 'input') 
+            self.x = T.dmatrix(name='input') 
         else:
             self.x = input
 
@@ -203,7 +203,7 @@ signal:
         """ Computes the values of the hidden layer """
         return T.nnet.sigmoid(T.dot(input, self.W) + self.b)
 
-    def get_reconstructed_input(self, hidden ):
+    def get_reconstructed_input(self, hidden):
         """ Computes the reconstructed input given the values of the hidden layer """
         return  T.nnet.sigmoid(T.dot(hidden, self.W_prime) + self.b_prime)
 
@@ -216,11 +216,11 @@ one stochastic gradient descent step :
         """ This function computes the cost and the updates for one trainng
         step """
 
-        y       = self.get_hidden_values(self.x)
-        z       = self.get_reconstructed_input(y)
+        y = self.get_hidden_values(self.x)
+        z = self.get_reconstructed_input(y)
         # note : we sum over the size of a datapoint; if we are using minibatches,
         #        L will  be a vector, with one entry per example in minibatch
-        L = - T.sum( self.x*T.log(z) + (1-self.x)*T.log(1-z), axis=1 ) 
+        L = -T.sum(self.x * T.log(z) + (1 - self.x) * T.log(1 - z), axis=1)
         # note : L is now a vector, where each element is the cross-entropy cost 
         #        of the reconstruction of the corresponding example of the 
         #        minibatch. We need to compute the average of all these to get 
@@ -233,7 +233,7 @@ one stochastic gradient descent step :
         # generate the list of updates
         updates = {}
         for param, gparam in zip(self.params, gparams):
-            updates[param] = param -  learning_rate*gparam
+            updates[param] = param - learning_rate * gparam
     
         return (cost, updates)
 
@@ -244,9 +244,9 @@ reconstruction cost is approximately minimized.
 
 .. code-block:: python
   
-  autoencoder = AutoEncoder( numpy_rng = numpy.random.RandomState(1234), n_visible = 784, n_hidden =  500) 
-  cost, updates = autoencoder.get_cost_updates( learning_rate = 0.1)
-  train = theano.function( [x], cost, updates = updates)
+  autoencoder = AutoEncoder(numpy_rng=numpy.random.RandomState(1234), n_visible=784, n_hidden=500) 
+  cost, updates = autoencoder.get_cost_updates(learning_rate=0.1)
+  train = theano.function([x], cost, updates=updates)
 
 One serious potential issue with auto-encoders is that if there is no other
 constraint besides minimizing the reconstruction error, 
@@ -343,7 +343,7 @@ does just that :
                 this will produce an array of 0s and 1s where 1 has a probability of 
                 1 - ``corruption_level`` and 0 with ``corruption_level``
         """
-        return  self.theano_rng.binomial( size = input.shape, n = 1, p =  1 - corruption_level) * input
+        return  self.theano_rng.binomial(size=input.shape, n=1, p=1 - corruption_level) * input
 
  
 
@@ -381,8 +381,8 @@ The final denoising autoencoder class becomes :
 
     """
 
-    def __init__(self, numpy_rng, theano_rng = None, input = None, n_visible= 784, n_hidden= 500, 
-               W = None, bhid = None, bvis = None):
+    def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
+               W=None, bhid=None, bvis=None):
         """
         Initialize the dA class by specifying the number of visible units (the 
         dimension d of the input ), the number of hidden units ( the dimension 
@@ -430,11 +430,11 @@ The final denoising autoencoder class becomes :
     
         """
         self.n_visible = n_visible
-        self.n_hidden  = n_hidden
+        self.n_hidden = n_hidden
         
         # create a Theano random generator that gives symbolic random values
         if not theano_rng : 
-            theano_rng = RandomStreams(rng.randint(2**30))
+            theano_rng = RandomStreams(rng.randint(2 ** 30))
     
         # note : W' was written as `W_prime` and b' as `b_prime`
         if not W:
@@ -442,19 +442,19 @@ The final denoising autoencoder class becomes :
             # from -4.*sqrt(6./(n_visible+n_hidden)) and 4.*sqrt(6./(n_hidden+n_visible))
             # the output of uniform if converted using asarray to dtype 
             # theano.config.floatX so that the code is runable on GPU
-            initial_W = numpy.asarray( numpy_rng.uniform(
-                      low  = -4*numpy.sqrt(6./(n_hidden+n_visible)), 
-                      high =  4*numpy.sqrt(6./(n_hidden+n_visible)), 
-                      size = (n_visible, n_hidden)), dtype = theano.config.floatX)
-            W = theano.shared(value = initial_W, name ='W')  
+            initial_W = numpy.asarray(numpy_rng.uniform(
+                      low=-4 * numpy.sqrt(6. / (n_hidden + n_visible)), 
+                      high=4 * numpy.sqrt(6. / (n_hidden + n_visible)), 
+                      size=(n_visible, n_hidden)), dtype=theano.config.floatX)
+            W = theano.shared(value=initial_W, name='W')  
     
         if not bvis:
             bvis = theano.shared(value = numpy.zeros(n_visible, 
-                                         dtype = theano.config.floatX), name = 'bvis')
+                                         dtype=theano.config.floatX), name='bvis')
 
         if not bhid:
-            bhid = theano.shared(value = numpy.zeros(n_hidden,
-                                              dtype = theano.config.floatX), name = 'bhid')
+            bhid = theano.shared(value=numpy.zeros(n_hidden,
+                                              dtype=theano.config.floatX), name='bhid')
 
         self.W = W
         # b corresponds to the bias of the hidden 
@@ -465,10 +465,10 @@ The final denoising autoencoder class becomes :
         self.W_prime = self.W.T 
         self.theano_rng = theano_rng
         # if no input is given, generate a variable representing the input
-        if input == None : 
+        if input == None:
             # we use a matrix because we expect a minibatch of several examples,
             # each example being a row
-            self.x = T.dmatrix(name = 'input') 
+            self.x = T.dmatrix(name='input') 
         else:
             self.x = input
 
@@ -485,7 +485,7 @@ The final denoising autoencoder class becomes :
                 this will produce an array of 0s and 1s where 1 has a probability of 
                 1 - ``corruption_level`` and 0 with ``corruption_level``
         """
-        return  self.theano_rng.binomial( size = input.shape, n = 1, p =  1 - corruption_level) * input
+        return  self.theano_rng.binomial(size=input.shape, n=1, p=1 - corruption_level) * input
 
     
     def get_hidden_values(self, input):
@@ -501,11 +501,11 @@ The final denoising autoencoder class becomes :
         step of the dA """
 
         tilde_x = self.get_corrupted_input(self.x, corruption_level)
-        y       = self.get_hidden_values( tilde_x)
-        z       = self.get_reconstructed_input(y)
+        y = self.get_hidden_values( tilde_x)
+        z = self.get_reconstructed_input(y)
         # note : we sum over the size of a datapoint; if we are using minibatches,
         #        L will  be a vector, with one entry per example in minibatch
-        L = - T.sum( self.x*T.log(z) + (1-self.x)*T.log(1-z), axis=1 ) 
+        L = -T.sum(self.x * T.log(z) + (1 - self.x) * T.log(1 - z), axis=1 ) 
         # note : L is now a vector, where each element is the cross-entropy cost 
         #        of the reconstruction of the corresponding example of the 
         #        minibatch. We need to compute the average of all these to get 
@@ -518,7 +518,7 @@ The final denoising autoencoder class becomes :
         # generate the list of updates
         updates = {}
         for param, gparam in zip(self.params, gparams):
-            updates[param] = param -  learning_rate*gparam
+            updates[param] = param - learning_rate * gparam
     
         return (cost, updates)
 
@@ -534,25 +534,25 @@ it.
 .. code-block:: python
 
     # allocate symbolic variables for the data
-    index = T.lscalar()    # index to a [mini]batch 
-    x     = T.matrix('x')  # the data is presented as rasterized images
+    index = T.lscalar()  # index to a [mini]batch 
+    x = T.matrix('x')  # the data is presented as rasterized images
 
     ######################
     # BUILDING THE MODEL #
     ######################
 
-    rng        = numpy.random.RandomState(123)
-    theano_rng = RandomStreams( rng.randint(2**30))
+    rng = numpy.random.RandomState(123)
+    theano_rng = RandomStreams(rng.randint(2 ** 30))
 
-    da = dA(numpy_rng = rng, theano_rng = theano_rng, input = x,
-            n_visible = 28*28, n_hidden = 500)
+    da = dA(numpy_rng=rng, theano_rng=theano_rng, input=x,
+            n_visible=28 * 28, n_hidden=500)
 
-    cost, updates = da.get_cost_updates(corruption_level = 0.2,
-                                learning_rate = learning_rate)
+    cost, updates = da.get_cost_updates(corruption_level=0.2,
+                                learning_rate=learning_rate)
 
     
-    train_da = theano.function([index], cost, updates = updates,
-         givens = {x:train_set_x[index*batch_size:(index+1)*batch_size]})
+    train_da = theano.function([index], cost, updates=updates,
+         givens = {x: train_set_x[index * batch_size: (index + 1) * batch_size]})
 
     start_time = time.clock()
 
@@ -567,13 +567,13 @@ it.
         for batch_index in xrange(n_train_batches):
             c.append(train_da(batch_index))
 
-        print 'Training epoch %d, cost '%epoch, numpy.mean(c)
+        print 'Training epoch %d, cost ' % epoch, numpy.mean(c)
 
     end_time = time.clock
 
     training_time = (end_time - start_time)
 
-    print ('Training took %f minutes' %(pretraining_time/60.))
+    print ('Training took %f minutes' % (pretraining_time / 60.))
 
 In order to get a feeling of what the network learned we are going to 
 plot the filters (defined by the weight matrix). Bare in mind however, 
@@ -588,9 +588,9 @@ save the filters as an image :
 
 .. code-block:: python 
 
-    image = PIL.Image.fromarray(tile_raster_images(X = da.W.get_value(borrow=True).T,
-                 img_shape = (28,28),tile_shape = (10,10), 
-                 tile_spacing=(1,1)))
+    image = PIL.Image.fromarray(tile_raster_images(X=da.W.get_value(borrow=True).T,
+                 img_shape=(28, 28), tile_shape=(10, 10), 
+                 tile_spacing=(1, 1)))
     image.save('filters_corruption_30.png') 
  
 
