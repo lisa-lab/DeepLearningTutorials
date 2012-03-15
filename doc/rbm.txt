@@ -19,7 +19,7 @@ Restricted Boltzmann Machines (RBM)
 
 .. _floatX: http://deeplearning.net/software/theano/library/config.html#config.floatX
 
-.. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html 
+.. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html
 
 .. _Random numbers: http://deeplearning.net/software/theano/tutorial/examples.html#using-random-numbers
 
@@ -52,7 +52,7 @@ with physical systems.
     Z = \sum_x e^{-E(x)}
 
 An energy-based model can be learnt by performing (stochastic) gradient
-descent on the empirical negative log-likelihood of the training data. As for 
+descent on the empirical negative log-likelihood of the training data. As for
 the logistic regression we will first define the log-likelihood and then the
 loss function as being the negative log-likelihood.
 
@@ -111,7 +111,7 @@ energy), while the second term decreases the probability of samples generated
 by the model.
 
 It is usually difficult to determine this gradient analytically, as it
-involves the computation of 
+involves the computation of
 :math:`E_P [ \frac{\partial \mathcal{F}(x)} {\partial \theta} ]`. This is
 nothing less than an expectation over all possible configurations of the input
 :math:`x` (under the distribution :math:`P` formed by the model) !
@@ -125,7 +125,7 @@ denoted as :math:`\mathcal{N}`. The gradient can then be written as:
   :label: bm_grad
 
   - \frac{\partial \log p(x)}{\partial \theta}
-   &\approx 
+   &\approx
     \frac{\partial \mathcal{F}(x)}{\partial \theta} -
      \frac{1}{|\mathcal{N}|}\sum_{\tilde{x} \in \mathcal{N}} \
      \frac{\partial \mathcal{F}(\tilde{x})}{\partial \theta}.
@@ -148,7 +148,7 @@ i.e., for which the energy function is linear in its free parameters. To make
 them powerful enough to represent complicated distributions (i.e., go from the
 limited parametric setting to a non-parametric one), we consider that some of
 the variables are never observed (they are called hidden). By having more hidden
-variables (also called hidden units), we can increase the modeling capacity 
+variables (also called hidden units), we can increase the modeling capacity
 of the Boltzmann Machine (BM).
 Restricted Boltzmann Machines further restrict BMs to
 those without visible-visible and hidden-hidden connections.  A graphical
@@ -162,7 +162,7 @@ The energy function :math:`E(v,h)` of an RBM is defined as:
 .. math::
     :label: rbm_energy
 
-    E(v,h) = - b'v - c'h - h'Wv 
+    E(v,h) = - b'v - c'h - h'Wv
 
 where :math:`W` represents the weights connecting hidden and visible units and
 :math:`b`, :math:`c` are the offsets of the visible and hidden layers
@@ -201,7 +201,7 @@ version of the usual neuron activation function:
 The free energy of an RBM with binary units further simplifies to:
 
 .. math::
-  :label: rbm_free_energy   
+  :label: rbm_free_energy
 
   \mathcal{F}(v)= - b'v - \sum_i \log(1 + e^{(c_i + W_i v)}).
 
@@ -213,8 +213,8 @@ following log-likelihood gradients for an RBM with binary units:
 .. math::
     :label: rbm_grad
 
-    - \frac{\partial{ \log p(v)}}{\partial W_{ij}} &= 
-        E_v[p(h_i|v) \cdot v_j] 
+    - \frac{\partial{ \log p(v)}}{\partial W_{ij}} &=
+        E_v[p(h_i|v) \cdot v_j]
         - v^{(i)}_j \cdot sigm(W_i \cdot v^{(i)} + c_i) \\
     -\frac{\partial{ \log p(v)}}{\partial c_i} &=
         E_v[p(h_i|v)] - sigm(W_i \cdot v^{(i)})  \\
@@ -234,7 +234,7 @@ Samples of :math:`p(x)` can be obtained by running a Markov chain to
 convergence, using Gibbs sampling as the transition operator.
 
 Gibbs sampling of the joint of N random variables :math:`S=(S_1, ... , S_N)`
-is done through a sequence of N sampling sub-steps of the form 
+is done through a sequence of N sampling sub-steps of the form
 :math:`S_i \sim p(S_i | S_{-i})` where :math:`S_{-i}` contains the :math:`N-1`
 other random variables in :math:`S` excluding :math:`S_i`.
 
@@ -243,7 +243,7 @@ since they are conditionally independent, one can perform block Gibbs
 sampling. In this setting, visible units are sampled simultaneously given
 fixed values of the hidden units. Similarly, hidden units are sampled
 simultaneously given the visibles. A step in the Markov chain is thus taken as
-follows: 
+follows:
 
 .. math::
     h^{(n+1)} &\sim sigm(W'v^{(n)} + c) \\
@@ -252,7 +252,7 @@ follows:
 where :math:`h^{(n)}` refers to the set of all hidden units at the n-th step of
 the Markov chain. What it means is that, for example, :math:`h^{(n+1)}_i` is
 randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_i'v^{(n)} + c_i)`,
-and similarly, 
+and similarly,
 :math:`v^{(n+1)}_j` is
 randomly chosen to be 1 (versus 0) with probability :math:`sigm(W_{.j} h^{(n+1)} + b_j)`.
 
@@ -280,7 +280,7 @@ Contrastive Divergence uses two tricks to speed up the sampling process:
   distribution of the data), we initialize the Markov chain with a training
   example (i.e., from a distribution that is expected to be close to :math:`p`,
   so that the chain will be already close to having converged to its final distribution :math:`p`).
-  
+
 * CD does not wait for the chain to converge. Samples are obtained after only
   k-steps of Gibbs sampling. In pratice, :math:`k=1` has been shown to work
   surprisingly well.
@@ -314,11 +314,11 @@ corresponding sigmoidal layer of an MLP network.
   class RBM(object):
     """Restricted Boltzmann Machine (RBM) """
     def __init__(self, input=None, n_visible=784, n_hidden=500, \
-        W = None, hbias = None, vbias = None, numpy_rng = None, 
+        W = None, hbias = None, vbias = None, numpy_rng = None,
         theano_rng = None):
-        """ 
+        """
         RBM constructor. Defines the parameters of the model along with
-        basic operations for inferring hidden from visible (and vice-versa), 
+        basic operations for inferring hidden from visible (and vice-versa),
         as well as for performing CD updates.
 
         :param input: None for standalone RBMs or symbolic variable if RBM is
@@ -332,11 +332,11 @@ corresponding sigmoidal layer of an MLP network.
         shared weight matrix in case RBM is part of a DBN network; in a DBN,
         the weights are shared between RBMs and layers of a MLP
 
-        :param hbias: None for standalone RBMs or symbolic variable pointing 
-        to a shared hidden units bias vector in case RBM is part of a 
+        :param hbias: None for standalone RBMs or symbolic variable pointing
+        to a shared hidden units bias vector in case RBM is part of a
         different network
 
-        :param vbias: None for standalone RBMs or a symbolic variable 
+        :param vbias: None for standalone RBMs or a symbolic variable
         pointing to a shared visible units bias
         """
 
@@ -344,34 +344,34 @@ corresponding sigmoidal layer of an MLP network.
         self.n_hidden  = n_hidden
 
 
-        if numpy_rng is None:    
-            # create a number generator 
+        if numpy_rng is None:
+            # create a number generator
             numpy_rng = numpy.random.RandomState(1234)
 
-        if theano_rng is None : 
+        if theano_rng is None :
             theano_rng = RandomStreams(numpy_rng.randint(2**30))
 
-        if W is None : 
+        if W is None :
            # W is initialized with `initial_W` which is uniformely sampled
            # from -4.*sqrt(6./(n_visible+n_hidden)) and 4.*sqrt(6./(n_hidden+n_visible))
-           # the output of uniform if converted using asarray to dtype 
+           # the output of uniform if converted using asarray to dtype
            # theano.config.floatX so that the code is runable on GPU
-           initial_W = numpy.asarray( numpy.random.uniform( 
-                     low   = -4*numpy.sqrt(6./(n_hidden+n_visible)), 
-                     high  =  4*numpy.sqrt(6./(n_hidden+n_visible)), 
-                     size  =  (n_visible, n_hidden)), 
+           initial_W = numpy.asarray( numpy.random.uniform(
+                     low   = -4*numpy.sqrt(6./(n_hidden+n_visible)),
+                     high  =  4*numpy.sqrt(6./(n_hidden+n_visible)),
+                     size  =  (n_visible, n_hidden)),
                      dtype =  theano.config.floatX)
            # theano shared variables for weights and biases
            W = theano.shared(value = initial_W, name = 'W')
 
         if hbias is None :
            # create shared variable for hidden units bias
-           hbias = theano.shared(value = numpy.zeros(n_hidden, 
+           hbias = theano.shared(value = numpy.zeros(n_hidden,
                                dtype = theano.config.floatX), name='hbias')
 
         if vbias is None :
             # create shared variable for visible units bias
-            vbias = theano.shared(value =numpy.zeros(n_visible, 
+            vbias = theano.shared(value =numpy.zeros(n_visible,
                                 dtype = theano.config.floatX),name='vbias')
 
 
@@ -382,7 +382,7 @@ corresponding sigmoidal layer of an MLP network.
         self.hbias      = hbias
         self.vbias      = vbias
         self.theano_rng = theano_rng
-        # **** WARNING: It is not a good idea to put things in this list 
+        # **** WARNING: It is not a good idea to put things in this list
         # other than shared variables created in this function.
         self.params     = [self.W, self.hbias, self.vbias]
 
@@ -394,11 +394,11 @@ with Eqs. :eq:`rbm_propup` - :eq:`rbm_propdown`. The code is as follows:
 
     def propup(self, vis):
         ''' This function propagates the visible units activation upwards to
-        the hidden units 
-        
-        Note that we return also the pre_sigmoid_activation of the layer. As 
-        it will turn out later, due to how Theano deals with optimization and 
-        stability this symbolic variable will be needed to write down a more 
+        the hidden units
+
+        Note that we return also the pre_sigmoid_activation of the layer. As
+        it will turn out later, due to how Theano deals with optimization and
+        stability this symbolic variable will be needed to write down a more
         stable graph (see details in the reconstruction cost function)
         '''
         pre_sigmoid_activation = T.dot(vis, self.W) + self.hbias
@@ -409,8 +409,8 @@ with Eqs. :eq:`rbm_propup` - :eq:`rbm_propdown`. The code is as follows:
         # compute the activation of the hidden units given a sample of the visibles
         pre_sigmoid_h1, h1_mean = self.propup(v0_sample)
         # get a sample of the hiddens given their activation
-        # Note that theano_rng.binomial returns a symbolic sample of dtype 
-        # int64 by default. If we want to keep our computations in floatX 
+        # Note that theano_rng.binomial returns a symbolic sample of dtype
+        # int64 by default. If we want to keep our computations in floatX
         # for the GPU we need to specify to return the dtype floatX
         h1_sample = self.theano_rng.binomial(size = h1_mean.shape, n = 1, p = h1_mean,
                 dtype = theano.config.floatX)
@@ -419,10 +419,10 @@ with Eqs. :eq:`rbm_propup` - :eq:`rbm_propdown`. The code is as follows:
     def propdown(self, hid):
         '''This function propagates the hidden units activation downwards to
         the visible units
-        
-        Note that we return also the pre_sigmoid_activation of the layer. As 
-        it will turn out later, due to how Theano deals with optimization and 
-        stability this symbolic variable will be needed to write down a more 
+
+        Note that we return also the pre_sigmoid_activation of the layer. As
+        it will turn out later, due to how Theano deals with optimization and
+        stability this symbolic variable will be needed to write down a more
         stable graph (see details in the reconstruction cost function)
         '''
         pre_sigmoid_activation = T.dot(hid, self.W.T) + self.vbias
@@ -433,8 +433,8 @@ with Eqs. :eq:`rbm_propup` - :eq:`rbm_propdown`. The code is as follows:
         # compute the activation of the visible given the hidden sample
         pre_sigmoid_v1, v1_mean = self.propdown(h0_sample)
         # get a sample of the visible given their activation
-        # Note that theano_rng.binomial returns a symbolic sample of dtype 
-        # int64 by default. If we want to keep our computations in floatX 
+        # Note that theano_rng.binomial returns a symbolic sample of dtype
+        # int64 by default. If we want to keep our computations in floatX
         # for the GPU we need to specify to return the dtype floatX
         v1_sample = self.theano_rng.binomial(size = v1_mean.shape,n = 1,p = v1_mean,
                 dtype = theano.config.floatX)
@@ -447,7 +447,7 @@ sampling step. We define two functions:
   visible units. As we shall see, this will be useful for sampling from the
   RBM.
 
-* ``gibbs_hvh`` which performs a step of Gibbs sampling starting from the hidden units. 
+* ``gibbs_hvh`` which performs a step of Gibbs sampling starting from the hidden units.
   This function will be useful for performing CD and PCD updates.
 
 The code is as follows:
@@ -455,44 +455,44 @@ The code is as follows:
 .. code-block:: python
 
     def gibbs_hvh(self, h0_sample):
-        ''' This function implements one step of Gibbs sampling, 
+        ''' This function implements one step of Gibbs sampling,
             starting from the hidden state'''
         pre_sigmoid_v1, v1_mean, v1_sample = self.sample_v_given_h(h0_sample)
         pre_sigmoid_h1, h1_mean, h1_sample = self.sample_h_given_v(v1_sample)
         return [pre_sigmoid_v1, v1_mean, v1_sample, pre_sigmoid_h1, h1_mean, h1_sample]
- 
+
     def gibbs_vhv(self, v0_sample):
-        ''' This function implements one step of Gibbs sampling, 
+        ''' This function implements one step of Gibbs sampling,
             starting from the visible state'''
         pre_sigmoid_h1, h1_mean, h1_sample = self.sample_h_given_v(v0_sample)
         pre_sigmoid_v1, v1_mean, v1_sample = self.sample_v_given_h(h1_sample)
         return [pre_sigmoid_h1, h1_mean, h1_sample, pre_sigmoid_v1, v1_mean, v1_sample]
- 
+
 
 Note that we also return the pre-sigmoid
-activation. To understand why this is so you need to understand a bit about 
+activation. To understand why this is so you need to understand a bit about
 how Theano works. Whenever you compile a Theano function, the computational
 graph that you pass as input gets optimized for speed and stability. This
-is done by changing several parts of the subgraphs with others. One 
-such optimization expresses terms of the form log(sigmoid(x)) in terms of 
-softplus. We need this optimization for the cross-entropy since sigmoid of 
-numbers larger than 30. (or even less then that) turn to 1. and numbers 
-smaller than  -30. turn to 0 which in terms will force theano 
-to compute log(0) and therefore we will get either -inf or NaN 
-as cost. If the value is expressed in terms of softplus we do 
+is done by changing several parts of the subgraphs with others. One
+such optimization expresses terms of the form log(sigmoid(x)) in terms of
+softplus. We need this optimization for the cross-entropy since sigmoid of
+numbers larger than 30. (or even less then that) turn to 1. and numbers
+smaller than  -30. turn to 0 which in terms will force theano
+to compute log(0) and therefore we will get either -inf or NaN
+as cost. If the value is expressed in terms of softplus we do
 not get this undesirable behaviour. This optimization usually works
 fine, but here we have a special case. The sigmoid is applied inside
-the scan op, while the log is outside. Therefore Theano will only 
+the scan op, while the log is outside. Therefore Theano will only
 see log(scan(..)) instead of log(sigmoid(..)) and will not apply
-the wanted optimization. We can not go and replace the sigmoid 
-in scan with something else also, because this only needs to be 
+the wanted optimization. We can not go and replace the sigmoid
+in scan with something else also, because this only needs to be
 done on the last step. Therefore the easiest and more efficient way
-is to get also the pre-sigmoid activation as an output of scan, 
+is to get also the pre-sigmoid activation as an output of scan,
 and apply both the log and sigmoid outside scan such that Theano
 can catch and optimize the expression.
 
-The class also has a function that computes the free energy of the model, 
-needed for computing the gradient of the parameters  
+The class also has a function that computes the free energy of the model,
+needed for computing the gradient of the parameters
 (see Eq. :eq:`free_energy_grad`). Note that we also return the pre-sigmoid
 
 .. code-block:: python
@@ -512,10 +512,10 @@ gradients for CD-k and PCD-k updates.
 .. code-block:: python
 
     def get_cost_updates(self, lr = 0.1, persistent=None, k =1):
-        """ 
+        """
         This functions implements one step of CD-k or PCD-k
 
-        :param lr: learning rate used to train the RBM 
+        :param lr: learning rate used to train the RBM
 
         :param persistent: None for CD. For PCD, shared variable containing old state
         of Gibbs chain. This must be a shared variable of size (batch size, number of
@@ -523,8 +523,8 @@ gradients for CD-k and PCD-k updates.
 
         :param k: number of Gibbs steps to do in CD-k/PCD-k
 
-        Returns a proxy for the cost and the updates dictionary. The 
-        dictionary contains the update rules for weights and biases but 
+        Returns a proxy for the cost and the updates dictionary. The
+        dictionary contains the update rules for weights and biases but
         also an update of the shared variable used to store the persistent
         chain, if one is used.
         """
@@ -548,31 +548,31 @@ state of the Gibbs chain from the previous iteration.
 If ``persistent`` is ``None``, we initialize the Gibbs chain with the hidden
 sample generated during the positive phase, therefore implementing CD. Once we have established the
 starting point of the chain, we can then compute the sample at the end of the
-Gibbs chain, sample that we need for getting the gradient (see  Eq. :eq:`free_energy_grad`). To do so, we will use the ``scan`` 
+Gibbs chain, sample that we need for getting the gradient (see  Eq. :eq:`free_energy_grad`). To do so, we will use the ``scan``
 op provided by Theano, therefore we urge the reader to look it up by following this `link <http://deeplearning.net/software/theano/library/scan.html>`_.
 
 .. code-block:: python
 
         # perform actual negative phase
-        # in order to implement CD-k/PCD-k we need to scan over the 
-        # function that implements one gibbs step k times. 
+        # in order to implement CD-k/PCD-k we need to scan over the
+        # function that implements one gibbs step k times.
         # Read Theano tutorial on scan for more information :
         # http://deeplearning.net/software/theano/library/scan.html
         # the scan will return the entire Gibbs chain
         [pre_sigmoid_nvs, nv_means, nv_samples, pre_sigmoid_nhs, nh_means, nh_samples], updates = \
-            theano.scan(self.gibbs_hvh, 
+            theano.scan(self.gibbs_hvh,
                     # the None are place holders, saying that
-                    # chain_start is the initial state corresponding to the 
+                    # chain_start is the initial state corresponding to the
                     # 6th output
                     outputs_info = [None, None, None,None,None,chain_start],
                     n_steps = k)
 
 
-Once we have the generated the chain we take the sample at the end of the 
+Once we have the generated the chain we take the sample at the end of the
 chain to get the free energy of the negative phase. Note that the
 ``chain_end`` is a symbolical Theano variable expressed in terms of the model
-parameters, and if we would apply ``T.grad`` naively, the function will 
-try to go through the Gibbs chain to get the gradients. This is not what we 
+parameters, and if we would apply ``T.grad`` naively, the function will
+try to go through the Gibbs chain to get the gradients. This is not what we
 want (it will mess up our gradients) and therefire we need to indicate to
 ``T.grad`` that ``chain_end`` is a constant. We do this by using the argument
 ``consider_constant`` of ``T.grad``.
@@ -585,10 +585,10 @@ want (it will mess up our gradients) and therefire we need to indicate to
         chain_end = nv_samples[-1]
 
         cost = T.mean(self.free_energy(self.input)) - T.mean(self.free_energy(chain_end))
-        # We must not compute the gradient through the gibbs sampling 
+        # We must not compute the gradient through the gibbs sampling
         gparams = T.grad(cost, self.params,consider_constant = [chain_end])
 
-Finally, we add to the updates dictionary returned by scan (which contains 
+Finally, we add to the updates dictionary returned by scan (which contains
 updates rules for random states of ``theano_rng``) to contain the parameter
 updates. In the case of PCD, these should also update the shared variable
 containing the state of the Gibbs chain.
@@ -597,7 +597,7 @@ containing the state of the Gibbs chain.
 
         # constructs the update dictionary
         for gparam, param in zip(gparams, self.params):
-            # make sure that the learning rate is of the right dtype 
+            # make sure that the learning rate is of the right dtype
             updates[param] = param - gparam * T.cast(lr, dtype = theano.config.floatX)
         if persistent:
             # Note that this works only if persistent is a shared variable
@@ -638,7 +638,7 @@ on MNIST usually results in filters which act as stroke detectors, while
 training on natural images lead to Gabor like filters if trained in
 conjunction with a sparsity criteria.
 
-**Proxies to Likelihood**  
+**Proxies to Likelihood**
 
 Other, more tractable functions can be used as a proxy to the likelihood.  When
 training an RBM with PCD, one can use pseudo-likelihood as the proxy.
@@ -658,8 +658,8 @@ log-PL:
 
 .. math::
    g = N \cdot \log P(x_i | x_{-i}) \text{, where } i \sim U(0,N), \text{, and}\\
-   E[ g ] = \log PL(x) 
-    
+   E[ g ] = \log PL(x)
+
 where the expectation is taken over the uniform random choice of index :math:`i`,
 and :math:`N` is the number of visible units. In order to work with binary
 units, we further introduce the notation :math:`\tilde{x}_i` to refer to
@@ -667,18 +667,18 @@ units, we further introduce the notation :math:`\tilde{x}_i` to refer to
 then written as:
 
 .. math::
-    \log PL(x) &\approx N \cdot \log 
+    \log PL(x) &\approx N \cdot \log
        \frac {e^{-FE(x)}} {e^{-FE(x)} + e^{-FE(\tilde{x}_i)}} \\
     &\approx N \cdot \log[ sigm (FE(\tilde{x}_i) - FE(x)) ]
 
-We therefore return this cost as well as the RBM updates in the  ``get_cost_updates`` function of the ``RBM`` class. 
+We therefore return this cost as well as the RBM updates in the  ``get_cost_updates`` function of the ``RBM`` class.
 Notice that we modify the updates dictionary to increment the
 index of bit :math:`i`. This will result in bit :math:`i` cycling over all possible
 values :math:`\{0,1,...,N\}`, from one update to another.
 
-Note that for CD training the cost-entropy cost between the input and the 
-reconstruction( the same as the one used for the de-noising autoencoder) is more reliable then the pseudo-loglikelihood. Here is the code we use to 
-compute the pseudo-likelihood: 
+Note that for CD training the cost-entropy cost between the input and the
+reconstruction( the same as the one used for the de-noising autoencoder) is more reliable then the pseudo-loglikelihood. Here is the code we use to
+compute the pseudo-likelihood:
 
 .. code-block:: python
 
@@ -703,7 +703,7 @@ compute the pseudo-likelihood:
         # calculate free energy with bit flipped
         fe_xi_flip = self.free_energy(xi_flip)
 
-        # equivalent to e^(-FE(x_i)) / (e^(-FE(x_i)) + e^(-FE(x_{\i}))) 
+        # equivalent to e^(-FE(x_i)) / (e^(-FE(x_i)) + e^(-FE(x_{\i})))
         cost = T.mean(self.n_visible * T.log(T.nnet.sigmoid(fe_xi_flip - fe_xi)))
 
         # increment bit_i_idx % number as part of updates
@@ -723,7 +723,7 @@ plotting/visualizing these samples. We also want to visualize the filters
 (weights) learnt by the RBM, to gain insights into what the RBM is actually
 doing. Bear in mind however, that this does not provide the entire story,
 since we neglect the biases and plot the weights up to a multiplicative
-constant (weights are converted to values between 0 and 1). 
+constant (weights are converted to values between 0 and 1).
 
 Having these utility functions, we can start training the RBM and plot/save
 the filters after each training epoch.  We train the RBM using PCD, as it has
@@ -734,14 +734,14 @@ been shown to lead to a better generative model ([Tieleman08]_).
     # it is ok for a theano function to have no output
     # the purpose of train_rbm is solely to update the RBM parameters
     train_rbm = theano.function([index], cost,
-           updates = updates, 
+           updates = updates,
            givens = { x: train_set_x[index*batch_size:(index+1)*batch_size]})
 
     plotting_time = 0.
     start_time = time.clock()
 
 
-    # go through training epochs 
+    # go through training epochs
     for epoch in xrange(training_epochs):
 
         # go through the training set
@@ -753,10 +753,10 @@ been shown to lead to a better generative model ([Tieleman08]_).
 
         # Plot filters after each training epoch
         plotting_start = time.clock()
-        # Construct image from the weight matrix 
+        # Construct image from the weight matrix
         image = PIL.Image.fromarray(tile_raster_images(
                  X = rbm.W.get_value(borrow=True).T,
-                 img_shape = (28,28),tile_shape = (10,10), 
+                 img_shape = (28,28),tile_shape = (10,10),
                  tile_spacing=(1,1)))
         image.save('filters_at_epoch_%i.png'%epoch)
         plotting_stop = time.clock()
@@ -772,7 +772,7 @@ Once the RBM is trained, we can then use the ``gibbs_vhv`` function to implement
 the Gibbs chain required for sampling. We initialize the Gibbs chain starting
 from test examples (although we could as well pick it from the training set)
 in order to speed up convergence and avoid problems with random
-initialization. We again use Theano's ``scan`` op to do 1000 steps before 
+initialization. We again use Theano's ``scan`` op to do 1000 steps before
 each plotting.
 
 .. code-block:: python
@@ -781,7 +781,7 @@ each plotting.
     #     Sampling from the RBM     #
     #################################
 
-    # find out the number of test samples  
+    # find out the number of test samples
     number_of_test_samples = test_set_x.get_value(borrow=True).shape[0]
 
     # pick random test examples, with which to initialize the persistent chain
@@ -799,7 +799,7 @@ samples at every 1000 steps.
 .. code-block:: python
 
 
-    # find out the number of test 
+    # find out the number of test
     number_of_test_samples = test_set_x.get_value(borrow=True).shape[0]
 
     # pick random test examples, with which to initialize the persistent chain
@@ -817,9 +817,9 @@ samples at every 1000 steps.
                                 n_steps = plot_every)
 
     # add to updates the shared variable that takes care of our persistent
-    # chain : 
+    # chain :
     updates.update({ persistent_vis_chain: vis_samples[-1]})
-    # construct the function that implements our persistent chain 
+    # construct the function that implements our persistent chain
     # we generate the "mean field" activations for plotting and the actual samples for
     # reinitializing the state of our persistent chain
     sample_fn = theano.function([], [vis_mfs[-1], vis_samples[-1]],
@@ -827,19 +827,19 @@ samples at every 1000 steps.
 
     # sample the RBM, plotting at least `n_samples`
     n_samples = 10
-    # create a space to store the image for plotting ( we need to leave 
+    # create a space to store the image for plotting ( we need to leave
     # room for the tile_spacing as well)
     image_data = numpy.zeros((29*n_samples+1,29*n_chains-1),dtype='uint8')
     for idx in xrange(n_samples):
         # generate `plot_every` intermediate samples that we discard, because successive samples in the chain are too correlated
         vis_mf, vis_sample = sample_fn()
-        image_data[29*idx:29*idx+28,:] = tile_raster_images( 
+        image_data[29*idx:29*idx+28,:] = tile_raster_images(
                 X = vis_mf,
                 img_shape = (28,28),
                 tile_shape = (1, batch_size),
                 tile_spacing = (1,1))
         # construct image
-    
+
     image = PIL.Image.fromarray(image_data)
     print ' ... plotting sample ', idx
     image.save('samples.png')
@@ -885,7 +885,7 @@ The output was the following:
      ... plotting sample  8
      ... plotting sample  9
 
-The pictures below show the filters after 15 epochs : 
+The pictures below show the filters after 15 epochs :
 
 .. figure:: images/filters_at_epoch_14.png
     :align: center
