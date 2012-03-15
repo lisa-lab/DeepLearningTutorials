@@ -24,7 +24,7 @@ Classifying MNIST digits using Logistic Regression
 
 .. _floatX: http://deeplearning.net/software/theano/library/config.html#config.floatX
 
-.. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html 
+.. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html
 
 In this section, we show how Theano can be used to implement the most basic
 classifier: the logistic regression. We start off with a quick primer of the
@@ -40,7 +40,7 @@ The Model
 Logistic regression is a probabilistic, linear classifier. It is parametrized
 by a weight matrix :math:`W` and a bias vector :math:`b`. Classification is
 done by projecting data points onto a set of hyperplanes, the distance to
-which reflects a class membership probability. 
+which reflects a class membership probability.
 
 Mathematically, this can be written as:
 
@@ -65,28 +65,28 @@ The code to do this in Theano is the following:
   y = T.lvector('y')
 
   # allocate shared variables model params
-  b = theano.shared(numpy.zeros((10,)), name = 'b')
-  W = theano.shared(numpy.zeros((784,10)), name = 'W')
+  b = theano.shared(numpy.zeros((10,)), name='b')
+  W = theano.shared(numpy.zeros((784, 10)), name='W')
 
-  # symbolic expression for computing the vector of 
-  # class-membership probabilities 
-  p_y_given_x = T.nnet.softmax(T.dot(x,W)+b)
+  # symbolic expression for computing the vector of
+  # class-membership probabilities
+  p_y_given_x = T.nnet.softmax(T.dot(x, W) + b)
 
   # compiled Theano function that returns the vector of class-membership
   # probabilities
-  get_p_y_given_x = theano.function( inputs = [x], outputs = p_y_given_x)
+  get_p_y_given_x = theano.function(inputs=[x], outputs=p_y_given_x)
 
-  # print the probability of some example represented by x_value 
+  # print the probability of some example represented by x_value
   # x_value is not a symbolic variable but a numpy array describing the
   # datapoint
   print 'Probability that x is of class %i is %f' % (i, get_p_y_given_x(x_value)[i])
 
-  # symbolic description of how to compute prediction as class whose probability 
-  # is maximal 
+  # symbolic description of how to compute prediction as class whose probability
+  # is maximal
   y_pred = T.argmax(p_y_given_x)
 
   # compiled theano function that returns this value
-  classify = theano.function( inputs = [x], outputs = y_pred)
+  classify = theano.function(inputs=[x], outputs=y_pred)
 
 
 We first start by allocating symbolic variables for the inputs :math:`x,y`.
@@ -95,7 +95,7 @@ training, we allocate shared variables for :math:`W,b`.
 This declares them both as being symbolic Theano variables, but also
 initializes their contents. The dot and softmax operators are then used to compute the vector
 :math:`P(Y|x, W,b)`. The resulting variable p_y_given_x is a symbolic variable
-of vector-type. 
+of vector-type.
 
 Up to this point, we have only defined the graph of computations which Theano
 should perform. To get the actual numerical value of :math:`P(Y|x, W,b)`, we
@@ -132,7 +132,7 @@ us first start by defining the likelihood :math:`\cal{L}` and loss
 
 .. math::
 
-   \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+   \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) =
      \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
    \ell (\theta=\{W,b\}, \mathcal{D}) = - \mathcal{L} (\theta=\{W,b\}, \mathcal{D})
 
@@ -170,34 +170,33 @@ similar to what we have covered so far, and should be self explanatory.
 
     class LogisticRegression(object):
 
-
         def __init__(self, input, n_in, n_out):
             """ Initialize the parameters of the logistic regression
 
             :type input: theano.tensor.TensorType
-            :param input: symbolic variable that describes the input of the 
+            :param input: symbolic variable that describes the input of the
                           architecture (e.g., one minibatch of input images)
 
             :type n_in: int
-            :param n_in: number of input units, the dimension of the space in 
+            :param n_in: number of input units, the dimension of the space in
                          which the datapoint lies
 
             :type n_out: int
-            :param n_out: number of output units, the dimension of the space in 
+            :param n_out: number of output units, the dimension of the space in
                           which the target lies
-            """ 
+            """
 
-            # initialize with 0 the weights W as a matrix of shape (n_in, n_out) 
-            self.W = theano.shared( value=numpy.zeros((n_in,n_out),
-                                                dtype = theano.config.floatX), name ='W' )
+            # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
+            self.W = theano.shared(value=numpy.zeros((n_in, n_out),
+                                                dtype=theano.config.floatX), name='W' )
             # initialize the baises b as a vector of n_out 0s
-            self.b = theano.shared( value=numpy.zeros((n_out,), 
-                                                dtype = theano.config.floatX), name = 'b' )
+            self.b = theano.shared(value=numpy.zeros((n_out,),
+                                                dtype=theano.config.floatX), name='b' )
 
             # compute vector of class-membership probabilities in symbolic form
-            self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W)+self.b)
+            self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W) + self.b)
 
-            # compute prediction as class whose probability is maximal in 
+            # compute prediction as class whose probability is maximal in
             # symbolic form
             self.y_pred=T.argmax(self.p_y_given_x, axis=1)
 
@@ -208,9 +207,9 @@ similar to what we have covered so far, and should be self explanatory.
 
             .. math::
 
-              \frac{1}{|\mathcal{D}|} \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) = 
+              \frac{1}{|\mathcal{D}|} \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) =
               \frac{1}{|\mathcal{D}|} \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
-                  \ell (\theta=\{W,b\}, \mathcal{D}) 
+                  \ell (\theta=\{W,b\}, \mathcal{D})
 
 
             :param y: corresponds to a vector that gives for each example the
@@ -219,7 +218,7 @@ similar to what we have covered so far, and should be self explanatory.
             Note: we use the mean instead of the sum so that
                   the learning rate is less dependent on the batch size
             """
-            return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
+            return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]), y])
 
 
 We instantiate this class as follows:
@@ -231,8 +230,8 @@ We instantiate this class as follows:
     y = T.lvector()  # the labels are presented as 1D vector of [long int] labels
 
     # construct the logistic regression class
-    classifier = LogisticRegression( \
-                   input=x.reshape((batch_size,28*28)), n_in=28*28, n_out=10)
+    classifier = LogisticRegression(
+                   input=x.reshape((batch_size, 28 * 28)), n_in=28 * 28, n_out=10)
 
 Note that the inputs x and y are defined outside the scope of the
 ``LogisticRegression`` object. Since the class requires the input x to build its
@@ -263,7 +262,7 @@ with respect to the parameters: in this case :math:`\partial{\ell}/\partial{W}`,
 and :math:`\partial{\ell}/\partial{b}`, This can get pretty tricky for complex
 models, as expressions for :math:`\partial{\ell}/\partial{\theta}` can get
 fairly complex, especially when taking into account problems of numerical
-stability.  
+stability.
 
 With Theano, this work is greatly simplified as it performs
 automatic differentiation and applies certain math transforms to improve
@@ -284,41 +283,41 @@ follows:
 
 .. code-block:: python
 
-    # compute the gradient of cost with respect to theta = (W,b) 
-    g_W = T.grad(cost = cost, wrt = classifier.W)
-    g_b = T.grad(cost = cost, wrt = classifier.b)
+    # compute the gradient of cost with respect to theta = (W,b)
+    g_W = T.grad(cost=cost, wrt=classifier.W)
+    g_b = T.grad(cost=cost, wrt=classifier.b)
 
     # specify how to update the parameters of the model as a dictionary
-    updates ={classifier.W: classifier.W - learning_rate*g_W,\
-              classifier.b: classifier.b - learning_rate*g_b}
+    updates ={classifier.W: classifier.W - learning_rate * g_W,\
+              classifier.b: classifier.b - learning_rate * g_b}
 
-    # compiling a Theano function `train_model` that returns the cost, but in 
-    # the same time updates the parameter of the model based on the rules 
+    # compiling a Theano function `train_model` that returns the cost, but in
+    # the same time updates the parameter of the model based on the rules
     # defined in `updates`
-    train_model = theano.function(inputs = [index], 
-            outputs = cost, 
-            updates = updates,
+    train_model = theano.function(inputs=[index],
+            outputs=cost,
+            updates=updates,
             givens={
-                x:train_set_x[index*batch_size:(index+1)*batch_size],
-                y:train_set_y[index*batch_size:(index+1)*batch_size]})
+                x: train_set_x[index * batch_size: (index + 1) * batch_size],
+                y: train_set_y[index * batch_size: (index + 1) * batch_size]})
 
 
 
 The ``updates`` dictionary contains, for each parameter, the
-stochastic gradient update operation. The ``givens`` dictionary indicates with 
+stochastic gradient update operation. The ``givens`` dictionary indicates with
 what to replace certain variables of the graph. The function ``train_model`` is then
 defined such that:
 
-* the input is the mini-batch index ``index`` that together with the batch 
-  size( which is not an input since it is fixed) defines :math:`x` with 
+* the input is the mini-batch index ``index`` that together with the batch
+  size( which is not an input since it is fixed) defines :math:`x` with
   corresponding labels :math:`y`
 * the return value is the cost/loss associated with the x, y defined by
-  the ``index`` 
+  the ``index``
 * on every function call, it will first replace ``x`` and ``y`` with the
   corresponding slices from the training set as defined by the
   ``index`` and afterwards it will evaluate the cost
   associated with that minibatch and apply the operations defined by the
-  ``updates`` dictionary. 
+  ``updates`` dictionary.
 
 Each time ``train_model(index)`` function is called, it will thus compute and
 return the appropriate cost, while also performing a step of MSGD. The entire
@@ -344,9 +343,9 @@ The code is as follows:
         ...
 
         def errors(self, y):
-            """Return a float representing the number of errors in the minibatch 
+            """Return a float representing the number of errors in the minibatch
             over the total number of examples of the minibatch ; zero
-            one loss over the size of the minibatch 
+            one loss over the size of the minibatch
             """
             return T.mean(T.neq(self.y_pred, y))
 
@@ -355,25 +354,25 @@ We then create a function ``test_model`` and a function ``validate_model``, whic
 value. As you will see shortly, ``validate_model`` is key to our early-stopping
 implementation (see :ref:`opt_early_stopping`). Both of these function
 will get as input a batch offset and will compute the number of
-missclassified examples for that mini-batch. The only difference between them 
+missclassified examples for that mini-batch. The only difference between them
 is that one draws its batches from the testing set, while
 the other from the validation set.
 
 .. code-block:: python
 
-    # compiling a Theano function that computes the mistakes that are made by 
+    # compiling a Theano function that computes the mistakes that are made by
     # the model on a minibatch
-    test_model = theano.function(inputs = [index], 
-            outputs = classifier.errors(y),
+    test_model = theano.function(inputs=[index],
+            outputs=classifier.errors(y),
             givens={
-                x:test_set_x[index*batch_size:(index+1)*batch_size],
-                y:test_set_y[index*batch_size:(index+1)*batch_size]})
+                x: test_set_x[index * batch_size: (index + 1) * batch_size],
+                y: test_set_y[index * batch_size: (index + 1) * batch_size]})
 
-    validate_model = theano.function( inputs = [index], 
-            outputs = classifier.errors(y),
+    validate_model = theano.function(inputs=[index],
+            outputs=classifier.errors(y),
             givens={
-                x:valid_set_x[index*batch_size:(index+1)*batch_size],
-                y:valid_set_y[index*batch_size:(index+1)*batch_size]})
+                x: valid_set_x[index * batch_size: (index + 1) * batch_size],
+                y: valid_set_y[index * batch_size: (index + 1) * batch_size]})
 
 
 
@@ -407,14 +406,14 @@ The output one should expect is of the form :
 On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
 approximately 1.936 epochs/sec and it took 75 epochs to reach a test
 error of 7.489%. On the GPU the code does almost 10.0 epochs/sec. For this
-instance we used a batch size of 600. 
+instance we used a batch size of 600.
 
 .. rubric:: Footnotes
 
 .. [#f1] For smaller datasets and simpler models, more sophisticated descent
          algorithms can be more effective. The sample code
          `logistic_cg.py <http://deeplearning.net/tutorial/code/logistic_cg.py>`_
-         demonstrates how to use SciPy's conjugate gradient solver with Theano 
+         demonstrates how to use SciPy's conjugate gradient solver with Theano
          on the logistic regression task.
 
 
