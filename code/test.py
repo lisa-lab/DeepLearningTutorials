@@ -3,8 +3,14 @@ import sys
 import numpy
 import theano
 
-import convolutional_mlp, logistic_cg, logistic_sgd
-import mlp, SdA, dA, rbm, DBN
+import convolutional_mlp
+import dA
+import DBN
+import logistic_cg
+import logistic_sgd
+import mlp
+import rbm
+import SdA
 
 
 def test_logistic_sgd():
@@ -43,7 +49,6 @@ def test_rbm():
 def speed():
     """
     This fonction modify the configuration theano and don't restore it!
-    I want it to be compatible with python2.4 so using try: finaly: is not an option.
     """
 
     algo = ['logistic_sgd', 'logistic_cg', 'mlp', 'convolutional_mlp',
