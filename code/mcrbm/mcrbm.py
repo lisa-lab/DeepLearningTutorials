@@ -1,5 +1,5 @@
 """
-This file implements the Mean & Covariance RBM discussed in 
+This file implements the Mean & Covariance RBM discussed in
 
     Ranzato, M. and Hinton, G. E. (2010)
     Modeling pixel means and covariances using factored third-order Boltzmann machines.
@@ -30,7 +30,7 @@ diagonal entries, so it is helpful to see this as a simpler equation:
 Version in paper
 ----------------
 
-Full Energy of the Mean and Covariance RBM, with 
+Full Energy of the Mean and Covariance RBM, with
 :math:`h_k = h_k^{(c)}`,
 :math:`g_j = h_j^{(m)}`,
 :math:`b_k = b_k^{(c)}`,
@@ -38,7 +38,7 @@ Full Energy of the Mean and Covariance RBM, with
 :math:`U_{if} = C_{if}`,
 
     E (v, h, g) =
-        - 0.5 \sum_f \sum_k P_{fk} h_k ( \sum_i (U_{if} v_i) / |U_{.f}|*|v| )^2 
+        - 0.5 \sum_f \sum_k P_{fk} h_k ( \sum_i (U_{if} v_i) / |U_{.f}|*|v| )^2
         - \sum_k b_k h_k
         + 0.5 \sum_i v_i^2
         - \sum_j \sum_i W_{ij} g_j v_i
@@ -55,7 +55,7 @@ Version in published train_mcRBM code
 The train_mcRBM file implements learning in a similar but technically different Energy function:
 
     E (v, h, g) =
-         0.5 \sum_f \sum_k P_{fk} h_k (\sum_i U_{if} v_i / sqrt(\sum_i v_i^2/I + 0.5))^2 
+         0.5 \sum_f \sum_k P_{fk} h_k (\sum_i U_{if} v_i / sqrt(\sum_i v_i^2/I + 0.5))^2
         - \sum_k b_k h_k
         + 0.5 \sum_i v_i^2
         - \sum_j \sum_i W_{ij} g_j v_i
@@ -84,20 +84,20 @@ This file implements the same algorithm as the train_mcRBM code, except that the
 omitted for clarity, and replaced analytically with a negative identity matrix.
 
     E (v, h, g) =
-        + 0.5 \sum_k h_k (\sum_i U_{ik} v_i / sqrt(\sum_i v_i^2/I + 0.5))^2 
+        + 0.5 \sum_k h_k (\sum_i U_{ik} v_i / sqrt(\sum_i v_i^2/I + 0.5))^2
         - \sum_k b_k h_k
         + 0.5 \sum_i v_i^2
         - \sum_j \sum_i W_{ij} g_j v_i
         - \sum_j c_j g_j
 
     E (v, h, g) =
-        - 0.5 \sum_f \sum_k P_{fk} h_k (\sum_i U_{if} v_i / sqrt(\sum_i v_i^2/I + 0.5))^2 
+        - 0.5 \sum_f \sum_k P_{fk} h_k (\sum_i U_{if} v_i / sqrt(\sum_i v_i^2/I + 0.5))^2
         - \sum_k b_k h_k
         + 0.5 \sum_i v_i^2
         - \sum_j \sum_i W_{ij} g_j v_i
         - \sum_j c_j g_j
 
-      
+
 
 Conventions in this file
 ========================
@@ -107,9 +107,9 @@ more convenient.
 
 
 Global functions like `free_energy` work on an mcRBM as parametrized in a particular way.
-Suppose we have 
- - I input dimensions, 
- - F squared filters, 
+Suppose we have
+ - I input dimensions,
+ - F squared filters,
  - J mean variables, and
  - K covariance variables.
 
@@ -131,7 +131,7 @@ Matrices are generally layed out and accessed according to a C-order convention.
 # NOT THE ENERGY FUNCTION IN THE CODE!!!
 #
 # Free energy is the marginal energy of visible units
-# Recall: 
+# Recall:
 #   Q(x) = exp(-E(x))/Z ==> -log(Q(x)) - log(Z) = E(x)
 #
 #
@@ -154,7 +154,7 @@ Matrices are generally layed out and accessed according to a C-order convention.
 #       - \sum_k b_k h_k
 #       + 0.5 \sum_i v_i^2
 #       - \sum_j \sum_i W_{ij} g_j v_i
-#       - \sum_j c_j g_j 
+#       - \sum_j c_j g_j
 #       - \sum_i a_i v_i ))
 #
 # Get rid of double negs  in exp
@@ -165,7 +165,7 @@ Matrices are generally layed out and accessed according to a C-order convention.
 #       ) * \sum_{g} exp(
 #       + \sum_j \sum_i W_{ij} g_j v_i
 #       + \sum_j c_j g_j))
-#    - \sum_i a_i v_i 
+#    - \sum_i a_i v_i
 #
 # Break up log
 #  = -\log(  \sum_{h} exp(
@@ -176,7 +176,7 @@ Matrices are generally layed out and accessed according to a C-order convention.
 #       + \sum_j \sum_i W_{ij} g_j v_i
 #       + \sum_j c_j g_j )))
 #    + 0.5 \sum_i v_i^2
-#    - \sum_i a_i v_i 
+#    - \sum_i a_i v_i
 #
 # Use domain h is binary to turn log(sum(exp(sum...))) into sum(log(..
 #  = -\log(\sum_{h} exp(
@@ -185,19 +185,19 @@ Matrices are generally layed out and accessed according to a C-order convention.
 #       ))
 #    - \sum_{j} \log(1 + exp(\sum_i W_{ij} v_i + c_j ))
 #    + 0.5 \sum_i v_i^2
-#    - \sum_i a_i v_i 
+#    - \sum_i a_i v_i
 #
 #  = - \sum_{k} \log(1 + exp(b_k + 0.5 \sum_f P_{fk}( \sum_i U_{if} v_i )^2 / (|U_{*f}|*|v|)))
 #    - \sum_{j} \log(1 + exp(\sum_i W_{ij} v_i + c_j ))
 #    + 0.5 \sum_i v_i^2
-#    - \sum_i a_i v_i 
+#    - \sum_i a_i v_i
 #
 # For negative-one-diagonal P this gives:
 #
 #  = - \sum_{k} \log(1 + exp(b_k - 0.5 \sum_i (U_{ik} v_i )^2 / (|U_{*k}|*|v|)))
 #    - \sum_{j} \log(1 + exp(\sum_i W_{ij} v_i + c_j ))
 #    + 0.5 \sum_i v_i^2
-#    - \sum_i a_i v_i 
+#    - \sum_i a_i v_i
 
 import sys, os, logging
 import numpy as np
@@ -272,7 +272,7 @@ def contrastive_grad(free_energy_fn, pos_v, neg_v, wrt, other_cost=0):
     :param neg_v: negative-phase sample of visible units
     :param wrt: TensorType variables with respect to which we want gradients (similar to the
         'wrt' argument to tensor.grad)
-    :param other_cost: TensorType scalar 
+    :param other_cost: TensorType scalar
 
     :returns: TensorType variables for the gradient on each of the 'wrt' arguments
 
@@ -358,7 +358,7 @@ class mcRBM(object):
 
         `h` is the conditional on the covariance units.
         `g` is the conditional on the mean units.
-        
+
         """
         h = TT.nnet.sigmoid(self.hidden_cov_units_preactivation_given_v(v))
         g = TT.nnet.sigmoid(self.c + dot(v,self.W))
@@ -369,7 +369,7 @@ class mcRBM(object):
 
         For an RBM made from shared variables, this will return an integer,
         for a purely symbolic RBM this will return a theano expression.
-        
+
         """
         try:
             return self.W.get_value(borrow=True).shape[0]
@@ -381,7 +381,7 @@ class mcRBM(object):
 
         For an RBM made from shared variables, this will return an integer,
         for a purely symbolic RBM this will return a theano expression.
-        
+
         """
         try:
             return self.U.get_value(borrow=True).shape[1]
@@ -393,7 +393,7 @@ class mcRBM(object):
 
         For an RBM made from shared variables, this will return an integer,
         for a purely symbolic RBM this will return a theano expression.
-        
+
         """
         try:
             return self.W.get_value(borrow=True).shape[1]
@@ -449,7 +449,7 @@ class mcRBM(object):
 
         WRITEME : a *prescriptive* definition of this method suitable for mention in the API
         doc.
-        
+
         """
         return list(self._params)
 
@@ -467,7 +467,7 @@ class mcRBM(object):
         :param n_K: number of covariance hidden units
         :param n_J: number of mean filters (linear)
         :param rng: seed or numpy RandomState object to initialize parameters
-        
+
         :note:
         Constants for initial ranges and values taken from train_mcRBM.py.
         """
@@ -503,7 +503,7 @@ def topological_connectivity(out_shape=(12,12), window_shape=(3,3), window_strid
                     in_c = out_c * window_stride[1] + win_c
                     rval[in_r%A, in_c%B, out_r%C, out_c%D] += 1
 
-    # This normalization algorithm is a guess, based on inspection of the matrix loaded from 
+    # This normalization algorithm is a guess, based on inspection of the matrix loaded from
     # see CVPR2010paper_material/topo2D_3x3_stride2_576filt.mat
     rval = rval.reshape((A*B, C*D))
     rval = (rval.T / rval.sum(axis=1)).T
@@ -542,7 +542,7 @@ class mcRBM_withP(mcRBM):
 
         For an RBM made from shared variables, this will return an integer,
         for a purely symbolic RBM this will return a theano expression.
-        
+
         """
         try:
             return self.P.get_value(borrow=True).shape[1]
@@ -558,7 +558,7 @@ class mcRBM_withP(mcRBM):
         :param n_K: number of covariance hidden units
         :param n_J: number of mean filters (linear)
         :param rng: seed or numpy RandomState object to initialize parameters
-        
+
         :note:
         Constants for initial ranges and values taken from train_mcRBM.py.
         """
@@ -596,7 +596,7 @@ class mcRBM_withP(mcRBM):
         return rval
 
 class mcRBMTrainer(object):
-    """Light-weight class encapsulating math for mcRBM training 
+    """Light-weight class encapsulating math for mcRBM training
 
     Attributes:
       - rbm  - an mcRBM instance
@@ -697,7 +697,7 @@ class mcRBMTrainer(object):
         """
         :param new_U: a proposed new value for rbm.U
 
-        :returns: a pair of TensorType variables: 
+        :returns: a pair of TensorType variables:
             a corrected new value for U, and a new value for self.normVF
 
         This is a weird normalization procedure, but the sample code for the paper has it, and
@@ -713,7 +713,7 @@ class mcRBMTrainer(object):
             neg_v = self.sampler.positions
         return contrastive_grad(
                 free_energy_fn=self.rbm.free_energy_given_v,
-                pos_v=self.visible_batch, 
+                pos_v=self.visible_batch,
                 neg_v=neg_v,
                 wrt = self.rbm.params(),
                 other_cost=(l1(self.rbm.U)+l1(self.rbm.W)) * self.effective_l1_penalty)
@@ -747,7 +747,7 @@ class mcRBMTrainer(object):
         #       go through that mechanism.
 
         lr = TT.clip(
-                self.learn_rate * TT.cast(self.lr_anneal_start / (self.iter+1), floatX), 
+                self.learn_rate * TT.cast(self.lr_anneal_start / (self.iter+1), floatX),
                 0.0, #min
                 self.learn_rate) #max
 

@@ -23,9 +23,9 @@ def sampler_on_nd_gaussian(sampler_cls, burnin, n_samples, dim=10):
     # Declared shared random variable for positions
     position = rng.randn(batchsize, dim).astype(theano.config.floatX)
     position = theano.shared(position)
-    
+
     # Create HMC sampler
-    sampler = sampler_cls(position, gaussian_energy, 
+    sampler = sampler_cls(position, gaussian_energy,
             initial_stepsize=1e-3, stepsize_max=0.5)
 
     # Start with a burn-in process
@@ -43,7 +43,7 @@ def sampler_on_nd_gaussian(sampler_cls, burnin, n_samples, dim=10):
     print 'empirical mean: ', samples.mean(axis=0)
     print 'empirical_cov:\n', numpy.cov(samples.T)
 
-    print '****** HMC INTERNALS ******' 
+    print '****** HMC INTERNALS ******'
     print 'final stepsize', sampler.stepsize.get_value()
     print 'final acceptance_rate', sampler.avg_acceptance_rate.get_value()
 
