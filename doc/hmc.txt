@@ -195,10 +195,10 @@ respectively.
         rval2: dictionary
             Dictionary of updates for the Scan Op
         """
-        # from pos(t) and vel(t-eps/2), compute vel(t+eps/2)
+        # from pos(t) and vel(t - eps/2), compute vel(t + eps / 2)
         dE_dpos = TT.grad(energy_fn(pos).sum(), pos)
         new_vel = vel - step * dE_dpos
-        # from vel(t+eps/2) compute pos(t+eps)
+        # from vel(t + eps / 2) compute pos(t + eps)
         new_pos = pos + step * new_vel
 
         return [new_pos, new_vel],{}
@@ -238,10 +238,10 @@ and full-step of :math:`s`, and then scan over the `leapfrog` method
         def leapfrog(pos, vel, step):
             """ ... """
 
-        # compute velocity at time-step: t + stepsize/2
+        # compute velocity at time-step: t + stepsize / 2
         initial_energy = energy_fn(initial_pos)
         dE_dpos = TT.grad(initial_energy.sum(), initial_pos)
-        vel_half_step = initial_vel - 0.5*stepsize*dE_dpos
+        vel_half_step = initial_vel - 0.5 * stepsize * dE_dpos
 
         # compute position at time-step: t + stepsize
         pos_full_step = initial_pos + stepsize * vel_half_step
@@ -346,8 +346,8 @@ We then accept/reject the proposed state based on the Metropolis algorithm.
 
     # accept/reject the proposed move based on the joint distribution
     accept = metropolis_hastings_accept(
-            energy_prev = hamiltonian(positions, initial_vel, energy_fn),
-            energy_next = hamiltonian(final_pos, final_vel, energy_fn),
+            energy_prev=hamiltonian(positions, initial_vel, energy_fn),
+            energy_next=hamiltonian(final_pos, final_vel, energy_fn),
             s_rng=s_rng)
 
 where `metropolis\_hastings\_accept` and `hamiltonian` are helper functions,
@@ -387,7 +387,7 @@ defined as follows.
 
     def kinetic_energy(vel):
         """ ... """
-        return 0.5 * (vel**2).sum(axis=1)
+        return 0.5 * (vel ** 2).sum(axis=1)
 
 `hmc\_move` finally returns the tuple `(accept, final\_pos)`. `accept` is a
 symbolic boolean variable indicating whether or not the new state `final_pos`
@@ -415,7 +415,7 @@ state.
 
         ## POSITION UPDATES ## 
         # broadcast `accept` scalar to tensor with the same dimensions as final_pos.
-        accept_matrix = accept.dimshuffle(0, *(('x',)*(final_pos.ndim-1)))
+        accept_matrix = accept.dimshuffle(0, *(('x',) * (final_pos.ndim - 1)))
         # if accept is True, update to `final_pos` else stay put
         new_positions = TT.switch(accept_matrix, final_pos, positions)
 
@@ -506,11 +506,11 @@ elements are:
         @classmethod
         def new_from_shared_positions(cls, shared_positions, energy_fn, 
                 initial_stepsize=0.01, target_acceptance_rate=.9, n_steps=20,
-                stepsize_dec = 0.98,
-                stepsize_min = 0.001,
-                stepsize_max = 0.25,
-                stepsize_inc = 1.02,
-                avg_acceptance_slowness = 0.9, # used in geometric avg. 1.0 would be not moving at all
+                stepsize_dec=0.98,
+                stepsize_min=0.001,
+                stepsize_max=0.25,
+                stepsize_inc=1.02,
+                avg_acceptance_slowness=0.9, # used in geometric avg. 1.0 would be not moving at all
                 seed=12345):
             """
             :param shared_positions: theano ndarray shared var with many particle [initial] positions
@@ -616,7 +616,7 @@ compare the empirical mean and covariance matrix to their true values.
 
         # Define energy function for a multi-variate Gaussian
         def gaussian_energy(x):
-            return 0.5 * (TT.dot((x-mu),cov_inv)*(x-mu)).sum(axis=1)
+            return 0.5 * (TT.dot((x - mu), cov_inv) * (x - mu)).sum(axis=1)
 
         # Declared shared random variable for positions
         position = shared(rng.randn(batchsize, dim).astype(theano.config.floatX))
@@ -626,11 +626,11 @@ compare the empirical mean and covariance matrix to their true values.
                 initial_stepsize=1e-3, stepsize_max=0.5)
 
         # Start with a burn-in process
-        garbage = [sampler.draw() for r in xrange(burnin)] #burn-in
+        garbage = [sampler.draw() for r in xrange(burnin)]  #burn-in
         # Draw `n_samples`: result is a 3D tensor of dim [n_samples, batchsize, dim]
         _samples = np.asarray([sampler.draw() for r in xrange(n_samples)])
         # Flatten to [n_samples * batchsize, dim]
-        samples = _samples.T.reshape(dim,-1).T
+        samples = _samples.T.reshape(dim, -1).T
 
         print '****** TARGET VALUES ******'
         print 'target mean:', mu

@@ -66,10 +66,10 @@ share.
 .. code-block:: python
 
     def deep_main(learning_rate=0.1,
-            pretraining_epochs = 20,
-            pretrain_lr = 0.1,
-            training_epochs = 1000,
-            batch_size = 20,
+            pretraining_epochs=20,
+            pretrain_lr=0.1,
+            training_epochs=1000,
+            batch_size=20,
             mnist_file='mnist.pkl.gz'):
      
         n_train_examples, train_valid_test = load_mnist(mnist_file)
@@ -113,9 +113,9 @@ share.
 
         train_fn, valid_scores, test_scores =\
             deep_model.finetune_functions(
-                train_valid_test[0][0],         # training dataset
-                learning_rate=finetune_lr,      # the learning rate
-                batch_size = batch_size)        # number of examples to use at once
+                train_valid_test[0][0],       # training dataset
+                learning_rate=finetune_lr,    # the learning rate
+                batch_size=batch_size)        # number of examples to use at once
 
         
         # use these functions as part of the generic early-stopping procedure
