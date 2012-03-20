@@ -1,6 +1,6 @@
 .. _gettingstarted:
 
-  
+
 ===============
 Getting Started
 ===============
@@ -37,18 +37,18 @@ MNIST Dataset
 
 (`mnist.pkl.gz <http://deeplearning.net/data/mnist/mnist.pkl.gz>`_)
 
- The `MNIST <http://yann.lecun.com/exdb/mnist>`_ dataset consists of handwritten 
- digit images and it is divided in 60,000 examples for the training set and 
+ The `MNIST <http://yann.lecun.com/exdb/mnist>`_ dataset consists of handwritten
+ digit images and it is divided in 60,000 examples for the training set and
  10,000 examples for testing. In many papers as well as in this tutorial, the
  official training set of 60,000 is divided into an actual training set of 50,000
  examples and 10,000 validation examples (for selecting hyper-parameters like
- learning rate and size of the model). All digit images have been size-normalized and 
- centered in a fixed size image of 28 x 28 pixels. In the original dataset 
- each pixel of the image is represented by a value between 0 and 255, where 
- 0 is black, 255 is  white and anything in between is a different shade of grey. 
+ learning rate and size of the model). All digit images have been size-normalized and
+ centered in a fixed size image of 28 x 28 pixels. In the original dataset
+ each pixel of the image is represented by a value between 0 and 255, where
+ 0 is black, 255 is  white and anything in between is a different shade of grey.
 
 
- Here are some examples of MNIST digits: 
+ Here are some examples of MNIST digits:
 
     |0| |1| |2| |3| |4| |5|
 
@@ -58,67 +58,67 @@ MNIST Dataset
  .. |3| image:: images/mnist_3.png
  .. |4| image:: images/mnist_4.png
  .. |5| image:: images/mnist_5.png
- 
+
  For convenience we pickled the dataset to make it easier to use in python.
  It is available for download `here <http://deeplearning.net/data/mnist/mnist.pkl.gz>`_.
- The pickled file represents a tuple of 3 lists : the training set, the 
+ The pickled file represents a tuple of 3 lists : the training set, the
  validation set and the testing set. Each of the three lists is a pair
  formed from a list of images and a list of class labels for each of the
  images. An image is represented as numpy 1-dimensional array of 784 (28
  x 28) float values between 0 and 1 (0 stands for black, 1 for white).
  The labels are numbers between 0 and 9 indicating which digit the image
- represents. The code block below shows how to load the dataset. 
- 
+ represents. The code block below shows how to load the dataset.
+
 
  .. code-block:: python
 
     import cPickle, gzip, numpy
- 
-    # Load the dataset 
+
+    # Load the dataset
     f = gzip.open('mnist.pkl.gz', 'rb')
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
 
  When using the dataset, we usually divide it in minibatches (see
- :ref:`opt_SGD`). We encourage you to store the dataset into shared 
- variables and access it based on the minibatch index, given a fixed 
+ :ref:`opt_SGD`). We encourage you to store the dataset into shared
+ variables and access it based on the minibatch index, given a fixed
  and known batch size. The reason behind shared variables is
  related to using the GPU. There is a large overhead when copying data
- into the GPU memory. If you would copy data on request ( each minibatch 
- individually when needed) as the code will do if you do not use shared 
+ into the GPU memory. If you would copy data on request ( each minibatch
+ individually when needed) as the code will do if you do not use shared
  variables, due to this overhead, the GPU code will not be much faster
- then the CPU code (maybe even slower). If you have your data in 
- Theano shared variables though, you give Theano the possibility to copy 
+ then the CPU code (maybe even slower). If you have your data in
+ Theano shared variables though, you give Theano the possibility to copy
  the entire data on the GPU in a single call when the shared variables are constructed.
- Afterwards the GPU can access any minibatch by taking a slice from this 
- shared variables, without needing to copy any information from the CPU 
- memory and therefore bypassing the overhead. 
+ Afterwards the GPU can access any minibatch by taking a slice from this
+ shared variables, without needing to copy any information from the CPU
+ memory and therefore bypassing the overhead.
  Because the datapoints and their labels are usually of different nature
  (labels are usually integers while datapoints are real numbers) we
- suggest to use different variables for labes and data. Also we recomand 
+ suggest to use different variables for labes and data. Also we recomand
  using different variables for the training set, validation set and
  testing set to make the code more readable (resulting in 6 different
- shared variables). 
- 
+ shared variables).
+
  Since now the data is in one variable, and a minibatch is defined as a
  slice of that variable, it comes more natural to define a minibatch by
  indicating its index and its size. In our setup the batch size stays constant
  through out the execution of the code, therefore a function will actually
  require only the index to identify on which datapoints to work.
- The code below shows how to store your data and how to 
+ The code below shows how to store your data and how to
  access a minibatch:
 
- 
+
  .. code-block:: python
 
     def shared_dataset(data_xy):
         """ Function that loads the dataset into shared variables
-        
-        The reason we store our dataset in shared variables is to allow 
-        Theano to copy it into the GPU memory (when code is run on GPU). 
+
+        The reason we store our dataset in shared variables is to allow
+        Theano to copy it into the GPU memory (when code is run on GPU).
         Since copying data into the GPU is slow, copying a minibatch everytime
-        is needed (the default behaviour if the data is not in a shared 
+        is needed (the default behaviour if the data is not in a shared
         variable) would lead to a large decrease in performance.
         """
         data_x, data_y = data_xy
@@ -127,8 +127,8 @@ MNIST Dataset
         # When storing data on the GPU it has to be stored as floats
         # therefore we will store the labels as ``floatX`` as well
         # (``shared_y`` does exactly that). But during our computations
-        # we need them as ints (we use labels as index, and if they are 
-        # floats it doesn't make sense) therefore instead of returning 
+        # we need them as ints (we use labels as index, and if they are
+        # floats it doesn't make sense) therefore instead of returning
         # ``shared_y`` we will have to cast it to int. This little hack
         # lets us get around this issue
         return shared_x, T.cast(shared_y, 'int32')
@@ -139,7 +139,7 @@ MNIST Dataset
 
     batch_size = 500    # size of the minibatch
 
-    # accessing the third minibatch of the training set 
+    # accessing the third minibatch of the training set
 
     data  = train_set_x[2 * 500: 3 * 500]
     label = train_set_y[2 * 500: 3 * 500]
@@ -148,16 +148,16 @@ MNIST Dataset
 The data has to be stored as floats on the GPU ( the right
 ``dtype`` for storing on the GPU is given by ``theano.config.floatX``).
 To get around this shortcomming for the labels, we store them as float,
-and then cast it to int. 
+and then cast it to int.
 
 .. note::
 
-    If you are running your code on the GPU and the dataset you are using 
+    If you are running your code on the GPU and the dataset you are using
     is too large to fit in memory the code will crash. In such a case you
-    should store the data in a shared variable. You can however store a 
+    should store the data in a shared variable. You can however store a
     sufficiently small chunk of your data (several minibatches) in a shared
     variable and use that during training. Once you got through the chunk,
-    update the values it stores. This way you minimize the number of data 
+    update the values it stores. This way you minimize the number of data
     transfers between CPU memory and GPU memory.
 
 
@@ -265,25 +265,25 @@ of errors (zero-one loss) on unseen examples. If :math:`f: R^D \rightarrow
 \{0,...,L\}` is the prediction function, then this loss can be written as:
 
 .. math::
-    
+
     \ell_{0,1} = \sum_{i=0}^{|\mathcal{D}|} I_{f(x^{(i)}) \neq y^{(i)}}
-    
+
 where either :math:`\mathcal{D}` is the training
 set (during training)
-or :math:`\mathcal{D} \cap \mathcal{D}_{train} = \emptyset` 
+or :math:`\mathcal{D} \cap \mathcal{D}_{train} = \emptyset`
 (to avoid biasing the evaluation of validation or test error). :math:`I` is the
 indicator function defined as:
 
 .. math::
 
-    I_x = \left\{\begin{array}{ccc} 
+    I_x = \left\{\begin{array}{ccc}
           1&\mbox{ if $x$ is True} \\
           0&\mbox{ otherwise}\end{array}\right.
 
 In this tutorial, :math:`f` is defined as:
 
 .. math::
-    
+
     f(x) = {\rm argmax}_k P(Y=k | x, \theta)
 
 In python, using Theano this can be written as :
@@ -309,12 +309,12 @@ all the labels in a training set.
 
 .. math::
 
-    \mathcal{L}(\theta, \mathcal{D}) = 
+    \mathcal{L}(\theta, \mathcal{D}) =
         \sum_{i=0}^{|\mathcal{D}|} \log P(Y=y^{(i)} | x^{(i)}, \theta)
 
 The likelihood of the correct class is not the same as the
 number of right predictions, but from the point of view of a randomly
-initialized classifier they are pretty similar. 
+initialized classifier they are pretty similar.
 Remember that likelihood and zero-one loss are different objectives;
 you should see that they are corralated on the validation set but
 sometimes one will rise while the other falls, or vice-versa.
@@ -331,7 +331,7 @@ The NLL of our classifier is a differentiable surrogate for the zero-one loss,
 and we use the gradient of this function over our training data as a
 supervised learning signal for deep learning of a classifier.
 
-This can be computed using the following line of code : 
+This can be computed using the following line of code :
 
 .. code-block:: python
 
@@ -353,9 +353,9 @@ Stochastic Gradient Descent
 +++++++++++++++++++++++++++
 
 What is ordinary gradient descent?  it is a simple
-algorithm in which we repeatedly make small steps downward on an error 
-surface defined by a loss function of some parameters.  
-For the purpose of ordinary gradient descent we consider that the training 
+algorithm in which we repeatedly make small steps downward on an error
+surface defined by a loss function of some parameters.
+For the purpose of ordinary gradient descent we consider that the training
 data is rolled into the loss function. Then the pseudocode of this
 algorithm can be described as :
 
@@ -378,8 +378,8 @@ form, we estimate the gradient from just a single example at a time.
 .. code-block:: python
 
     # STOCHASTIC GRADIENT DESCENT
-    for (x_i,y_i) in training_set:  
-                                # imagine an infinite generator 
+    for (x_i,y_i) in training_set:
+                                # imagine an infinite generator
                                 # that may repeat examples (if there is only a finite training set)
         loss = f(params, x_i, y_i)
         d_loss_wrt_params = ... # compute gradient
@@ -388,16 +388,16 @@ form, we estimate the gradient from just a single example at a time.
             return params
 
 The variant that we recommend for deep learning is a further twist on
-stochastic gradient descent using so-called "minibatches".  
+stochastic gradient descent using so-called "minibatches".
 Minibatch SGD works identically to SGD, except that we use more than
 one training example to make each estimate of the gradient.  This technique reduces
 variance in the estimate of the gradient, and often makes better use of the
-hierarchical memory organization in modern computers. 
+hierarchical memory organization in modern computers.
 
 .. code-block:: python
 
-    for (x_batch,y_batch) in train_batches:  
-                                # imagine an infinite generator 
+    for (x_batch,y_batch) in train_batches:
+                                # imagine an infinite generator
                                 # that may repeat examples
         loss = f(params, x_batch, y_batch)
         d_loss_wrt_params = ... # compute gradient using theano
@@ -412,31 +412,31 @@ reduction of variance and use of SIMD instructions helps most when increasing
 With large :math:`B`, time is wasted in reducing the variance of the gradient
 estimator, that time would be better spent on additional gradient steps.
 An optimal :math:`B` is model-, dataset-, and hardware-dependent, and can be
-anywhere from 1 to maybe several hundreds.  In the tutorial we set it to 20, 
-but this choice is almost arbitrary (though harmless). 
+anywhere from 1 to maybe several hundreds.  In the tutorial we set it to 20,
+but this choice is almost arbitrary (though harmless).
 
 .. note::
 
-    If you are training for a fixed number of epochs, the minibatch size becomes important 
+    If you are training for a fixed number of epochs, the minibatch size becomes important
     because it controls the number of updates done to your parameters. Training the same model
     for 10 epochs using a batch size of 1 yields completely different results compared
     to training for the same 10 epochs but with a batchsize of 20. Keep this in mind when
-    switching between batch sizes and be prepared to tweak all the other parameters acording 
+    switching between batch sizes and be prepared to tweak all the other parameters acording
     to the batch size used.
-    
-All code-blocks above show pseudocode of how the algorithm looks like. Implementing such 
-algorithm in Theano can be done as follows : 
+
+All code-blocks above show pseudocode of how the algorithm looks like. Implementing such
+algorithm in Theano can be done as follows :
 
 .. code-block:: python
 
     # Minibatch Stochastic Gradient Descent
-    
+
     # assume loss is a symbolic description of the loss function given
-    # the symbolic variables params (shared variable), x_batch, y_batch; 
+    # the symbolic variables params (shared variable), x_batch, y_batch;
 
     # compute gradient of loss with respect to params
     d_loss_wrt_params = T.grad(loss, params)
-  
+
     # compile the MSGD step into a theano function
     updates = {params: params - learning_rate * d_loss_wrt_params}
     MSGD = theano.function([x_batch,y_batch], loss, updates=updates)
@@ -459,7 +459,7 @@ train our model from data we are trying to prepare it to do well on *new*
 examples, not the ones it has already seen.  The training loop above for MSGD
 does not take this into account, and may overfit the training examples.
 A way to combat overfitting is through regularization.
-There are several techniques for regularization; the ones we will explain 
+There are several techniques for regularization; the ones we will explain
 here are L1/L2 regularization and early-stopping.
 
 .. index:: L1 and L2 regularization
@@ -474,7 +474,7 @@ which penalizes certain parameter configurations. Formally, if our loss function
 
 .. math::
 
-    NLL(\theta, \mathcal{D}) = - \sum_{i=0}^{|\mathcal{D}|} \log P(Y=y^{(i)} | x^{(i)}, \theta) 
+    NLL(\theta, \mathcal{D}) = - \sum_{i=0}^{|\mathcal{D}|} \log P(Y=y^{(i)} | x^{(i)}, \theta)
 
 then the regularized loss will be:
 
@@ -509,7 +509,7 @@ theory, correspond to finding the right trade-off between the fit to the
 training data and the "generality" of the solution that is found. To follow
 Occam's razor principle, this minimization should find us the simplest
 solution (as measured by our simplicity criterion) that fits the training
-data. 
+data.
 
 Note that the fact that a solution is "simple" does not mean that it will
 generalize well. Empirically, it was found that performing such regularization
@@ -520,14 +520,14 @@ contains both a L1 regularization term weighted by :math:`\lambda_1` and
 L2 regularization term weighted by :math:`\lambda_2`
 
 .. code-block:: python
- 
+
   # symbolic Theano variable that represents the L1 regularization term
   L1  = T.sum(abs(param))
 
-  # symbolic Theano variable that represents the squared L2 term 
+  # symbolic Theano variable that represents the squared L2 term
   L2_sqr = T.sum(param ** 2)
 
-  # the loss 
+  # the loss
   loss = NLL + lambda_1 * L1 + lambda_2 * L2
 
 
@@ -547,7 +547,7 @@ validation examples are considered to be representative of future test examples.
 We can use them during training because they are not part of the test set.
 If the model's performance ceases to improve sufficiently on the
 validation set, or even degrades with further optimization, then the
-heuristic implemented here gives up on much further optimization.  
+heuristic implemented here gives up on much further optimization.
 
 
 The choice of when to stop is a
@@ -558,23 +558,23 @@ of a strategy based on a geometrically increasing amount of patience.
 
     # early-stopping parameters
     patience = 5000  # look as this many examples regardless
-    patience_increase = 2     # wait this much longer when a new best is 
+    patience_increase = 2     # wait this much longer when a new best is
                                   # found
-    improvement_threshold = 0.995  # a relative improvement of this much is 
+    improvement_threshold = 0.995  # a relative improvement of this much is
                                    # considered significant
-    validation_frequency = min(n_train_batches, patience/2)  
-                                  # go through this many 
-                                  # minibatches before checking the network 
-                                  # on the validation set; in this case we 
-                                  # check every epoch 
+    validation_frequency = min(n_train_batches, patience/2)
+                                  # go through this many
+                                  # minibatches before checking the network
+                                  # on the validation set; in this case we
+                                  # check every epoch
 
     best_params = None
     best_validation_loss = numpy.inf
     test_score = 0.
     start_time = time.clock()
 
-    done_looping = False 
-    epoch = 0  
+    done_looping = False
+    epoch = 0
     while (epoch < n_epochs) and (not done_looping):
         epoch = epoch + 1
         for minibatch_index in xrange(n_train_batches):
@@ -586,7 +586,7 @@ of a strategy based on a geometrically increasing amount of patience.
             iter = epoch * n_train_batches + minibatch_index
             # note that if we do `iter % validation_frequency` it will be
             # true for iter = 0 which we do not want
-            if iter and iter % validation_frequency == 0: 
+            if iter and iter % validation_frequency == 0:
 
                 this_validation_loss = ... # compute zero-one loss on validation set
 
@@ -607,11 +607,11 @@ of a strategy based on a geometrically increasing amount of patience.
     # best_params refers to the best out-of-sample parameters observed during the optimization
 
 If we run out of batches of training data before running out of patience, then
-we just go back to the beginning of the training set and repeat.  
+we just go back to the beginning of the training set and repeat.
 
 
 .. note::
-    
+
     The ``validation_frequency`` should always be smaller than the
     ``patience``. The code should check at least two times how it
     performs before running out of patience. This is the reason we used
@@ -644,10 +644,10 @@ Recap
 +++++
 
 That's it for the optimization section.
-The technique of early-stopping requires us to partition the set of examples into three sets 
+The technique of early-stopping requires us to partition the set of examples into three sets
 (training :math:`\mathcal{D}_{train}`,
 validation :math:`\mathcal{D}_{valid}`,
-test :math:`\mathcal{D}_{test}`). 
+test :math:`\mathcal{D}_{test}`).
 The training set is used for minibatch stochastic gradient descent on the
 differentiable approximation of the objective function.
 As we perform this gradient descent, we periodically consult the validation set
