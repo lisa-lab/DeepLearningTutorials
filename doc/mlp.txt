@@ -106,7 +106,7 @@ layer on top.
 .. code-block:: python 
 
     class HiddenLayer(object):
-        def __init__(self, rng, input, n_in, n_out, activation = T.tanh):
+        def __init__(self, rng, input, n_in, n_out, activation=T.tanh):
             """
             Typical hidden layer of a MLP: units are fully-connected and have
             sigmoidal activation function. Weight matrix W is of shape (n_in,n_out)
@@ -162,17 +162,17 @@ both upward (activations flowing from inputs to outputs) and backward
         #        should use 4 times larger initial weights for sigmoid 
         #        compared to tanh
         #        We have no info for other function, so we use the same as tanh.
-        W_values = numpy.asarray( rng.uniform(
-                low  = - numpy.sqrt(6./(n_in+n_out)),
-                high =   numpy.sqrt(6./(n_in+n_out)),
-                size = (n_in, n_out)), dtype = theano.config.floatX)
+        W_values = numpy.asarray(rng.uniform(
+                low=-numpy.sqrt(6. / (n_in + n_out)),
+                high=numpy.sqrt(6. / (n_in + n_out)),
+                size=(n_in, n_out)), dtype=theano.config.floatX)
         if activation == theano.tensor.nnet.sigmoid:
             W_values *= 4
 
-        self.W = theano.shared(value = W_values, name ='W')
+        self.W = theano.shared(value=W_values, name='W')
 
-        b_values = numpy.zeros((n_out,), dtype= theano.config.floatX)
-        self.b = theano.shared(value= b_values, name ='b')
+        b_values = numpy.zeros((n_out,), dtype=theano.config.floatX)
+        self.b = theano.shared(value=b_values, name='b')
 
 
 Note that we used a given non-linear function as the activation function of the hidden layer. By default this is ``tanh``, but in many cases we might want
@@ -239,9 +239,9 @@ the ``MLP`` class :
         # The logistic regression layer gets as input the hidden units 
         # of the hidden layer
         self.logRegressionLayer = LogisticRegression( 
-                                    input = self.hiddenLayer.output,
-                                    n_in  = n_hidden,
-                                    n_out = n_out)
+                                    input=self.hiddenLayer.output,
+                                    n_in=n_hidden,
+                                    n_out=n_out)
 
 
 In this tutorial we will also use L1 and L2 regularization (see
@@ -257,8 +257,8 @@ norm of the weights :math:`W^{(1)}, W^{(2)}`.
 
         # square of L2 norm ; one regularization option is to enforce 
         # square of L2 norm to be small
-        self.L2_sqr = (self.hiddenLayer.W**2).sum() \
-                    + (self.logRegressionLayer.W**2).sum()
+        self.L2_sqr = (self.hiddenLayer.W ** 2).sum() \
+                    + (self.logRegressionLayer.W ** 2).sum()
 
         # negative log likelihood of the MLP is given by the negative 
         # log likelihood of the output of the model, computed in the 
@@ -312,22 +312,22 @@ at each step.
 
     # specify how to update the parameters of the model as a dictionary
     updates = {}
-    # given two list the zip A = [ a1,a2,a3,a4] and B = [b1,b2,b3,b4] of 
+    # given two list the zip A = [a1, a2, a3, a4] and B = [b1, b2, b3, b4] of 
     # same length, zip generates a list C of same size, where each element
     # is a pair formed from the two lists : 
-    #    C = [ (a1,b1), (a2,b2), (a3,b3) , (a4,b4) ] 
+    #    C = [(a1, b1), (a2, b2), (a3, b3) , (a4, b4)] 
     for param, gparam in zip(classifier.params, gparams):
-        updates[param] = param - learning_rate*gparam
+        updates[param] = param - learning_rate * gparam
 
 
     # compiling a Theano function `train_model` that returns the cost, but  
     # in the same time updates the parameter of the model based on the rules 
     # defined in `updates`
-    train_model =theano.function( inputs = [index], outputs = cost, 
-            updates = updates,
+    train_model = theano.function(inputs=[index], outputs=cost, 
+            updates=updates,
             givens={
-                x:train_set_x[index*batch_size:(index+1)*batch_size],
-                y:train_set_y[index*batch_size:(index+1)*batch_size]})
+                x: train_set_x[index * batch_size:(index + 1) * batch_size],
+                y: train_set_y[index * batch_size:(index + 1) * batch_size]})
 
 
 
