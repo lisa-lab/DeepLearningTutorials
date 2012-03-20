@@ -75,7 +75,7 @@ MNIST Dataset
     import cPickle, gzip, numpy
  
     # Load the dataset 
-    f = gzip.open('mnist.pkl.gz','rb')
+    f = gzip.open('mnist.pkl.gz', 'rb')
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
@@ -141,8 +141,8 @@ MNIST Dataset
 
     # accessing the third minibatch of the training set 
 
-    data  = train_set_x[2*500:3*500]
-    label = train_set_y[2*500:3*500]
+    data  = train_set_x[2 * 500: 3 * 500]
+    label = train_set_y[2 * 500: 3 * 500]
 
 
 The data has to be stored as floats on the GPU ( the right
@@ -294,7 +294,7 @@ In python, using Theano this can be written as :
   # expression of the zero one loss ; to get the actual value this
   # symbolic expression has to be compiled into a Theano function (see
   # the Theano tutorial for more details)
-  zero_one_loss = T.sum(T.neq(T.argmax(p_y_given_x),y))
+  zero_one_loss = T.sum(T.neq(T.argmax(p_y_given_x), y))
 
 
 .. index:: Negative Log--Likelihood Loss
@@ -338,7 +338,7 @@ This can be computed using the following line of code :
   # NLL is a symbolic variable ; to get the actual value of NLL, this symbolic
   # expression has to be compiled into a Theano function (see the Theano
   # tutorial for more details)
-  NLL = -T.sum(T.log(p_y_given_x)[T.arange(y.shape[0]),y])
+  NLL = -T.sum(T.log(p_y_given_x)[T.arange(y.shape[0]), y])
   # note on syntax: T.arange(y.shape[0]) is a vector of integers [0,1,2,...,len(y)].
   # Indexing a matrix M by the two vectors [0,1,...,K], [a,b,...,k] returns the
   # elements M[0,a], M[1,b], ..., M[K,k] as a vector.  Here, we use this
@@ -438,8 +438,8 @@ algorithm in Theano can be done as follows :
     d_loss_wrt_params = T.grad(loss, params)
   
     # compile the MSGD step into a theano function
-    updates = { params: params - learning_rate * d_loss_wrt_params}
-    MSGD = theano.function([x_batch,y_batch], loss, updates = updates)
+    updates = {params: params - learning_rate * d_loss_wrt_params}
+    MSGD = theano.function([x_batch,y_batch], loss, updates=updates)
 
     for (x_batch, y_batch) in train_batches:
         # here x_batch and y_batch are elements of train_batches and
@@ -525,7 +525,7 @@ L2 regularization term weighted by :math:`\lambda_2`
   L1  = T.sum(abs(param))
 
   # symbolic Theano variable that represents the squared L2 term 
-  L2_sqr = T.sum(param**2)
+  L2_sqr = T.sum(param ** 2)
 
   # the loss 
   loss = NLL + lambda_1 * L1 + lambda_2 * L2
@@ -557,20 +557,20 @@ of a strategy based on a geometrically increasing amount of patience.
 .. code-block:: python
 
     # early-stopping parameters
-    patience              = 5000  # look as this many examples regardless
-    patience_increase     = 2     # wait this much longer when a new best is 
+    patience = 5000  # look as this many examples regardless
+    patience_increase = 2     # wait this much longer when a new best is 
                                   # found
-    improvement_threshold = 0.995 # a relative improvement of this much is 
-                                  # considered significant
-    validation_frequency  = min(n_train_batches, patience/2)  
+    improvement_threshold = 0.995  # a relative improvement of this much is 
+                                   # considered significant
+    validation_frequency = min(n_train_batches, patience/2)  
                                   # go through this many 
                                   # minibatches before checking the network 
                                   # on the validation set; in this case we 
                                   # check every epoch 
 
-    best_params          = None
+    best_params = None
     best_validation_loss = numpy.inf
-    test_score           = 0.
+    test_score = 0.
     start_time = time.clock()
 
     done_looping = False 
@@ -593,7 +593,7 @@ of a strategy based on a geometrically increasing amount of patience.
                 if this_validation_loss < best_validation_loss:
 
                     # improve patience if loss improvement is good enough
-                    if this_validation_loss < best_validation_loss*improvement_threshold:
+                    if this_validation_loss < best_validation_loss * improvement_threshold:
 
                         patience = max(patience, iter * patience_increase)
                     best_params = copy.deepcopy(params)
@@ -682,9 +682,9 @@ like:
 
     >>> import cPickle
     >>> save_file = open('path', 'wb')  # this will overwrite current contents
-    >>> cPickle.dump(w.get_value(borrow=True), save_file, -1) # the -1 is for HIGHEST_PROTOCOL
-    >>> cPickle.dump(v.get_value(borrow=True), save_file, -1) # .. and it triggers much more efficient
-    >>> cPickle.dump(u.get_value(borrow=True), save_file, -1) # .. storage than numpy's default
+    >>> cPickle.dump(w.get_value(borrow=True), save_file, -1)  # the -1 is for HIGHEST_PROTOCOL
+    >>> cPickle.dump(v.get_value(borrow=True), save_file, -1)  # .. and it triggers much more efficient
+    >>> cPickle.dump(u.get_value(borrow=True), save_file, -1)  # .. storage than numpy's default
     >>> save_file.close()
 
 Then later, you can load your data back like this:
