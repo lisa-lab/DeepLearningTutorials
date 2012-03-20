@@ -302,44 +302,45 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
     done_looping = False
 
     while (epoch < n_epochs) and (not done_looping):
-      epoch = epoch + 1
-      for minibatch_index in xrange(n_train_batches):
+        epoch = epoch + 1
+        for minibatch_index in xrange(n_train_batches):
 
-        minibatch_avg_cost = train_model(minibatch_index)
-        # iteration number
-        iter = epoch * n_train_batches + minibatch_index
+            minibatch_avg_cost = train_model(minibatch_index)
+            # iteration number
+            iter = epoch * n_train_batches + minibatch_index
 
-        if (iter + 1) % validation_frequency == 0:
-            # compute zero-one loss on validation set
-            validation_losses = [validate_model(i) for i
-                                 in xrange(n_valid_batches)]
-            this_validation_loss = numpy.mean(validation_losses)
+            if (iter + 1) % validation_frequency == 0:
+                # compute zero-one loss on validation set
+                validation_losses = [validate_model(i) for i
+                                     in xrange(n_valid_batches)]
+                this_validation_loss = numpy.mean(validation_losses)
 
-            print('epoch %i, minibatch %i/%i, validation error %f %%' %
-                 (epoch, minibatch_index + 1, n_train_batches,
-                  this_validation_loss * 100.))
+                print('epoch %i, minibatch %i/%i, validation error %f %%' %
+                     (epoch, minibatch_index + 1, n_train_batches,
+                      this_validation_loss * 100.))
 
-            # if we got the best validation score until now
-            if this_validation_loss < best_validation_loss:
-                #improve patience if loss improvement is good enough
-                if this_validation_loss < best_validation_loss *  \
-                       improvement_threshold:
-                    patience = max(patience, iter * patience_increase)
+                # if we got the best validation score until now
+                if this_validation_loss < best_validation_loss:
+                    #improve patience if loss improvement is good enough
+                    if this_validation_loss < best_validation_loss *  \
+                           improvement_threshold:
+                        patience = max(patience, iter * patience_increase)
 
-                best_validation_loss = this_validation_loss
-                # test it on the test set
+                    best_validation_loss = this_validation_loss
+                    # test it on the test set
 
-                test_losses = [test_model(i) for i in xrange(n_test_batches)]
-                test_score = numpy.mean(test_losses)
+                    test_losses = [test_model(i) for i
+                                   in xrange(n_test_batches)]
+                    test_score = numpy.mean(test_losses)
 
-                print(('     epoch %i, minibatch %i/%i, test error of best '
-                       'model %f %%') %
-                      (epoch, minibatch_index + 1, n_train_batches,
-                       test_score * 100.))
+                    print(('     epoch %i, minibatch %i/%i, test error of '
+                           'best model %f %%') %
+                          (epoch, minibatch_index + 1, n_train_batches,
+                           test_score * 100.))
 
-        if patience <= iter:
-                done_looping = True
-                break
+            if patience <= iter:
+                    done_looping = True
+                    break
 
     end_time = time.clock()
     print(('Optimization complete. Best validation score of %f %% '
