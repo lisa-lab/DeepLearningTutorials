@@ -129,7 +129,7 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
                     if output_pixel_vals:
                         c = 255
                     out_array[
-                        tile_row * (H + Hs): tile_row * (H + Hs) + xsH,
+                        tile_row * (H + Hs): tile_row * (H + Hs) + H,
                         tile_col * (W + Ws): tile_col * (W + Ws) + W
                         ] = this_img * c
         return out_array
