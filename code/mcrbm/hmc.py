@@ -63,15 +63,15 @@ def metropolis_hastings_accept(energy_prev, energy_next, s_rng):
     ----------
     energy_prev: theano vector
         Symbolic theano tensor which contains the energy associated with the
-        configuration at time-step t.    
+        configuration at time-step t.
     energy_next: theano vector
         Symbolic theano tensor which contains the energy associated with the
-        proposed configuration at time-step t+1.    
+        proposed configuration at time-step t+1.
     s_rng: theano.tensor.shared_randomstreams.RandomStreams
         Theano shared random stream object used to generate the random number
         used in proposal.
 
-    Returns 
+    Returns
     -------
     return: boolean
         True if move is accepted, False otherwise
@@ -94,8 +94,8 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
     stepsize: shared theano scalar
         Scalar value controlling amount by which to move
     energy_fn: python function
-        Python function, operating on symbolic theano variables, used to compute
-        the potential energy at a given position.
+        Python function, operating on symbolic theano variables, used to
+        compute the potential energy at a given position.
 
     Returns
     -------
@@ -115,11 +115,11 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
         pos: theano matrix
             in leapfrog update equations, represents pos(t), position at time t
         vel: theano matrix
-            in leapfrog update equations, represents vel(t - stepsize/2), 
+            in leapfrog update equations, represents vel(t - stepsize/2),
             velocity at time (t - stepsize/2)
         step: theano scalar
             scalar value controlling amount by which to move
-        
+
         Returns
         -------
         rval1: [theano matrix, theano matrix]
@@ -143,7 +143,7 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
     # compute position at time-step: t + stepsize
     pos_full_step = initial_pos + stepsize * vel_half_step
 
-    # perform leapfrog updates: the scan op is used to repeatedly compute 
+    # perform leapfrog updates: the scan op is used to repeatedly compute
     # vel(t + (m-1/2)*stepsize) and pos(t + m*stepsize) for m in [2,n_steps].
     (all_pos, all_vel), scan_updates = theano.scan(leapfrog,
             outputs_info=[
@@ -161,7 +161,7 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
     # called. In this case however, we consciously ignore
     # "scan_updates" because we know it is empty.
     assert not scan_updates
- 
+
     # The last velocity returned by scan is vel(t + (n_steps-1/2)*stepsize)
     # We therefore perform one more half-step to return vel(t + n_steps*stepsize)
     energy = energy_fn(final_pos)
@@ -186,8 +186,8 @@ def hmc_move(s_rng, positions, energy_fn, stepsize, n_steps):
     positions: shared theano matrix
         Symbolic matrix whose rows are position vectors.
     energy_fn: python function
-        Python function, operating on symbolic theano variables, used to compute
-        the potential energy at a given position.
+        Python function, operating on symbolic theano variables, used to
+        compute the potential energy at a given position.
     stepsize:  shared theano scalar
         Shared variable containing the stepsize to use for `n_steps` of HMC
         simulation steps.
@@ -207,7 +207,7 @@ def hmc_move(s_rng, positions, energy_fn, stepsize, n_steps):
 
     # perform simulation of particles subject to Hamiltonian dynamics
     final_pos, final_vel = simulate_dynamics(
-            initial_pos = positions, 
+            initial_pos = positions,
             initial_vel = initial_vel,
             stepsize = stepsize,
             n_steps = n_steps,
@@ -218,12 +218,12 @@ def hmc_move(s_rng, positions, energy_fn, stepsize, n_steps):
             energy_prev = hamiltonian(positions, initial_vel, energy_fn),
             energy_next = hamiltonian(final_pos, final_vel, energy_fn),
             s_rng=s_rng)
-    
+
     return accept, final_pos
 
 
-def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept, 
-                 target_acceptance_rate, stepsize_inc, stepsize_dec, 
+def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
+                 target_acceptance_rate, stepsize_inc, stepsize_dec,
                  stepsize_min, stepsize_max, avg_acceptance_slowness):
     """
     This function is executed after `n_steps` of HMC sampling (`hmc_move`
@@ -268,7 +268,7 @@ def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
         acceptance rate.
     """
 
-    ## POSITION UPDATES ## 
+    ## POSITION UPDATES ##
     # broadcast `accept` scalar to tensor with the same dimensions as final_pos.
     accept_matrix = accept.dimshuffle(0, *(('x',)*(final_pos.ndim-1)))
     # if accept is True, update to `final_pos` else stay put
@@ -301,11 +301,11 @@ class HMC_sampler(object):
     `hmc_updates`). The graph is then compiled into the `simulate` function, a
     theano function which runs the simulation and updates the required shared
     variables.
-    
-    Users should interface with the sampler thorugh the `draw` function which 
+
+    Users should interface with the sampler thorugh the `draw` function which
     advances the markov chain and returns the current sample by calling
     `simulate` and `get_position` in sequence.
-    
+
     The hyper-parameters are the same as those used by Marc'Aurelio's
     'train_mcRBM.py' file (available on his personal home page).
     """
@@ -314,7 +314,7 @@ class HMC_sampler(object):
         self.__dict__.update(kwargs)
 
     @classmethod
-    def new_from_shared_positions(cls, shared_positions, energy_fn, 
+    def new_from_shared_positions(cls, shared_positions, energy_fn,
             initial_stepsize=0.01, target_acceptance_rate=.9, n_steps=20,
             stepsize_dec = 0.98,
             stepsize_min = 0.001,
@@ -325,8 +325,8 @@ class HMC_sampler(object):
         """
         :param shared_positions: theano ndarray shared var with many particle [initial] positions
         :param energy_fn:
-            callable such that energy_fn(positions) 
-            returns theano vector of energies.  
+            callable such that energy_fn(positions)
+            returns theano vector of energies.
             The len of this vector is the batchsize.
 
             The sum of this energy vector must be differentiable (with theano.tensor.grad) with
@@ -341,18 +341,18 @@ class HMC_sampler(object):
 
         # define graph for an `n_steps` HMC simulation
         accept, final_pos = hmc_move(
-                s_rng, 
-                shared_positions, 
+                s_rng,
+                shared_positions,
                 energy_fn,
-                stepsize, 
+                stepsize,
                 n_steps)
 
         # define the dictionary of updates, to apply on every `simulate` call
         simulate_updates = hmc_updates(
                 shared_positions,
                 stepsize,
-                avg_acceptance_rate, 
-                final_pos=final_pos, 
+                avg_acceptance_rate,
+                final_pos=final_pos,
                 accept=accept,
                 stepsize_min=stepsize_min,
                 stepsize_max=stepsize_max,
@@ -386,7 +386,7 @@ class HMC_sampler(object):
             The `kwargs` dictionary is passed to the shared variable
             (self.positions) `get_value()` function.  For example, to avoid
             copying the shared variable value, consider passing `borrow=True`.
- 
+
         Returns
         -------
         rval: numpy matrix
