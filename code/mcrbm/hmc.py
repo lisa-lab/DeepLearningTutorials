@@ -162,8 +162,9 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
     # "scan_updates" because we know it is empty.
     assert not scan_updates
 
-    # The last velocity returned by scan is vel(t + (n_steps-1/2)*stepsize)
-    # We therefore perform one more half-step to return vel(t + n_steps*stepsize)
+    # The last velocity returned by scan is vel(t +
+    # (n_steps - 1 / 2) * stepsize) We therefore perform one more half-step
+    # to return vel(t + n_steps * stepsize)
     energy = energy_fn(final_pos)
     final_vel = final_vel - 0.5 * stepsize * TT.grad(energy.sum(), final_pos)
 
@@ -207,16 +208,16 @@ def hmc_move(s_rng, positions, energy_fn, stepsize, n_steps):
 
     # perform simulation of particles subject to Hamiltonian dynamics
     final_pos, final_vel = simulate_dynamics(
-            initial_pos = positions,
-            initial_vel = initial_vel,
-            stepsize = stepsize,
-            n_steps = n_steps,
-            energy_fn = energy_fn)
+            initial_pos=positions,
+            initial_vel=initial_vel,
+            stepsize=stepsize,
+            n_steps=n_steps,
+            energy_fn=energy_fn)
 
     # accept/reject the proposed move based on the joint distribution
     accept = metropolis_hastings_accept(
-            energy_prev = hamiltonian(positions, initial_vel, energy_fn),
-            energy_next = hamiltonian(final_pos, final_vel, energy_fn),
+            energy_prev=hamiltonian(positions, initial_vel, energy_fn),
+            energy_next=hamiltonian(final_pos, final_vel, energy_fn),
             s_rng=s_rng)
 
     return accept, final_pos
@@ -225,12 +226,12 @@ def hmc_move(s_rng, positions, energy_fn, stepsize, n_steps):
 def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
                  target_acceptance_rate, stepsize_inc, stepsize_dec,
                  stepsize_min, stepsize_max, avg_acceptance_slowness):
-    """
-    This function is executed after `n_steps` of HMC sampling (`hmc_move`
-    function). It creates the updates dictionary used by the `simulate`
-    function. It takes care of updating: the position (if the move is accepted),
-    the stepsize (to track a given target acceptance rate) and the average
-    acceptance rate (computed as a moving average).
+    """This function is executed after `n_steps` of HMC sampling
+    (`hmc_move` function). It creates the updates dictionary used by
+    the `simulate` function. It takes care of updating: the position
+    (if the move is accepted), the stepsize (to track a given target
+    acceptance rate) and the average acceptance rate (computed as a
+    moving average).
 
     Parameters
     ----------
@@ -266,11 +267,13 @@ def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
         A dictionary of updates to be used by the `HMC_Sampler.simulate`
         function.  The updates target the position, stepsize and average
         acceptance rate.
+
     """
 
     ## POSITION UPDATES ##
-    # broadcast `accept` scalar to tensor with the same dimensions as final_pos.
-    accept_matrix = accept.dimshuffle(0, *(('x',)*(final_pos.ndim-1)))
+    # broadcast `accept` scalar to tensor with the same dimensions as
+    # final_pos.
+    accept_matrix = accept.dimshuffle(0, *(('x',) * (final_pos.ndim - 1)))
     # if accept is True, update to `final_pos` else stay put
     new_positions = TT.switch(accept_matrix, final_pos, positions)
 
@@ -316,27 +319,33 @@ class HMC_sampler(object):
     @classmethod
     def new_from_shared_positions(cls, shared_positions, energy_fn,
             initial_stepsize=0.01, target_acceptance_rate=.9, n_steps=20,
-            stepsize_dec = 0.98,
-            stepsize_min = 0.001,
-            stepsize_max = 0.25,
-            stepsize_inc = 1.02,
-            avg_acceptance_slowness = 0.9, # used in geometric avg. 1.0 would be not moving at all
+            stepsize_dec=0.98,
+            stepsize_min=0.001,
+            stepsize_max=0.25,
+            stepsize_inc=1.02,
+ # used in geometric avg. 1.0 would be not moving at all
+            avg_acceptance_slowness=0.9,
             seed=12345):
         """
-        :param shared_positions: theano ndarray shared var with many particle [initial] positions
+        :param shared_positions: theano ndarray shared var with
+            many particle [initial] positions
+
         :param energy_fn:
             callable such that energy_fn(positions)
             returns theano vector of energies.
             The len of this vector is the batchsize.
 
-            The sum of this energy vector must be differentiable (with theano.tensor.grad) with
-            respect to the positions for HMC sampling to work.
+            The sum of this energy vector must be differentiable (with
+            theano.tensor.grad) with respect to the positions for HMC
+            sampling to work.
+
         """
         batchsize = shared_positions.shape[0]
 
         # allocate shared variables
         stepsize = sharedX(initial_stepsize, 'hmc_stepsize')
-        avg_acceptance_rate = sharedX(target_acceptance_rate, 'avg_acceptance_rate')
+        avg_acceptance_rate = sharedX(target_acceptance_rate,
+                                      'avg_acceptance_rate')
         s_rng = TT.shared_randomstreams.RandomStreams(seed)
 
         # define graph for an `n_steps` HMC simulation
