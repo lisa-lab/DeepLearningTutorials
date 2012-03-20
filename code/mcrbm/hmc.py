@@ -8,12 +8,13 @@ from theano import function, shared
 from theano import tensor as TT
 import theano
 
-sharedX = lambda X, name : \
+sharedX = lambda X, name: \
         shared(numpy.asarray(X, dtype=theano.config.floatX), name=name)
 
+
 def kinetic_energy(vel):
-    """
-    Returns the kinetic energy associated with the given velocity and mass of 1.
+    """Returns the kinetic energy associated with the given velocity
+    and mass of 1.
 
     Parameters
     ----------
@@ -26,7 +27,7 @@ def kinetic_energy(vel):
         Vector whose i-th entry is the kinetic entry associated with vel[i].
 
     """
-    return 0.5 * (vel**2).sum(axis=1)
+    return 0.5 * (vel ** 2).sum(axis=1)
 
 
 def hamiltonian(pos, vel, energy_fn):
@@ -41,8 +42,8 @@ def hamiltonian(pos, vel, energy_fn):
     vel: theano matrix
         Symbolic matrix whose rows are velocity vectors.
     energy_fn: python function
-        Python function, operating on symbolic theano variables, used to compute
-        the potential energy at a given position.
+        Python function, operating on symbolic theano variables, used tox
+        compute the potential energy at a given position.
 
     Returns
     -------
@@ -57,7 +58,7 @@ def hamiltonian(pos, vel, energy_fn):
 def metropolis_hastings_accept(energy_prev, energy_next, s_rng):
     """
     Performs a Metropolis-Hastings accept-reject move.
-    
+
     Parameters
     ----------
     energy_prev: theano vector
@@ -132,12 +133,12 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
         new_vel = vel - step * dE_dpos
         # from vel(t+stepsize/2) compute pos(t+stepsize)
         new_pos = pos + step * new_vel
-        return [new_pos, new_vel],{}
+        return [new_pos, new_vel], {}
 
     # compute velocity at time-step: t + stepsize/2
     initial_energy = energy_fn(initial_pos)
     dE_dpos = TT.grad(initial_energy.sum(), initial_pos)
-    vel_half_step = initial_vel - 0.5*stepsize*dE_dpos
+    vel_half_step = initial_vel - 0.5 * stepsize * dE_dpos
 
     # compute position at time-step: t + stepsize
     pos_full_step = initial_pos + stepsize * vel_half_step
@@ -150,13 +151,15 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
                 dict(initial=vel_half_step),
                 ],
             non_sequences=[stepsize],
-            n_steps=n_steps-1)
+            n_steps=n_steps - 1)
     final_pos = all_pos[-1]
     final_vel = all_vel[-1]
-    # NOTE: Scan always returns an updates dictionary, in case the scanned function draws
-    # samples from a RandomStream. These updates must then be used when compiling the Theano
-    # function, to avoid drawing the same random numbers each time the function is called. In
-    # this case however, we consciously ignore "scan_updates" because we know it is empty.
+    # NOTE: Scan always returns an updates dictionary, in case the
+    # scanned function draws samples from a RandomStream. These
+    # updates must then be used when compiling the Theano function, to
+    # avoid drawing the same random numbers each time the function is
+    # called. In this case however, we consciously ignore
+    # "scan_updates" because we know it is empty.
     assert not scan_updates
  
     # The last velocity returned by scan is vel(t + (n_steps-1/2)*stepsize)
