@@ -288,9 +288,10 @@ def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
 
     ## ACCEPT RATE UPDATES ##
     # perform exponential moving average
+    mean_dtype = theano.scalar.upcast(accept.dtype, avg_acceptance_rate.dtype)
     new_acceptance_rate = TT.add(
             avg_acceptance_slowness * avg_acceptance_rate,
-            (1.0 - avg_acceptance_slowness) * accept.mean())
+            (1.0 - avg_acceptance_slowness) * accept.mean(dtype=mean_dtype))
 
     return [(positions, new_positions),
             (stepsize, new_stepsize),
