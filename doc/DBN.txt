@@ -463,7 +463,7 @@ given by ``pretraining_epochs``.
 
 The fine-tuning loop is very similar to the one in the :ref:`mlp` tutorial,
 the only difference being that we now use the functions given by
-`build_finetune_functions`.
+``build_finetune_functions``.
 
 Running the Code
 ++++++++++++++++
