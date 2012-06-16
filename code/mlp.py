@@ -327,8 +327,9 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
                         patience = max(patience, iter * patience_increase)
 
                     best_validation_loss = this_validation_loss
-                    # test it on the test set
+                    best_iter = iter
 
+                    # test it on the test set
                     test_losses = [test_model(i) for i
                                    in xrange(n_test_batches)]
                     test_score = numpy.mean(test_losses)
