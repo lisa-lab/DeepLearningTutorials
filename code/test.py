@@ -65,10 +65,10 @@ def speed():
     # an i7-920 @ 2.67GHz with hyperthread enabled for the cpu
     # and an GeForce GTX 285 for the GPU.
 
-    expected_times_64 = numpy.asarray([10.7, 23.7, 84.8, 74.9, 124.6,
-                                       384.9, 414.6, 558.1])
-    expected_times_32 = numpy.asarray([9.8, 25.1, 56.7, 66.5, 85.4,
-                                       211.0, 245.7, 432.8])
+    expected_times_64 = numpy.asarray([10.7, 23.7, 78.1, 74.9, 116.4,
+                                       346.9, 381.9, 558.1])
+    expected_times_32 = numpy.asarray([9.8, 25.1, 47.2, 66.5, 71.7,
+                                       191.2, 226.8, 432.8])
     # Number with just 1 decimal are new value that are faster with
     # the Theano version 0.5rc2 Other number are older. They are not
     # updated, as we where faster in the past!
