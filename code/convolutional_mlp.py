@@ -66,19 +66,6 @@ class LeNetConvPoolLayer(object):
         assert image_shape[1] == filter_shape[1]
         self.input = input
 
-        # initialize weights to temporary values until we know the
-        # shape of the output feature maps
-        W_values = numpy.zeros(filter_shape, dtype=theano.config.floatX)
-        self.W = theano.shared(value=W_values)
-
-        # the bias is a 1D tensor -- one bias per output feature map
-        b_values = numpy.zeros((filter_shape[0],), dtype=theano.config.floatX)
-        self.b = theano.shared(value=b_values)
-
-        # convolve input feature maps with filters
-        conv_out = conv.conv2d(input=input, filters=self.W,
-                filter_shape=filter_shape, image_shape=image_shape)
-
         # there are "num input feature maps * filter height * filter width"
         # inputs to each hidden unit
         fan_in = numpy.prod(filter_shape[1:])
@@ -87,12 +74,20 @@ class LeNetConvPoolLayer(object):
         #   pooling size
         fan_out = (filter_shape[0] * numpy.prod(filter_shape[2:]) /
                    numpy.prod(poolsize))
-        # replace weight values with random weights
+        # initialize weights with random weights
         W_bound = numpy.sqrt(6. / (fan_in + fan_out))
-        self.W.set_value(numpy.asarray(
-                rng.uniform(low=-W_bound, high=W_bound, size=filter_shape),
-                dtype=theano.config.floatX),
-            borrow=True)
+        self.W = theano.shared(numpy.asarray(
+            rng.uniform(low=-W_bound, high=W_bound, size=filter_shape),
+            dtype=theano.config.floatX),
+                               borrow=True)
+
+        # the bias is a 1D tensor -- one bias per output feature map
+        b_values = numpy.zeros((filter_shape[0],), dtype=theano.config.floatX)
+        self.b = theano.shared(value=b_values)
+
+        # convolve input feature maps with filters
+        conv_out = conv.conv2d(input=input, filters=self.W,
+                filter_shape=filter_shape, image_shape=image_shape)
 
         # downsample each feature map individually, using maxpooling
         pooled_out = downsample.max_pool_2d(input=conv_out,
