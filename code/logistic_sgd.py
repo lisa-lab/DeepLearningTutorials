@@ -76,11 +76,11 @@ class LogisticRegression(object):
         # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
         self.W = theano.shared(value=numpy.zeros((n_in, n_out),
                                                  dtype=theano.config.floatX),
-                                name='W')
+                                name='W', borrow=True)
         # initialize the baises b as a vector of n_out 0s
         self.b = theano.shared(value=numpy.zeros((n_out,),
                                                  dtype=theano.config.floatX),
-                               name='b')
+                               name='b', borrow=True)
 
         # compute vector of class-membership probabilities in symbolic form
         self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W) + self.b)
@@ -176,7 +176,7 @@ def load_data(dataset):
     #the number of rows in the input. It should give the target
     #target to the example with the same index in the input.
 
-    def shared_dataset(data_xy):
+    def shared_dataset(data_xy, borrow=True):
         """ Function that loads the dataset into shared variables
 
         The reason we store our dataset in shared variables is to allow
@@ -187,9 +187,11 @@ def load_data(dataset):
         """
         data_x, data_y = data_xy
         shared_x = theano.shared(numpy.asarray(data_x,
-                                               dtype=theano.config.floatX))
+                                               dtype=theano.config.floatX),
+                                 borrow=borrow)
         shared_y = theano.shared(numpy.asarray(data_y,
-                                               dtype=theano.config.floatX))
+                                               dtype=theano.config.floatX),
+                                 borrow=borrow)
         # When storing data on the GPU it has to be stored as floats
         # therefore we will store the labels as ``floatX`` as well
         # (``shared_y`` does exactly that). But during our computations

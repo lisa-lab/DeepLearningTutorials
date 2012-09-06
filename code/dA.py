@@ -139,15 +139,18 @@ class dA(object):
                       low=-4 * numpy.sqrt(6. / (n_hidden + n_visible)),
                       high=4 * numpy.sqrt(6. / (n_hidden + n_visible)),
                       size=(n_visible, n_hidden)), dtype=theano.config.floatX)
-            W = theano.shared(value=initial_W, name='W')
+            W = theano.shared(value=initial_W, name='W', borrow=True)
 
         if not bvis:
             bvis = theano.shared(value=numpy.zeros(n_visible,
-                                         dtype=theano.config.floatX))
+                                         dtype=theano.config.floatX),
+                                 borrow=True)
 
         if not bhid:
             bhid = theano.shared(value=numpy.zeros(n_hidden,
-                                dtype=theano.config.floatX), name='b')
+                                                   dtype=theano.config.floatX),
+                                 name='b',
+                                 borrow=True)
 
         self.W = W
         # b corresponds to the bias of the hidden

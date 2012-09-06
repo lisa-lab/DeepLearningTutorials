@@ -80,7 +80,8 @@ class LogisticRegression(object):
         # n_in*n_out + n_out elements
         self.theta = theano.shared(value=numpy.zeros(n_in * n_out + n_out,
                                                    dtype=theano.config.floatX),
-                                   name='theta')
+                                   name='theta',
+                                   borrow=True)
         # W is represented by the fisr n_in*n_out elements of theta
         self.W = self.theta[0:n_in * n_out].reshape((n_in, n_out))
         # b is the rest (last n_out elements)
@@ -154,7 +155,7 @@ def cg_optimization_mnist(n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz'):
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
-    def shared_dataset(data_xy):
+    def shared_dataset(data_xy, borrow=True):
         """ Function that loads the dataset into shared variables
 
         The reason we store our dataset in shared variables is to allow
@@ -165,9 +166,11 @@ def cg_optimization_mnist(n_epochs=50, mnist_pkl_gz='../data/mnist.pkl.gz'):
         """
         data_x, data_y = data_xy
         shared_x = theano.shared(numpy.asarray(data_x,
-                                               dtype=theano.config.floatX))
+                                               dtype=theano.config.floatX),
+                                 borrow=borrow)
         shared_y = theano.shared(numpy.asarray(data_y,
-                                               dtype=theano.config.floatX))
+                                               dtype=theano.config.floatX),
+                                 borrow=borrow)
         # When storing data on the GPU it has to be stored as floats
         # therefore we will store the labels as ``floatX`` as well
         # (``shared_y`` does exactly that). But during our computations

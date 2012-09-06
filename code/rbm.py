@@ -72,17 +72,19 @@ class RBM(object):
                       size=(n_visible, n_hidden)),
                       dtype=theano.config.floatX)
             # theano shared variables for weights and biases
-            W = theano.shared(value=initial_W, name='W')
+            W = theano.shared(value=initial_W, name='W', borrow=True)
 
         if hbias is None:
             # create shared variable for hidden units bias
             hbias = theano.shared(value=numpy.zeros(n_hidden,
-                                dtype=theano.config.floatX), name='hbias')
+                                                    dtype=theano.config.floatX),
+                                  name='hbias', borrow=True)
 
         if vbias is None:
             # create shared variable for visible units bias
             vbias = theano.shared(value=numpy.zeros(n_visible,
-                                dtype=theano.config.floatX), name='vbias')
+                                                    dtype=theano.config.floatX),
+                                  name='vbias', borrow=True)
 
         # initialize input layer for standalone RBM or layer0 of DBN
         self.input = input
@@ -352,7 +354,8 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     # initialize storage for the persistent chain (state = hidden
     # layer of chain)
     persistent_chain = theano.shared(numpy.zeros((batch_size, n_hidden),
-                                                 dtype=theano.config.floatX))
+                                                 dtype=theano.config.floatX),
+                                     borrow=True)
 
     # construct the RBM class
     rbm = RBM(input=x, n_visible=28 * 28,

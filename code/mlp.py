@@ -86,11 +86,11 @@ class HiddenLayer(object):
             if activation == theano.tensor.nnet.sigmoid:
                 W_values *= 4
 
-            W = theano.shared(value=W_values, name='W')
+            W = theano.shared(value=W_values, name='W', borrow=True)
 
         if b is None:
             b_values = numpy.zeros((n_out,), dtype=theano.config.floatX)
-            b = theano.shared(value=b_values, name='b')
+            b = theano.shared(value=b_values, name='b', borrow=True)
 
         self.W = W
         self.b = b
