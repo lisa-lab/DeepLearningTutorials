@@ -8,11 +8,11 @@ python:
 #  - "3.2"
 # command to install dependencies
 before_install:
-  - sudo apt-get install -qq libatlas3gf-base libatlas-dev
+  - sudo apt-get install -qq libatlas3gf-base libatlas-dev python-numpy
 install:
 #If we don't install numpy before SciPy 0.10.1, the SciPy installations fails.
-  - "pip install -q numpy --use-mirrors"
-  - "pip install -q scipy --use-mirrors"
+#  - "pip install -q numpy --use-mirrors"
+#  - "pip install -q scipy --use-mirrors"
   - "pip install git+git://github.com/Theano/Theano.git"
 script:
   - cd code
