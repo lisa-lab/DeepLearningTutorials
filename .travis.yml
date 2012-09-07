@@ -9,7 +9,7 @@ python:
 # command to install dependencies
 before_install:
 #zlib1g-dev is needed to allow PIL to uncompress the dataset.
-  - sudo apt-get install -qq libatlas3gf-base libatlas-dev zlib1g-dev zip unzip
+  - sudo apt-get install -qq libatlas3gf-base libatlas-dev zlib1g-dev zip unzip zlibc libzip-dev
 install:
 #If we don't install numpy before SciPy 0.10.1, the SciPy installations fails.
   - "pip install -q numpy --use-mirrors"
