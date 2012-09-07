@@ -9,11 +9,16 @@ python:
 # command to install dependencies
 before_install:
 #zlib1g-dev is needed to allow PIL to uncompress the dataset.
-  - sudo apt-get install -qq libatlas3gf-base libatlas-dev zlib1g-dev zip unzip zlibc libzip-dev
+  - sudo apt-get install -qq libatlas3gf-base libatlas-dev zlib1g-dev zip unzip zlibc libzip-dev libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev
+#  - sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib
+#  - sudo ln -s /usr/lib/x86_64-linux-gnu/libfreetype.so /usr/lib
+#  - sudo ln -s /usr/lib/x86_64-linux-gnu/libz.so /usr/lib
+
 install:
 #If we don't install numpy before SciPy 0.10.1, the SciPy installations fails.
   - "pip install -q numpy --use-mirrors"
-  - "pip install PIL --use-mirrors"
+#  - "pip install PIL --use-mirrors"
+  - "pip install Pillow --use-mirrors"
 #  - "pip install --no-deps Theano --use-mirrors"
 #  - "pip install -q scipy --use-mirrors"
   - "pip install --no-deps git+git://github.com/Theano/Theano.git"
