@@ -17,7 +17,9 @@ install:
 #  - "pip install -q scipy --use-mirrors"
   - "pip install git+git://github.com/Theano/Theano.git"
 script:
-  - cd code
+  - cd data
+  - ./download.sh
+  - cd ../code
   - export THEANO_FLAGS=warn.ignore_bug_before=all,on_opt_error=raise,on_shape_error=raise
   - python --version
   - nosetests test.py
