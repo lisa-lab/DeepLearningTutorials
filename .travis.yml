@@ -8,18 +8,22 @@ python:
 #  - "3.2"
 # command to install dependencies
 before_install:
-  - sudo apt-get install -qq libatlas3gf-base libatlas-dev
+#zlib1g-dev is needed to allow PIL to uncompress the dataset.
+  - sudo apt-get install -qq libatlas3gf-base libatlas-dev zlib1g-dev
 install:
 #If we don't install numpy before SciPy 0.10.1, the SciPy installations fails.
   - "pip install -q numpy --use-mirrors"
-  - "pip install PIL --use-mirrors"
+  - "pip install -q PIL --use-mirrors"
 #  - "pip install --no-deps Theano --use-mirrors"
 #  - "pip install -q scipy --use-mirrors"
   - "pip install --no-deps git+git://github.com/Theano/Theano.git"
 script:
   - cd data
   - ./download.sh
+  - ls
   - cd ../code
+  - pwd
+  - ls
   - export THEANO_FLAGS=warn.ignore_bug_before=all,on_opt_error=raise,on_shape_error=raise
   - python --version
   - nosetests test.py
