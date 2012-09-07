@@ -13,9 +13,9 @@ install:
 #If we don't install numpy before SciPy 0.10.1, the SciPy installations fails.
   - "pip install -q numpy --use-mirrors"
   - "pip install PIL --use-mirrors"
-  - "pip install --no-deps Theano --use-mirrors"
+#  - "pip install --no-deps Theano --use-mirrors"
 #  - "pip install -q scipy --use-mirrors"
-#  - "pip install git+git://github.com/Theano/Theano.git"
+  - "pip install git+git://github.com/Theano/Theano.git"
 script:
   - cd code
   - export THEANO_FLAGS=warn.ignore_bug_before=all,on_opt_error=raise,on_shape_error=raise
