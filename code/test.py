@@ -18,7 +18,12 @@ def test_logistic_sgd():
 
 
 def test_logistic_cg():
-    logistic_cg.cg_optimization_mnist(n_epochs=10)
+    try:
+        import scipy
+        logistic_cg.cg_optimization_mnist(n_epochs=10)
+    except ImportError:
+        from nose.plugins.skip import SkipTest
+        raise SkipTest('SciPy not available. Needed for the logistic_cg example.')
 
 
 def test_mlp():
