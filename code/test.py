@@ -27,23 +27,22 @@ def test_logistic_cg():
 
 
 def test_mlp():
-    mlp.test_mlp(n_epochs=5)
+    mlp.test_mlp(n_epochs=1)
 
 
 def test_convolutional_mlp():
-    convolutional_mlp.evaluate_lenet5(n_epochs=5, nkerns=[5, 5])
-
+    convolutional_mlp.evaluate_lenet5(n_epochs=1, nkerns=[5, 5])
 
 def test_dA():
-    dA.test_dA(training_epochs=3, output_folder='tmp_dA_plots')
+    dA.test_dA(training_epochs=1, output_folder='tmp_dA_plots')
 
 
 def test_SdA():
-    SdA.test_SdA(pretraining_epochs=2, training_epochs=3, batch_size=300)
+    SdA.test_SdA(pretraining_epochs=1, training_epochs=1, batch_size=300)
 
 
 def test_dbn():
-    DBN.test_DBN(pretraining_epochs=1, training_epochs=2, batch_size=300)
+    DBN.test_DBN(pretraining_epochs=1, training_epochs=1, batch_size=300)
 
 
 def test_rbm():
