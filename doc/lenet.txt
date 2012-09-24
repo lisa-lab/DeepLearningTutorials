@@ -642,3 +642,10 @@ much information.
          artificial neuron and "cell" to refer to the biological neuron.
 
 
+Tips
+****
+
+If you want to try this model on a new dataset, here are a few tips that can help you get better results:
+
+ * Whitening the data (e.g. with PCA)
+ * Decay the learning rate in each epoch
