@@ -71,8 +71,9 @@ def speed():
 
     expected_times_64 = numpy.asarray([10.3, 23.7, 78.1, 73.7, 116.4,
                                        346.9, 381.9, 558.1])
-    expected_times_32 = numpy.asarray([9.8, 25.1, 47.2, 66.5, 71.7,
+    expected_times_32 = numpy.asarray([12.4, 29.6, 47.2, 66.5, 73.7,
                                        191.2, 226.8, 432.8])
+
     # Number with just 1 decimal are new value that are faster with
     # the Theano version 0.5rc2 Other number are older. They are not
     # updated, as we where faster in the past!
@@ -90,8 +91,8 @@ def speed():
 #expected/get [0.82492841,  0.75984178,  0.65092691,  1.04930573, 0.93125138
 #              1.35324519 1.7356905   1.12937868]
     expected_times_gpu = numpy.asarray([3.07663488, 7.55523491, 18.99226785,
-                                        9.1, 24.13007045,
-                                        18.3,  53.4, 285.4])
+                                        9.6, 24.13007045,
+                                        20.4,  58.9, 302.6])
     expected_times_64 = [s for idx, s in enumerate(expected_times_64)
                          if to_exec[idx]]
     expected_times_32 = [s for idx, s in enumerate(expected_times_32)
