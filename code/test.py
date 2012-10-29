@@ -69,7 +69,7 @@ def speed():
     # an i7-920 @ 2.67GHz with hyperthread enabled for the cpu
     # and an GeForce GTX 285 for the GPU.
 
-    expected_times_64 = numpy.asarray([10.7, 23.7, 78.1, 74.9, 116.4,
+    expected_times_64 = numpy.asarray([10.3, 23.7, 78.1, 73.7, 116.4,
                                        346.9, 381.9, 558.1])
     expected_times_32 = numpy.asarray([9.8, 25.1, 47.2, 66.5, 71.7,
                                        191.2, 226.8, 432.8])
