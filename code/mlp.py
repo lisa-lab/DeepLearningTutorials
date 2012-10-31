@@ -62,7 +62,7 @@ class HiddenLayer(object):
 
         :type activation: theano.Op or function
         :param activation: Non linearity to be applied in the hidden
-                              layer
+                           layer
         """
         self.input = input
 
@@ -219,7 +219,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
     print '... building the model'
 
     # allocate symbolic variables for the data
-    index = T.lscalar()    # index to a [mini]batch
+    index = T.lscalar()  # index to a [mini]batch
     x = T.matrix('x')  # the data is presented as rasterized images
     y = T.ivector('y')  # the labels are presented as 1D vector of
                         # [int] labels
@@ -259,10 +259,10 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
 
     # specify how to update the parameters of the model as a dictionary
     updates = {}
-    # given two list the zip A = [ a1,a2,a3,a4] and B = [b1,b2,b3,b4] of
+    # given two list the zip A = [a1, a2, a3, a4] and B = [b1, b2, b3, b4] of
     # same length, zip generates a list C of same size, where each element
     # is a pair formed from the two lists :
-    #    C = [ (a1,b1), (a2,b2), (a3,b3) , (a4,b4) ]
+    #    C = [(a1, b1), (a2, b2), (a3, b3), (a4, b4)]
     for param, gparam in zip(classifier.params, gparams):
         updates[param] = param - learning_rate * gparam
 
