@@ -20,8 +20,8 @@ install:
 #  - "pip install -q Pillow --use-mirrors"
 #If we don't install numpy before SciPy 0.10.1, the SciPy installations fails.
 #  - "pip install -q scipy --use-mirrors"
-  - "pip install --no-deps git+git://github.com/Theano/Theano.git"
-  - "pip install hg+http://hg.assembla.com/pylearn"
+  - "sudo pip install --no-deps git+git://github.com/Theano/Theano.git"
+  - "sudo pip install hg+http://hg.assembla.com/pylearn"
 
 env:
   - PART="test.py:test_logistic_sgd test.py:test_logistic_cg test.py:test_mlp"
