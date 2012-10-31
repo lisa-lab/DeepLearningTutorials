@@ -1,20 +1,23 @@
 # After changing this file, check it on:
 # http://lint.travis-ci.org/
 
-language: python
-python:
-  - "2.5"
+#We can't get scipy installed with the python language
+#So we will use the system python from the c language.
+language: c
+#language: python
+#python:
+#  - "2.5"
 #  - "2.7"
 #  - "3.2"
 # command to install dependencies
 before_install:
 #zlib1g-dev is needed to allow PIL to uncompress the dataset.
-  - sudo apt-get install -qq libatlas3gf-base libatlas-dev zlib1g-dev zip unzip zlibc libzip-dev libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev
+  - sudo apt-get install -qq libatlas3gf-base libatlas-dev zlib1g-dev zip unzip zlibc libzip-dev libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev python-numpy python-scipy python-pip python-nose python-yaml pyflakes python-imaging
 
 install:
-  - "pip install -q numpy --use-mirrors"
+#  - "pip install -q numpy --use-mirrors"
 # Use Pillow instead of PIL as it is better packaged
-  - "pip install -q Pillow --use-mirrors"
+#  - "pip install -q Pillow --use-mirrors"
 #If we don't install numpy before SciPy 0.10.1, the SciPy installations fails.
 #  - "pip install -q scipy --use-mirrors"
   - "pip install --no-deps git+git://github.com/Theano/Theano.git"
