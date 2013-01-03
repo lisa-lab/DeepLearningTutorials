@@ -10,6 +10,8 @@ References
 
 .. [BengioDelalleau09] Y. Bengio, O. Delalleau, Justifying and Generalizing Contrastive Divergence (2009), Neural Computation, 21(6): 1601-1621.
 
+.. [BoulangerLewandowski12] N Boulanger-Lewandowski, Y. Bengio and P. Vincent, `Modeling Temporal Dependencies in High-Dimensional Sequences: Application to Polyphonic Music Generation and Transcription <http://www-etud.iro.umontreal.ca/~boulanni/icml2012>`_, in Proceedings of the 29th International Conference on Machine Learning (ICML), 2012.
+
 .. [Fukushima] Fukushima, K. (1980). Neocognitron: A self-organizing neural network model for a mechanism of pattern recognition unaffected by shift in position. Biological Cybernetics, 36, 193–202.
 
 .. [Hinton06] G.E. Hinton and R.R. Salakhutdinov, `Reducing the Dimensionality of Data with Neural Networks <http://www.cs.toronto.edu/~rsalakhu/papers/science.pdf>`_, Science, 28 July 2006, Vol. 313. no. 5786, pp. 504 - 507.
@@ -32,6 +34,6 @@ References
 
 .. [Vincent08] P. Vincent, H. Larochelle Y. Bengio and P.A. Manzagol, `Extracting and Composing Robust Features with Denoising Autoencoders <http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/217>`_, Proceedings of the Twenty-fifth International Conference on Machine Learning (ICML'08), pages 1096 - 1103, ACM, 2008.
 
-.. [Tieleman08] T. Tieleman, `Training restricted boltzmann machines using approximations to the likelihood gradient`, ICML 2008.
+.. [Tieleman08] T. Tieleman, Training restricted boltzmann machines using approximations to the likelihood gradient, ICML 2008.
 
-.. [Xavier10] Y. Bengio, X. Glorot, `Understanding the difficulty of training deep feedforward neuralnetworks` AISTATS 2010
+.. [Xavier10] Y. Bengio, X. Glorot, Understanding the difficulty of training deep feedforward neuralnetworks, AISTATS 2010
