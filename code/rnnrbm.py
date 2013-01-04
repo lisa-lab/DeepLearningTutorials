@@ -175,7 +175,7 @@ class RnnRbm:
     self.generate_function = theano.function([], v_t, updates=updates_generate)
 
 
-  def train(self, files, batch_size=100, num_epochs=150):
+  def train(self, files, batch_size=100, num_epochs=200):
     '''Train the RNN-RBM via stochastic gradient descent (SGD) using MIDI files converted to piano-rolls.
   
   files : list of strings
@@ -217,11 +217,11 @@ class RnnRbm:
     midiwrite(filename, piano_roll, self.r, self.dt)
     if show:
       extent = (0, self.dt * len(piano_roll)) + self.r
+      pylab.figure()
       pylab.imshow(piano_roll.T, origin='lower', aspect='auto', interpolation='nearest', cmap=pylab.cm.gray_r, extent=extent)
       pylab.xlabel('time (s)')
       pylab.ylabel('MIDI note number')
       pylab.title('generated piano-roll')
-      pylab.show()
 
 
 if __name__ == '__main__':
@@ -229,4 +229,5 @@ if __name__ == '__main__':
   model.train(glob.glob('Nottingham/train/*.mid'))
   model.generate('sample1.mid')
   model.generate('sample2.mid')
+  pylab.show()
 
