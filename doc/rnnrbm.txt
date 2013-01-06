@@ -51,7 +51,7 @@ The resulting model is unrolled in time in the following figure:
 .. image:: images/rnnrbm.png
     :align: center
 
-The overall probability distribution is given by the sum over the :math:`T` time steps in the a given sequence:
+The overall probability distribution is given by the sum over the :math:`T` time steps in a given sequence:
 
 .. math::
   :label: prob_rnnrbm
