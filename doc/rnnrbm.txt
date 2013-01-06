@@ -67,7 +67,7 @@ Note that for clarity of the implementation, contrarily to [BoulangerLewandowski
 Implementation
 ++++++++++++++
 
-We wish to construct two Theano functions: one to to train the RNN-RBM, and one to generate sample sequences from it.
+We wish to construct two Theano functions: one to train the RNN-RBM, and one to generate sample sequences from it.
 
 For *training*, i.e. given :math:`\{v^{(t)}\}`, the RNN hidden state :math:`\{u^{(t)}\}` and the associated :math:`\{b_v^{(t)}, b_h^{(t)}\}` parameters are deterministic and can be readily computed for each training sequence.
 A stochastic gradient descent (SGD) update on the parameters can then be estimated via contrastive divergence (CD) on the individual time steps of a sequence in the same way that individual training examples are treated in a mini-batch for regular RBMs.
@@ -312,30 +312,30 @@ The output was the following:
 
 .. code-block:: text
 
-  Epoch 1/150 -15.0154373583
-  Epoch 2/150 -10.4948703701
-  Epoch 3/150 -10.2507567848
-  Epoch 4/150 -10.1417621708
-  Epoch 5/150 -9.69403756276
-  Epoch 6/150 -8.6036962785
-  Epoch 7/150 -8.35180803953
-  Epoch 8/150 -8.26202621624
-  Epoch 9/150 -8.21526214665
-  Epoch 10/150 -8.16552397791
+  Epoch 1/200 -15.0308940028
+  Epoch 2/200 -10.4892606673
+  Epoch 3/200 -10.2394696138
+  Epoch 4/200 -10.1431669994
+  Epoch 5/200 -9.7005382843
+  Epoch 6/200 -8.5985647524
+  Epoch 7/200 -8.35115428534
+  Epoch 8/200 -8.26453580552
+  Epoch 9/200 -8.21208991542
+  Epoch 10/200 -8.16847274143
 
   ... truncated for brevity ...
 
-  Epoch 140/150 -5.09668220315
-  Epoch 141/150 -5.08657006002
-  Epoch 142/150 -5.09776776338
-  Epoch 143/150 -5.10151042486
-  Epoch 144/150 -5.07677377181
-  Epoch 145/150 -5.07374453388
-  Epoch 146/150 -inf
-  Epoch 147/150 -5.06393939067
-  Epoch 148/150 -5.07493685431
-  Epoch 149/150 -5.06504525246
-  Epoch 150/150 -5.04567771601
+  Epoch 190/200 -4.74799179994
+  Epoch 191/200 -4.73488515216
+  Epoch 192/200 -4.7326138489
+  Epoch 193/200 -4.73841636884
+  Epoch 194/200 -4.70255511452
+  Epoch 195/200 -4.71872634914
+  Epoch 196/200 -4.7276415885
+  Epoch 197/200 -4.73497644728
+  Epoch 198/200 -inf
+  Epoch 199/200 -4.75554987143
+  Epoch 200/200 -4.72591935412
 
 
 
@@ -346,7 +346,7 @@ The figures below show the piano-rolls of two sample sequences and we provide th
 
   Listen to `sample1.mid <http://www-etud.iro.umontreal.ca/~boulanni/sample1.mid>`_
 
-.. figure:: images/sample1.png
+.. figure:: images/sample2.png
   :scale: 60%
 
   Listen to `sample2.mid <http://www-etud.iro.umontreal.ca/~boulanni/sample2.mid>`_
@@ -357,10 +357,12 @@ How to improve this code
 
 The code shown in this tutorial is a stripped-down version that can be improved in the following ways:
 
+* Preprocessing: transposing the sequences in a common tonality (e.g. C major / minor) and normalizing the tempo in beats (quarternotes) per minute can have the most effect on the generative quality of the model.
 * Pretraining techniques: initialize the :math:`W,b_v,b_h` parameters with independent RBMs with fully shuffled frames (i.e. :math:`W_{uh}=W_{uv}=W_{uu}=W_{vu}=0`); initialize the :math:`W_{uv},W_{uu},W_{vu},b_u` parameters of the RNN with the auxiliary cross-entropy objective via either SGD or, preferably, Hessian-free optimization [BoulangerLewandowski12]_.
 * Optimization techniques: gradient clipping, Nesterov momentum and the use of NADE for conditional density estimation.
-* Preprocessing: transposing the sequences in a common tonality (e.g. C major / minor) and normalizing the tempo in beats (quarternotes) per minute can yield substantial improvement in the generative quality of the model.
 * Hyperparameter search: learning rate (separately for the RBM and RNN parts), learning rate schedules, batch size, number of hidden units (recurrent and RBM), momentum coefficient, momentum schedule, Gibbs chain length :math:`k` and early stopping.
 * Learn the initial condition :math:`u^{(0)}` as a model parameter.
 
+
+A few samples generated with code including these features are available `here <http://www-etud.iro.umontreal.ca/~boulanni/sequences.zip>`_.
 
