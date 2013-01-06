@@ -103,7 +103,7 @@ params : tuple of Theano shared variables
 updates_train : dictionary of Theano variable -> Theano variable
   Update object that should be passed to theano.function when compiling the training function.
 v_t : Theano matrix
-  Symbolic variable holding a generate sequence (used during sampling)
+  Symbolic variable holding a generated sequence (used during sampling)
 updates_generate : dictionary of Theano variable -> Theano variable
   Update object that should be passed to theano.function when compiling the generation function.'''
 
