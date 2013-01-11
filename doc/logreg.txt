@@ -83,7 +83,7 @@ The code to do this in Theano is the following:
 
   # symbolic description of how to compute prediction as class whose probability
   # is maximal
-  y_pred = T.argmax(p_y_given_x)
+  y_pred = T.argmax(p_y_given_x, axis=1)
 
   # compiled theano function that returns this value
   classify = theano.function(inputs=[x], outputs=y_pred)
