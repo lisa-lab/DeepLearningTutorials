@@ -19,8 +19,7 @@ Modeling and generating sequences of polyphonic music with the RNN-RBM
 
 .. caution::
   Depending on your locally installed Theano version, you may have problems running this script.
-  If this is the case, please use the 'bleeding-edge' developer version from github and checkout the 0.6rc1 release:
-  ``git checkout e7a68bd9b39d722fef933425e0593cdb8998e141``.
+  If this is the case, please use the `'bleeding-edge' developer version <http://deeplearning.net/software/theano/#download>`_ from github.
 
 
 The RNN-RBM
