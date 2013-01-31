@@ -249,7 +249,7 @@ during training we associate a Theano variable to them.
         pretrain_fns = []
         for dA in self.dA_layers:
             # get the cost and the updates list
-            cost,updates = dA.get_cost_updates(corruption_level, learning_rate)
+            cost, updates = dA.get_cost_updates(corruption_level, learning_rate)
             # compile the theano function    
             fn = theano.function(inputs=[index, 
                               theano.Param(corruption_level, default=0.2),
@@ -271,7 +271,7 @@ in mind when working with Theano.
 
 In the same fashion we build a method for constructing function required 
 during finetuning ( a ``train_model``, a ``validate_model`` and a
-``test_model`` funcion). 
+``test_model`` function). 
 
 .. code-block:: python
 
@@ -309,9 +309,9 @@ during finetuning ( a ``train_model``, a ``validate_model`` and a
         gparams = T.grad(self.finetune_cost, self.params)
 
         # compute list of fine-tuning updates
-        updates = {}
+        updates = []
         for param, gparam in zip(self.params, gparams):
-            updates[param] = param - gparam * learning_rate
+            updates.append((param, param - gparam * learning_rate))
 
         train_fn = theano.function(inputs=[index], 
               outputs=self.finetune_cost, 

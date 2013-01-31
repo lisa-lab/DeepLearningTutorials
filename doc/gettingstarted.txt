@@ -438,7 +438,7 @@ algorithm in Theano can be done as follows :
     d_loss_wrt_params = T.grad(loss, params)
 
     # compile the MSGD step into a theano function
-    updates = {params: params - learning_rate * d_loss_wrt_params}
+    updates = [(params, params - learning_rate * d_loss_wrt_params)]
     MSGD = theano.function([x_batch,y_batch], loss, updates=updates)
 
     for (x_batch, y_batch) in train_batches:

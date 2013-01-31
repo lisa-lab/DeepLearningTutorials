@@ -287,9 +287,10 @@ follows:
     g_W = T.grad(cost=cost, wrt=classifier.W)
     g_b = T.grad(cost=cost, wrt=classifier.b)
 
-    # specify how to update the parameters of the model as a dictionary
-    updates ={classifier.W: classifier.W - learning_rate * g_W,\
-              classifier.b: classifier.b - learning_rate * g_b}
+    # specify how to update the parameters of the model as a list of
+    # (variable, update expression) pairs
+    updates = [(classifier.W, classifier.W - learning_rate * g_W),
+               (classifier.b, classifier.b - learning_rate * g_b)]
 
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
@@ -303,7 +304,7 @@ follows:
 
 
 
-The ``updates`` dictionary contains, for each parameter, the
+The ``updates`` list contains, for each parameter, the
 stochastic gradient update operation. The ``givens`` dictionary indicates with
 what to replace certain variables of the graph. The function ``train_model`` is then
 defined such that:
@@ -317,7 +318,7 @@ defined such that:
   corresponding slices from the training set as defined by the
   ``index`` and afterwards it will evaluate the cost
   associated with that minibatch and apply the operations defined by the
-  ``updates`` dictionary.
+  ``updates`` list.
 
 Each time ``train_model(index)`` function is called, it will thus compute and
 return the appropriate cost, while also performing a step of MSGD. The entire

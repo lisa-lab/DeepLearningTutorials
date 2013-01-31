@@ -220,9 +220,9 @@ class DBN(object):
         gparams = T.grad(self.finetune_cost, self.params)
 
         # compute list of fine-tuning updates
-        updates = {}
+        updates = []
         for param, gparam in zip(self.params, gparams):
-            updates[param] = param - gparam * learning_rate
+            updates.append((param, param - gparam * learning_rate))
 
         train_fn = theano.function(inputs=[index],
               outputs=self.finetune_cost,

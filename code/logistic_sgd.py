@@ -279,9 +279,10 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
     g_W = T.grad(cost=cost, wrt=classifier.W)
     g_b = T.grad(cost=cost, wrt=classifier.b)
 
-    # specify how to update the parameters of the model as a dictionary
-    updates = {classifier.W: classifier.W - learning_rate * g_W,
-               classifier.b: classifier.b - learning_rate * g_b}
+    # specify how to update the parameters of the model as a list of
+    # (variable, update expression) pairs.
+    updates = [(classifier.W, classifier.W - learning_rate * g_W),
+               (classifier.b, classifier.b - learning_rate * g_b)]
 
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
