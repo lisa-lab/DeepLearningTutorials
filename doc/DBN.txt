@@ -307,7 +307,7 @@ Theano variable to it that has a default value.
             # get the cost and the updates list
             # using CD-k here (persisent=None) for training each RBM.
             # TODO: change cost function to reconstruction error
-            cost,updates = rbm.cd(learning_rate, persistent=None, k)
+            cost, updates = rbm.cd(learning_rate, persistent=None, k)
 
             # compile the Theano function; check if k is also a Theano
             # variable, if so added to the inputs of the function
@@ -316,10 +316,10 @@ Theano variable to it that has a default value.
             else:
                 inputs =  index, theano.Param(learning_rate, default=0.1)]
             fn = theano.function(inputs=inputs,
-                                 outputs=cost, 
-                                  updates=updates,
-                                  givens={self.x: train_set_x[batch_begin:
-                                                              batch_end]})
+                                 outputs=cost,
+                                 updates=updates,
+                                 givens={self.x: train_set_x[batch_begin:
+                                                             batch_end]})
             # append `fn` to the list of functions
             pretrain_fns.append(fn)
 
@@ -369,9 +369,9 @@ and a ``test_model`` function).
         gparams = T.grad(self.finetune_cost, self.params)
 
         # compute list of fine-tuning updates
-        updates = {}
+        updates = []
         for param, gparam in zip(self.params, gparams):
-            updates[param] = param - gparam*learning_rate
+            updates.append((param, param - gparam * learning_rate))
 
         train_fn = theano.function(inputs=[index], 
               outputs= self.finetune_cost, 

@@ -127,7 +127,7 @@ Implementing HMC Using Theano
 In Theano, update dictionaries and shared variables provide a natural way to
 implement a sampling algorithm. The current state of the sampler can be
 represented as a Theano shared variable, with HMC updates being implemented by
-the updates dictionary of a Theano function.
+the updates list of a Theano function.
 
 We breakdown the HMC algorithm into the following sub-components:
 
@@ -137,7 +137,7 @@ We breakdown the HMC algorithm into the following sub-components:
   calls `simulate\_dynamics` and determines whether the transition :math:`\chi
   \rightarrow \chi'` is to be accepted.
 * `hmc\_updates`: a Python function which, given the symbolic outputs of `hmc\_move`, 
-  generates the dictionary of updates for a single iteration of HMC. 
+  generates the list of updates for a single iteration of HMC.
 * `HMC\_sampler`: a Python helper class which wraps everything together.
 
   
@@ -192,8 +192,8 @@ respectively.
         rval1: [theano matrix, theano matrix]
             Symbolic theano matrices for new position pos(t + stepsize), and
             velocity vel(t + stepsize/2)
-        rval2: dictionary
-            Dictionary of updates for the Scan Op
+        rval2: List of (variable, update expr) pairs
+            List of updates for the Scan Op
         """
         # from pos(t) and vel(t - eps/2), compute vel(t + eps / 2)
         dE_dpos = TT.grad(energy_fn(pos).sum(), pos)
@@ -401,7 +401,7 @@ should be used or not.
 
 .. _dimshuffle: http://deeplearning.net/software/theano/library/tensor/basic.html#tensor._tensor_py_operators.dimshuffle
 
-The purpose of `hmc\_updates` is to generate the dictionary of updates to
+The purpose of `hmc\_updates` is to generate the list of updates to
 perform, whenever our HMC sampling function is called. `hmc\_updates` thus
 receives as parameters, a series of shared variables to update (`positions`, `stepsize` and
 `avg\_acceptance\_rate`), and the parameters required to compute their new
@@ -461,7 +461,7 @@ in the range [`stepsize\_min`, `stepsize\_max`].
         # maintain stepsize in [stepsize_min, stepsize_max]
         new_stepsize = TT.clip(_new_stepsize, stepsize_min, stepsize_max)
 
-The final updates dictionary is then returned:
+The final updates list is then returned:
 
 .. code-block:: python
 
@@ -537,7 +537,7 @@ elements are:
                     stepsize, 
                     n_steps)
 
-            # define the dictionary of updates, to apply on every `simulate` call
+            # define the list of updates, to apply on every `simulate` call
             simulate_updates = hmc_updates(
                     shared_positions,
                     stepsize,

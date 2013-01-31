@@ -213,9 +213,9 @@ class cA(object):
         # to its parameters
         gparams = T.grad(cost, self.params)
         # generate the list of updates
-        updates = {}
+        updates = []
         for param, gparam in zip(self.params, gparams):
-            updates[param] = param - learning_rate * gparam
+            updates.append((param, param - learning_rate * gparam))
 
         return (cost, updates)
 

@@ -258,14 +258,15 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
         gparam = T.grad(cost, param)
         gparams.append(gparam)
 
-    # specify how to update the parameters of the model as a dictionary
-    updates = {}
+    # specify how to update the parameters of the model as a list of
+    # (variable, update expression) pairs
+    updates = []
     # given two list the zip A = [a1, a2, a3, a4] and B = [b1, b2, b3, b4] of
     # same length, zip generates a list C of same size, where each element
     # is a pair formed from the two lists :
     #    C = [(a1, b1), (a2, b2), (a3, b3), (a4, b4)]
     for param, gparam in zip(classifier.params, gparams):
-        updates[param] = param - learning_rate * gparam
+        updates.append((param, param - learning_rate * gparam))
 
     # compiling a Theano function `train_model` that returns the cost, but
     # in the same time updates the parameter of the model based on the rules
