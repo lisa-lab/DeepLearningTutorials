@@ -310,14 +310,15 @@ at each step.
         gparams.append(gparam)
 
 
-    # specify how to update the parameters of the model as a dictionary
-    updates = {}
+    # specify how to update the parameters of the model as a list of
+    # (variable, update expression) pairs
+    updates = []
     # given two list the zip A = [a1, a2, a3, a4] and B = [b1, b2, b3, b4] of
     # same length, zip generates a list C of same size, where each element
     # is a pair formed from the two lists :
     #    C = [(a1, b1), (a2, b2), (a3, b3) , (a4, b4)]
     for param, gparam in zip(classifier.params, gparams):
-        updates[param] = param - learning_rate * gparam
+        updates.append((param, param - learning_rate * gparam))
 
 
     # compiling a Theano function `train_model` that returns the cost, butx
