@@ -196,7 +196,7 @@ dt : float
                                            n_hidden_recurrent)
 
         gradient = T.grad(cost, params, consider_constant=[v_sample])
-        updates_train.update(dict((p, p - lr * g) for p, g in zip(params,
+        updates_train.update(((p, p - lr * g) for p, g in zip(params,
                                                                 gradient)))
         self.train_function = theano.function([v], monitor,
                                                updates=updates_train)
