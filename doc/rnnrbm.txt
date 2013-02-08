@@ -13,8 +13,8 @@ Modeling and generating sequences of polyphonic music with the RNN-RBM
 .. note::
   The code for this section is available for download here: `rnnrbm.py <../code/rnnrbm.py>`_.
 
-  You will need the modified `Python MIDI package <http://www-etud.iro.umontreal.ca/~boulanni/midi.zip>`_ in your ``$PYTHONPATH`` or in the working directory in order to convert MIDI files to and from piano-rolls.
-  The script also assumes that the content of the `Nottingham Database of folk tunes <http://www.iro.umontreal.ca/~lisa/deep/data/mnist/Nottingham.zip>`_ has been extracted in the ``../data`` directory.
+  You will need the modified `Python MIDI package (GPL license) <http://www.iro.umontreal.ca/~lisa/deep/midi.zip>`_ in your ``$PYTHONPATH`` or in the working directory in order to convert MIDI files to and from piano-rolls.
+  The script also assumes that the content of the `Nottingham Database of folk tunes <http://www.iro.umontreal.ca/~lisa/deep/data/Nottingham.zip>`_ has been extracted in the ``../data`` directory.
   Alternative MIDI datasets are available `here <http://www-etud.iro.umontreal.ca/~boulanni/icml2012>`_.
 
 .. caution::
