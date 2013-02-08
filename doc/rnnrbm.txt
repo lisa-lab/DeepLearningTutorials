@@ -16,6 +16,8 @@ Modeling and generating sequences of polyphonic music with the RNN-RBM
   You will need the modified `Python MIDI package (GPL license) <http://www.iro.umontreal.ca/~lisa/deep/midi.zip>`_ in your ``$PYTHONPATH`` or in the working directory in order to convert MIDI files to and from piano-rolls.
   The script also assumes that the content of the `Nottingham Database of folk tunes <http://www.iro.umontreal.ca/~lisa/deep/data/Nottingham.zip>`_ has been extracted in the ``../data`` directory.
   Alternative MIDI datasets are available `here <http://www-etud.iro.umontreal.ca/~boulanni/icml2012>`_.
+  
+  Note that both dependencies above can be setup automatically by running the ``download.sh`` script in the ``../data`` directory.
 
 .. caution::
   Depending on your locally installed Theano version, you may have problems running this script.
