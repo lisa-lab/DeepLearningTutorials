@@ -47,7 +47,7 @@ def test_dbn():
 
 def test_rbm():
     rbm.test_rbm(training_epochs=1, batch_size=300, n_chains=1, n_samples=1,
-                n_hidden=100, output_folder='tmp_rbm_plots')
+                n_hidden=20, output_folder='tmp_rbm_plots')
 
 
 def speed():
