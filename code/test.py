@@ -10,6 +10,7 @@ import logistic_cg
 import logistic_sgd
 import mlp
 import rbm
+import rnnrbm
 import SdA
 
 
@@ -49,6 +50,8 @@ def test_rbm():
     rbm.test_rbm(training_epochs=1, batch_size=300, n_chains=1, n_samples=1,
                 n_hidden=20, output_folder='tmp_rbm_plots')
 
+def test_rnnrbm():
+    rnnrbm.test_rnnrbm(num_epochs=1)
 
 def speed():
     """
