@@ -218,7 +218,10 @@ num_epochs : integer
 
         assert len(files) > 0, 'Training set is empty!' \
                                ' (did you download the data files?)'
-        dataset = [midiread(f, self.r, self.dt).piano_roll for f in files]
+        dataset = [midiread(f, self.r,
+                            self.dt).piano_roll.astype(theano.config.floatX)
+                   for f in files]
+
         try:
             for epoch in xrange(num_epochs):
                 numpy.random.shuffle(dataset)
