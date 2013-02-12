@@ -59,7 +59,7 @@ def speed():
     """
 
     algo = ['logistic_sgd', 'logistic_cg', 'mlp', 'convolutional_mlp',
-            'dA', 'SdA', 'DBN', 'rbm']
+            'dA', 'SdA', 'DBN', 'rbm', 'rnnrbm']
     to_exec = [True] * len(algo)
 #    to_exec=[False]*len(algo)
 #    to_exec[-1]=True
@@ -73,9 +73,9 @@ def speed():
     # and an GeForce GTX 285 for the GPU.
 
     expected_times_64 = numpy.asarray([10.3, 23.7, 78.1, 73.7, 116.4,
-                                       346.9, 381.9, 558.1])
+                                       346.9, 381.9, 558.1, 186.3])
     expected_times_32 = numpy.asarray([11.6, 29.6, 47.2, 66.5, 71,
-                                       191.2, 226.8, 432.8])
+                                       191.2, 226.8, 432.8, 176.2])
 
     # Number with just 1 decimal are new value that are faster with
     # the Theano version 0.5rc2 Other number are older. They are not
@@ -95,7 +95,7 @@ def speed():
 #              1.35324519 1.7356905   1.12937868]
     expected_times_gpu = numpy.asarray([3.07663488, 7.55523491, 18.99226785,
                                         9.6, 24.13007045,
-                                        20.4,  56, 302.6])
+                                        20.4,  56, 302.6, 315.4])
     expected_times_64 = [s for idx, s in enumerate(expected_times_64)
                          if to_exec[idx]]
     expected_times_32 = [s for idx, s in enumerate(expected_times_32)
@@ -133,6 +133,7 @@ def speed():
                   training_epochs=2, batch_size=300)
         time_test(m, l, 7, rbm.test_rbm, training_epochs=1, batch_size=300,
                   n_chains=1, n_samples=1, output_folder='tmp_rbm_plots')
+        time_test(m, l, 8, rnnrbm.test_rnnrbm, num_epochs=1)
         return numpy.asarray(l)
 
     #test in float64 in FAST_RUN mode on the cpu
