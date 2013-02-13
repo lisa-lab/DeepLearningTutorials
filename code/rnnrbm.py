@@ -4,9 +4,14 @@
 # More information at http://deeplearning.net/tutorial/rnnrbm.html
 
 import glob
-import numpy
-import pylab
 import sys
+
+import numpy
+try:
+    import pylab
+except ImportError:
+    print "pylab isn't available, if you use their fonctionality, it will crash"
+    print "It can be installed with 'pip install -q Pillow'"
 
 from midi.utils import midiread, midiwrite
 import theano
