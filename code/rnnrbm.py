@@ -18,7 +18,8 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-numpy.random.seed(0xdeadbeef)
+#Don't use a python long as this don't work on 32 bits computers.
+numpy.random.seed(0xbeef)
 rng = RandomStreams(seed=numpy.random.randint(1 << 30))
 theano.config.warn.subtensor_merge_bug = False
 
