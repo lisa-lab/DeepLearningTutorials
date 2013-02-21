@@ -271,9 +271,10 @@ def test_rnnrbm(batch_size=100, num_epochs=200):
     model = RnnRbm()
     model.train(glob.glob('../data/Nottingham/train/*.mid'),
                 batch_size=batch_size, num_epochs=num_epochs)
+    return model
 
 if __name__ == '__main__':
-    test_rnnrbm()
+    model = test_rnnrbm()
     model.generate('sample1.mid')
     model.generate('sample2.mid')
     pylab.show()
