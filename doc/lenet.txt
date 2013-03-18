@@ -10,6 +10,19 @@ Convolutional Neural Networks (LeNet)
     `floatX`_, `downsample`_ , `conv2d`_, `dimshuffle`_. If you intend to run the
     code on GPU also read `GPU`_.
 
+    To run this example on a GPU, you need a good GPU. First, it need
+    at least 1G of GPU RAM and possibly more if your monitor is
+    connected to the GPU.
+
+    Second, when the GPU is connected to the monitor, there is a limit
+    of a few seconds for each GPU function call. This is needed as
+    current GPU can't be used for the monitor while doing
+    computation. If there wasn't this limit, the screen would freeze
+    for too long and this look as if the computer froze. User don't
+    like this.  This example hit this limit with medium GPU. When the
+    GPU isn't connected to a monitor, there is no time limit. You can
+    lower the batch size to fix the time out problem.
+
 .. _T.tanh: http://deeplearning.net/software/theano/tutorial/examples.html?highlight=tanh
 
 .. _shared variables: http://deeplearning.net/software/theano/tutorial/examples.html#using-shared-variables
