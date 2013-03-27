@@ -350,12 +350,12 @@ The output one should expect is of the form :
 
 .. code-block:: bash
 
-  Optimization complete with best validation score of 2.08%, with test performance 2.18%
-  The code ran for 55.57 minutes
+  Optimization complete. Best validation score of 1.690000 % obtained at iteration 2070000, with test performance 1.650000 %
+  The code for file mlp.py ran for 97.34m
 
-On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with
-approximately 1.78 epoch/minute and it took 99 epochs to reach a test
-error of 2.18%.
+On an Intel(R) Core(TM) i7-2600K CPU @ 3.40GHz the code runs with
+approximately 10.3 epoch/minute and it took 828 epochs to reach a test
+error of 1.65%.
 
 To put this into perspective, we refer the reader to the results section of `this
 <http://yann.lecun.com/exdb/mnist>`_  page.
