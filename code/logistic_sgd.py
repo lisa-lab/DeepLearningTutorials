@@ -323,7 +323,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
 
             minibatch_avg_cost = train_model(minibatch_index)
             # iteration number
-            iter = epoch * n_train_batches + minibatch_index
+            iter = (epoch - 1) * n_train_batches + minibatch_index
 
             if (iter + 1) % validation_frequency == 0:
                 # compute zero-one loss on validation set

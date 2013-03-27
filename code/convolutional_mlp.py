@@ -246,7 +246,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
         epoch = epoch + 1
         for minibatch_index in xrange(n_train_batches):
 
-            iter = epoch * n_train_batches + minibatch_index
+            iter = (epoch - 1) * n_train_batches + minibatch_index
 
             if iter % 100 == 0:
                 print 'training @ iter = ', iter
@@ -296,7 +296,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
 if __name__ == '__main__':
-    evaluate_lenet5()
+    evaluate_lenet5(n_epochs=1, batch_size=1)
 
 
 def experiment(state, channel):
