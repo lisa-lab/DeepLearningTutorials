@@ -576,17 +576,19 @@ of a strategy based on a geometrically increasing amount of patience.
     done_looping = False
     epoch = 0
     while (epoch < n_epochs) and (not done_looping):
+        # Report "1" for first epoch, "n_epochs" for last epoch
         epoch = epoch + 1
         for minibatch_index in xrange(n_train_batches):
 
             d_loss_wrt_params = ... # compute gradient
             params -= learning_rate * d_loss_wrt_params # gradient descent
 
-            # iteration number
-            iter = epoch * n_train_batches + minibatch_index
+            # iteration number. We want it to start at 0.
+            iter = (epoch - 1) * n_train_batches + minibatch_index
             # note that if we do `iter % validation_frequency` it will be
-            # true for iter = 0 which we do not want
-            if iter and iter % validation_frequency == 0:
+            # true for iter = 0 which we do not want. We want it true for
+            # iter = validation_frequency - 1.
+            if (iter + 1) % validation_frequency == 0:
 
                 this_validation_loss = ... # compute zero-one loss on validation set
 

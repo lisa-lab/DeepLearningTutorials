@@ -396,12 +396,12 @@ The output one should expect is of the form :
 .. code-block:: bash
 
     ...
+    epoch 72, minibatch 83/83, validation error 7.510417 %
+         epoch 72, minibatch 83/83, test error of best model 7.510417 %
     epoch 73, minibatch 83/83, validation error 7.500000 %
-        epoch 73, minibatch 83/83, test error of best model 7.489583 %
-    epoch 74, minibatch 83/83, validation error 7.479167 %
-        epoch 74, minibatch 83/83, test error of best model 7.489583 %
-    Optimization complete with best validation score of 7.479167 %,with test performance 7.489583 %
-    The code run for 75 epochs, with 1.936983 epochs/sec
+         epoch 73, minibatch 83/83, test error of best model 7.489583 %
+    Optimization complete with best validation score of 7.500000 %,with test performance 7.489583 %
+    The code run for 74 epochs, with 1.936983 epochs/sec
 
 
 On an Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00 Ghz  the code runs with

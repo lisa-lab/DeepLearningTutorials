@@ -395,9 +395,10 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
     epoch = 0
 
     while (epoch < training_epochs) and (not done_looping):
+        epoch = epoch + 1
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost = train_fn(minibatch_index)
-            iter = epoch * n_train_batches + minibatch_index
+            iter = (epoch - 1) * n_train_batches + minibatch_index
 
             if (iter + 1) % validation_frequency == 0:
                 validation_losses = validate_model()
@@ -429,7 +430,6 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
             if patience <= iter:
                 done_looping = True
                 break
-        epoch = epoch + 1
 
     end_time = time.clock()
     print(('Optimization complete with best validation score of %f %%,'

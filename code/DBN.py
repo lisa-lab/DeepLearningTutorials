@@ -359,7 +359,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
         for minibatch_index in xrange(n_train_batches):
 
             minibatch_avg_cost = train_fn(minibatch_index)
-            iter = epoch * n_train_batches + minibatch_index
+            iter = (epoch - 1) * n_train_batches + minibatch_index
 
             if (iter + 1) % validation_frequency == 0:
 
