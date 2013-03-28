@@ -535,36 +535,36 @@ Running the Code
 The user can then run the code by calling:
 
 .. code-block:: bash
-    
+
     python code/convolutional_mlp.py
 
-The following output was obtained with the default parameters on a Xeon E5450
-CPU clocked at 3.00GHz and using flags 'floatX=float32':
+The following output was obtained with the default parameters on a Core i7-2600K
+CPU clocked at 3.40GHz and using flags 'floatX=float32':
 
 .. code-block:: bash
 
     Optimization complete.
-    Best validation score of 0.910000 % obtained at iteration 16099,with test 
-    performance 0.930000 %
-    The code for file convolutional_mlp.py ran for 755.32m
+    Best validation score of 0.910000 % obtained at iteration 17800,with test
+    performance 0.920000 %
+    The code for file convolutional_mlp.py ran for 380.28m
 
 Using a GeForce GTX 285, we obtained the following:
 
 .. code-block:: bash
 
     Optimization complete.
-    Best validation score of 0.910000 % obtained at iteration 20099,with test
+    Best validation score of 0.910000 % obtained at iteration 15500,with test
     performance 0.930000 %
-    The code for file convolutional_mlp.py ran for 47.96m
+    The code for file convolutional_mlp.py ran for 46.76m
 
 And similarly on a GeForce GTX 480:
 
 .. code-block:: bash
 
     Optimization complete.
-    Best validation score of 0.910000 % obtained at iteration 18499,with test
-    performance 0.910000 %
-    The code for file convolutional_mlp.py ran for 43.09m
+    Best validation score of 0.910000 % obtained at iteration 16400,with test
+    performance 0.930000 %
+    The code for file convolutional_mlp.py ran for 32.52m
 
 Note that the discrepancies in validation and test error (as well as iteration
 count) are due to different implementations of the rounding mechanism in
