@@ -6,7 +6,7 @@ Convolutional Neural Networks (LeNet)
 .. note::
     This section assumes the reader has already read through :doc:`logreg` and
     :doc:`mlp`. Additionally, it uses the following new Theano functions and concepts:
-    `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, 
+    `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_,
     `floatX`_, `downsample`_ , `conv2d`_, `dimshuffle`_. If you intend to run the
     code on GPU also read `GPU`_.
 
@@ -33,7 +33,7 @@ Convolutional Neural Networks (LeNet)
 
 .. _floatX: http://deeplearning.net/software/theano/library/config.html#config.floatX
 
-.. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html 
+.. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html
 
 .. _downsample: http://deeplearning.net/software/theano/library/tensor/signal/downsample.html
 
@@ -84,7 +84,7 @@ contiguous receptive fields. We can illustrate this graphically as follows:
 Imagine that layer **m-1** is the input retina.
 In the above, units in layer **m**
 have receptive fields of width 3 with respect to the input retina and are thus only
-connected to 3 adjacent neurons in the layer below (the retina). 
+connected to 3 adjacent neurons in the layer below (the retina).
 Units in layer **m** have
 a similar connectivity with the layer below. We say that their receptive
 field with respect to the layer below is also 3, but their receptive field
@@ -135,7 +135,7 @@ feature map :math:`h^k` is obtained as follows (for :math:`tanh` non-linearities
 .. math::
     h^k_{ij} = \tanh ( (W^k * x)_{ij} + b_k ).
 
-.. Note:: 
+.. Note::
     Recall the following definition of convolution for a 1D signal.
     :math:`o[n] = f[n]*g[n] = \sum_{u=-\infty}^{\infty} f[u] g[u-n] = \sum_{u=-\infty}^{\infty} f[n-u] g[u]`.
 
@@ -144,10 +144,10 @@ feature map :math:`h^k` is obtained as follows (for :math:`tanh` non-linearities
 
 To form a richer representation of the data, hidden layers are composed of
 a set of multiple feature maps, :math:`\{h^{(k)}, k=0..K\}`.
-The weights :math:`W` of this layer can be parametrized as a 4D tensor 
+The weights :math:`W` of this layer can be parametrized as a 4D tensor
 (destination feature map index, source feature map index, source vertical position index, source horizontal position index)
 and
-the biases :math:`b` as a vector (one element per destination feature map index). 
+the biases :math:`b` as a vector (one element per destination feature map index).
 We illustrate this graphically as follows:
 
 .. figure:: images/cnn_explained.png
@@ -167,7 +167,7 @@ input feature maps, while the other two refer to the pixel coordinates.
 
 Putting it all together, :math:`W^{kl}_{ij}` denotes the weight connecting
 each pixel of the k-th feature map at layer m, with the pixel at coordinates
-(i,j) of the l-th feature map of layer (m-1). 
+(i,j) of the l-th feature map of layer (m-1).
 
 
 The ConvOp
@@ -208,7 +208,7 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
                         high=1.0 / w_bound,
                         size=w_shp),
                     dtype=input.dtype), name ='W')
-        
+
         # initialize shared variable for bias (1D tensor) with random values
         # IMPORTANT: biases are usually initialized to zero. However in this
         # particular application, we simply apply the convolutional layer to
@@ -223,10 +223,10 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
         conv_out = conv.conv2d(input, W)
 
         # build symbolic expression to add bias and apply activation function, i.e. produce neural net layer output
-        # A few words on ``dimshuffle`` : 
+        # A few words on ``dimshuffle`` :
         #   ``dimshuffle`` is a powerful tool in reshaping a tensor;
-        #   what it allows you to do is to shuffle dimension around 
-        #   but also to insert new ones along which the tensor will be 
+        #   what it allows you to do is to shuffle dimension around
+        #   but also to insert new ones along which the tensor will be
         #   broadcastable;
         #   dimshuffle('x', 2, 'x', 0, 1)
         #   This will work on 3d tensors with no broadcastable
@@ -268,7 +268,7 @@ Let's have a little bit of fun with this...
         # plot original image and first and second components of output
         pylab.subplot(1, 3, 1); pylab.axis('off'); pylab.imshow(img)
         pylab.gray();
-        # recall that the convOp output (filtered image) is actually a "minibatch", 
+        # recall that the convOp output (filtered image) is actually a "minibatch",
         # of size 1 here, so we take index 0 in the first dimension:
         pylab.subplot(1, 3, 2); pylab.axis('off'); pylab.imshow(filtered_img[0, 0, :, :])
         pylab.subplot(1, 3, 3); pylab.axis('off'); pylab.imshow(filtered_img[0, 1, :, :])
@@ -280,7 +280,7 @@ This should generate the following output.
 .. image:: images/3wolfmoon_output.png
     :align: center
 
-Notice that a randomly initialized filter acts very much like an edge detector! 
+Notice that a randomly initialized filter acts very much like an edge detector!
 
 Also of note, remark that we use the same weight initialization formula as
 with the MLP. Weights are sampled randomly from a uniform distribution in the
@@ -384,7 +384,7 @@ The lower-layers are composed to alternating convolution and max-pooling
 layers. The upper-layers however are fully-connected and correspond to a
 traditional MLP (hidden layer + logistic regression). The input to the
 first fully-connected layer is the set of all features maps at the layer
-below. 
+below.
 
 From an implementation point of view, this means lower-layers operate on 4D
 tensors. These are then flattened to a 2D matrix of rasterized feature maps,
@@ -458,7 +458,7 @@ layer.
 Notice that when initializing the weight values, the fan-in is determined by
 the size of the receptive fields and the number of input feature maps.
 
-Finally, using the LogisticRegression class defined in :doc:`logreg` and 
+Finally, using the LogisticRegression class defined in :doc:`logreg` and
 the HiddenLayer class defined in :doc:`mlp` , we can
 instantiate the network as follows.
 
@@ -504,7 +504,7 @@ instantiate the network as follows.
     layer2_input = layer1.output.flatten(2)
 
     # construct a fully-connected sigmoidal layer
-    layer2 = HiddenLayer(rng, input=layer2_input, 
+    layer2 = HiddenLayer(rng, input=layer2_input,
                          n_in=50 * 4 * 4, n_out=500,
                          activation=T.tanh    )
 
@@ -523,7 +523,7 @@ instantiate the network as follows.
 
     # create a list of gradients for all model parameters
     grads = T.grad(cost, params)
-    
+
     # train_model is a function that updates the model parameters by SGD
     # Since this model has many parameters, it would be tedious to manually
     # create an update rule for each model parameter. We thus create the updates
@@ -548,36 +548,36 @@ Running the Code
 The user can then run the code by calling:
 
 .. code-block:: bash
-    
+
     python code/convolutional_mlp.py
 
-The following output was obtained with the default parameters on a Xeon E5450
-CPU clocked at 3.00GHz and using flags 'floatX=float32':
+The following output was obtained with the default parameters on a Core i7-2600K
+CPU clocked at 3.40GHz and using flags 'floatX=float32':
 
 .. code-block:: bash
 
     Optimization complete.
-    Best validation score of 0.910000 % obtained at iteration 16099,with test 
-    performance 0.930000 %
-    The code for file convolutional_mlp.py ran for 755.32m
+    Best validation score of 0.910000 % obtained at iteration 17800,with test
+    performance 0.920000 %
+    The code for file convolutional_mlp.py ran for 380.28m
 
 Using a GeForce GTX 285, we obtained the following:
 
 .. code-block:: bash
 
     Optimization complete.
-    Best validation score of 0.910000 % obtained at iteration 20099,with test
+    Best validation score of 0.910000 % obtained at iteration 15500,with test
     performance 0.930000 %
-    The code for file convolutional_mlp.py ran for 47.96m
+    The code for file convolutional_mlp.py ran for 46.76m
 
 And similarly on a GeForce GTX 480:
 
 .. code-block:: bash
 
     Optimization complete.
-    Best validation score of 0.910000 % obtained at iteration 18499,with test
-    performance 0.910000 %
-    The code for file convolutional_mlp.py ran for 43.09m
+    Best validation score of 0.910000 % obtained at iteration 16400,with test
+    performance 0.930000 %
+    The code for file convolutional_mlp.py ran for 32.52m
 
 Note that the discrepancies in validation and test error (as well as iteration
 count) are due to different implementations of the rounding mechanism in
@@ -598,10 +598,10 @@ Number of filters
 *****************
 When choosing the number of filters per layer, keep in mind that computing the
 activations of a single convolutional filter is much more expensive than with
-traditional MLPs ! 
+traditional MLPs !
 
 Assume layer :math:`(l-1)` contains :math:`K^{l-1}` feature
-maps and :math:`M \times N` pixel positions (i.e., 
+maps and :math:`M \times N` pixel positions (i.e.,
 number of positions times number of feature maps),
 and there are :math:`K^l` filters at layer :math:`l` of shape :math:`m \times n`.
 Then computing a feature map (applying an :math:`m \times n` filter
@@ -625,7 +625,7 @@ keeping the total number of activations (number of feature maps times
 number of pixel positions) to be non-decreasing from one layer to the next
 (of course we could hope to get away with less when we are doing supervised
 learning). The number of feature maps directly controls capacity and so
-that depends on the number of available examples and the complexity of 
+that depends on the number of available examples and the complexity of
 the task.
 
 
