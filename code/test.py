@@ -24,7 +24,8 @@ def test_logistic_cg():
         logistic_cg.cg_optimization_mnist(n_epochs=10)
     except ImportError:
         from nose.plugins.skip import SkipTest
-        raise SkipTest('SciPy not available. Needed for the logistic_cg example.')
+        raise SkipTest(
+            'SciPy not available. Needed for the logistic_cg example.')
 
 
 def test_mlp():
@@ -33,6 +34,7 @@ def test_mlp():
 
 def test_convolutional_mlp():
     convolutional_mlp.evaluate_lenet5(n_epochs=1, nkerns=[5, 5])
+
 
 def test_dA():
     dA.test_dA(training_epochs=1, output_folder='tmp_dA_plots')
@@ -50,8 +52,10 @@ def test_rbm():
     rbm.test_rbm(training_epochs=1, batch_size=300, n_chains=1, n_samples=1,
                 n_hidden=20, output_folder='tmp_rbm_plots')
 
+
 def test_rnnrbm():
     rnnrbm.test_rnnrbm(num_epochs=1)
+
 
 def speed():
     """
