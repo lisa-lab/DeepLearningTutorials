@@ -289,8 +289,8 @@ The code that computes the new cost is:
     # the model plus the regularization terms (L1 and L2); cost is expressed
     # here symbolically
     cost = classifier.negative_log_likelihood(y) \
-         + L1_reg * L1 \
-         + L2_reg * L2_sqr
+         + L1_reg * classifier.L1 \
+         + L2_reg * classifier.L2_sqr
 
 
 We then update the parameters of the model using the gradient. This code is
