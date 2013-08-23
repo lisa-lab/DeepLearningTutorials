@@ -10,7 +10,7 @@ Hybrid Monte-Carlo Sampling
   familiar with Theano and energy-based models such as the RBM.
 
 .. note::
-    The code for this section is available for download `here <http://deeplearning.net/tutorial/code/mcrbm/hmc.py>`_.
+    The code for this section is available for download `here <http://deeplearning.net/tutorial/code/hmc/hmc.py>`_.
 
 
 Theory
@@ -654,11 +654,11 @@ compare the empirical mean and covariance matrix to their true values.
         assert sampler.stepsize.get_value() <= sampler.stepsize_max
 
 
-The above code can be run using the command: "nosetests -s code/mcrbm/test\_hmc.py". The output is as follows:
+The above code can be run using the command: "nosetests -s code/hmc/test\_hmc.py". The output is as follows:
 
 .. code-block:: bash
 
-    [desjagui@atchoum mcrbm]$ python test_hmc.py
+    [desjagui@atchoum hmc]$ python test_hmc.py
 
     ****** TARGET VALUES ******
     target mean: [ 6.96469186  2.86139335  2.26851454  5.51314769  7.1946897 ]
