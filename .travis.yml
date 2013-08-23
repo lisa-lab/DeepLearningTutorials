@@ -31,16 +31,15 @@ env:
   - PART="test.py:test_rbm"
   - PART="-e test.py"
 
-#569.882s   #10     code.test.test_rbm OK
-#298.992s   #9      code.test.test_dbn OK
-#268.901s   #8      code.test.test_SdA OK
-#67.292s    #7      code.test.test_dA OK
-#27.485s    #5      code.test.test_mlp OK
-#26.204s    #6      code.test.test_convolutional_mlp OK
-#14.676s    #4      code.test.test_logistic_cg OK
-#10.66s     #3      code.test.test_logistic_sgd OK
-#5.795s     #1      code.mcrbm.test_hmc.test_hmc OK
-#0.0s       #2      code.mcrbm.test_mcrbm.test_reproduce_ranzato_hinton_2010 FAILED TEST
+#569.882s   #9      code.test.test_rbm OK
+#298.992s   #8      code.test.test_dbn OK
+#268.901s   #7      code.test.test_SdA OK
+#67.292s    #6      code.test.test_dA OK
+#27.485s    #4      code.test.test_mlp OK
+#26.204s    #5      code.test.test_convolutional_mlp OK
+#14.676s    #3      code.test.test_logistic_cg OK
+#10.66s     #2      code.test.test_logistic_sgd OK
+#5.795s     #1      code.hmc.test_hmc.test_hmc OK
 
 script:
   - cd data
