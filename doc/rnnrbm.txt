@@ -400,5 +400,5 @@ The code shown in this tutorial is a stripped-down version that can be improved 
 * Learn the initial condition :math:`u^{(0)}` as a model parameter.
 
 
-A few samples generated with code including these features are available `here <http://www-etud.iro.umontreal.ca/~boulanni/sequences.zip>`_.
+A few samples generated with code including these features are available here: `sequences.zip <http://www-etud.iro.umontreal.ca/~boulanni/sequences.zip>`_.
 
