@@ -50,7 +50,7 @@ def test_dbn():
 
 def test_rbm():
     rbm.test_rbm(training_epochs=1, batch_size=300, n_chains=1, n_samples=1,
-                n_hidden=20, output_folder='tmp_rbm_plots')
+                 n_hidden=20, output_folder='tmp_rbm_plots')
 
 
 def test_rnnrbm():
@@ -65,8 +65,8 @@ def speed():
     algo = ['logistic_sgd', 'logistic_cg', 'mlp', 'convolutional_mlp',
             'dA', 'SdA', 'DBN', 'rbm', 'rnnrbm']
     to_exec = [True] * len(algo)
-#    to_exec=[False]*len(algo)
-#    to_exec[-1]=True
+#    to_exec = [False] * len(algo)
+#    to_exec[-1] = True
     do_float64 = True
     do_float32 = True
     do_gpu = True
