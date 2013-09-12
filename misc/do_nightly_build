@@ -8,6 +8,9 @@ NOSETESTS=${ROOT_CWD}/Theano/bin/theano-nose
 FLAGS=warn.ignore_bug_before=0.5,compiledir=${COMPILEDIR}
 export PYTHONPATH=${ROOT_CWD}/Theano:${ROOT_CWD}/Pylearn:$PYTHONPATH
 
+cd ${ROOT_CWD}/DeepLearningTutorials/data
+./download.sh
+
 cd ${ROOT_CWD}/Theano
 echo "git version for Theano:" `git rev-parse HEAD`
 cd ${ROOT_CWD}/DeepLearningTutorials/code
