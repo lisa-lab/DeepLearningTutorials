@@ -23,11 +23,11 @@ install:
   - "sudo pip install --no-deps git+git://github.com/Theano/Theano.git"
 
 env:
-  - PART="test.py:test_logistic_sgd test.py:test_logistic_cg test.py:test_mlp"
-  - PART="test.py:test_convolutional_mlp test.py:test_dA"
+  - PART="test.py:test_logistic_sgd test.py:test_logistic_cg test.py:test_mlp test.py:test_convolutional_mlp test.py:test_dA"
   - PART="test.py:test_SdA"
   - PART="test.py:test_dbn"
   - PART="test.py:test_rbm"
+  - PART="test.py:test_rnnrbm"
   - PART="-e test.py"
 
 #569.882s   #9      code.test.test_rbm OK
