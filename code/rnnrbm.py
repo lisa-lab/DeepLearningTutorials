@@ -4,6 +4,7 @@
 # More information at http://deeplearning.net/tutorial/rnnrbm.html
 
 import glob
+import os
 import sys
 
 import numpy
@@ -269,7 +270,9 @@ show : boolean
 
 def test_rnnrbm(batch_size=100, num_epochs=200):
     model = RnnRbm()
-    model.train(glob.glob('../data/Nottingham/train/*.mid'),
+    re = os.path.join(os.path.split(os.path.dirname(__file__))[0],
+                      'data', 'Nottingham', 'train', '*.mid')
+    model.train(glob.glob(re),
                 batch_size=batch_size, num_epochs=num_epochs)
     return model
 
