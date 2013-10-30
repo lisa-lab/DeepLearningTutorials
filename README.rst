@@ -17,6 +17,7 @@ The easiest way to follow the tutorials is to `browse them online
 `Main development <http://github.com/lisa-lab/DeepLearningTutorials>`_
 of this project.
 
+[![Build Status](https://travis-ci.org/lisa-lab/DeepLearningTutorials.png)](https://travis-ci.org/lisa-lab/DeepLearningTutorials)
 
 Project Layout
 --------------
