@@ -17,8 +17,8 @@ The easiest way to follow the tutorials is to `browse them online
 `Main development <http://github.com/lisa-lab/DeepLearningTutorials>`_
 of this project.
 
-+.. image:: https://secure.travis-ci.org/lisa-lab/DeepLearningTutorials.png
-+   :target: http://travis-ci.org/lisa-lab/DeepLearningTutorials
+.. image:: https://secure.travis-ci.org/lisa-lab/DeepLearningTutorials.png
+   :target: http://travis-ci.org/lisa-lab/DeepLearningTutorials
 
 Project Layout
 --------------
