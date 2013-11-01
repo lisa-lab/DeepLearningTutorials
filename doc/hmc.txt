@@ -649,7 +649,8 @@ compare the empirical mean and covariance matrix to their true values.
     def test_hmc():
         sampler = sampler_on_nd_gaussian(HMC_sampler.new_from_shared_positions,
                 burnin=1000, n_samples=1000, dim=5)
-        assert abs(sampler.avg_acceptance_rate - sampler.target_acceptance_rate) < .1
+        assert abs(sampler.avg_acceptance_rate.get_value() -
+                   sampler.target_acceptance_rate) < .1
         assert sampler.stepsize.get_value() >= sampler.stepsize_min
         assert sampler.stepsize.get_value() <= sampler.stepsize_max
 
