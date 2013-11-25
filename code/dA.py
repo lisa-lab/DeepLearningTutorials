@@ -237,7 +237,7 @@ class dA(object):
 
 
 def test_dA(learning_rate=0.1, training_epochs=15,
-            dataset='../data/mnist.pkl.gz',
+            dataset='mnist.pkl.gz',
             batch_size=20, output_folder='dA_plots'):
 
     """
