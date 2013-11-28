@@ -221,7 +221,7 @@ class cA(object):
 
 
 def test_cA(learning_rate=0.01, training_epochs=20,
-            dataset='../data/mnist.pkl.gz',
+            dataset='mnist.pkl.gz',
             batch_size=10, output_folder='cA_plots', contraction_level=.1):
     """
     This demo is tested on MNIST

@@ -1,5 +1,10 @@
 code/*.pyc
+code/midi
 data/mnist.pkl.gz
+data/mnist_py3k.pkl.gz
+data/Nottingham.zip
+data/Nottingham
+data/midi.zip
 html
 *.pyc
 *~
