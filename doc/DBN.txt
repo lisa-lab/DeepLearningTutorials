@@ -189,7 +189,7 @@ the MLP, while ``self.rbm_layers`` will store the RBMs used to pretrain each
 layer of the MLP.
 
 Next step, we construct ``n_layers`` sigmoid layers (we use the
-``SigmoidalLayer`` class introduced in :ref:`mlp`, with the only modification
+``HiddenLayer`` class introduced in :ref:`mlp`, with the only modification
 that we replaced the non-linearity from ``tanh`` to the logistic function
 :math:`s(x) = \frac{1}{1+e^{-x}}`) and ``n_layers`` RBMs, where ``n_layers``
 is the depth of our model.  We link the sigmoid layers such that they form an

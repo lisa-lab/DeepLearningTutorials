@@ -498,7 +498,7 @@ instantiate the network as follows.
             image_shape=(batch_size, 20, 12, 12),
             filter_shape=(50, 20, 5, 5), poolsize=(2, 2))
 
-    # the SigmoidalLayer being fully-connected, it operates on 2D matrices of
+    # the HiddenLayer being fully-connected, it operates on 2D matrices of
     # shape (batch_size,num_pixels) (i.e matrix of rasterized images).
     # This will generate a matrix of shape (20, 32 * 4 * 4) = (20, 512)
     layer2_input = layer1.output.flatten(2)
