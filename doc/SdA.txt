@@ -126,7 +126,7 @@ representations of intermediate layers of the MLP.
 ``self.dA_layers`` will store  the denoising autoencoder associated with the layers of the MLP. 
 
 Next step, we construct ``n_layers`` sigmoid layers (we use the
-``SigmoidalLayer`` class introduced in :ref:`mlp`, with the only
+``HiddenLayer`` class introduced in :ref:`mlp`, with the only
 modification that we replaced the non-linearity from ``tanh`` to the
 logistic function :math:`s(x) = \frac{1}{1+e^{-x}}`) and ``n_layers``
 denoising autoencoders, where ``n_layers`` is the depth of our model.
@@ -154,10 +154,11 @@ bias of the encoding part with its corresponding sigmoid layer.
             else:
                 layer_input = self.sigmoid_layers[-1].output
 
-            sigmoid_layer = SigmoidalLayer(rng=rng,
+            sigmoid_layer = HiddenLayer(rng=rng,
                                            input=layer_input,
                                            n_in=input_size, 
-                                           n_out=hidden_layers_sizes[i])
+                                           n_out=hidden_layers_sizes[i],
+                                           activation=T.nnet.sigmoid)
             # add the layer to our list of layers 
             self.sigmoid_layers.append(sigmoid_layer)
 

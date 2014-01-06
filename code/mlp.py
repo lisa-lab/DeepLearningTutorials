@@ -108,7 +108,7 @@ class MLP(object):
     A multilayer perceptron is a feedforward artificial neural network model
     that has one layer or more of hidden units and nonlinear activations.
     Intermediate layers usually have as activation function thanh or the
-    sigmoid function (defined here by a ``SigmoidalLayer`` class)  while the
+    sigmoid function (defined here by a ``HiddenLayer`` class)  while the
     top layer is a softamx layer (defined here by a ``LogisticRegression``
     class).
     """
@@ -136,10 +136,10 @@ class MLP(object):
 
         """
 
-        # Since we are dealing with a one hidden layer MLP, this will
-        # translate into a TanhLayer connected to the LogisticRegression
-        # layer; this can be replaced by a SigmoidalLayer, or a layer
-        # implementing any other nonlinearity
+        # Since we are dealing with a one hidden layer MLP, this will translate
+        # into a HiddenLayer with a tanh activation function connected to the
+        # LogisticRegression layer; the activation function can be replaced by
+        # sigmoid or any other nonlinear function
         self.hiddenLayer = HiddenLayer(rng=rng, input=input,
                                        n_in=n_in, n_out=n_hidden,
                                        activation=T.tanh)
