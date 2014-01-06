@@ -171,7 +171,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
             image_shape=(batch_size, nkerns[0], 12, 12),
             filter_shape=(nkerns[1], nkerns[0], 5, 5), poolsize=(2, 2))
 
-    # the TanhLayer being fully-connected, it operates on 2D matrices of
+    # the HiddenLayer being fully-connected, it operates on 2D matrices of
     # shape (batch_size,num_pixels) (i.e matrix of rasterized images).
     # This will generate a matrix of shape (20,32*4*4) = (20,512)
     layer2_input = layer1.output.flatten(2)

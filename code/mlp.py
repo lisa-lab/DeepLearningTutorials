@@ -107,7 +107,7 @@ class MLP(object):
 
     A multilayer perceptron is a feedforward artificial neural network model
     that has one layer or more of hidden units and nonlinear activations.
-    Intermediate layers usually have as activation function thanh or the
+    Intermediate layers usually have as activation function tanh or the
     sigmoid function (defined here by a ``HiddenLayer`` class)  while the
     top layer is a softamx layer (defined here by a ``LogisticRegression``
     class).
