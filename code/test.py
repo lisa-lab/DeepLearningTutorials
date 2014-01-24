@@ -72,9 +72,10 @@ def speed():
     do_gpu = True
 
     algo_executed = [s for idx, s in enumerate(algo) if to_exec[idx]]
-    #Timming expected are from the buildbot that have
-    # an i7-920 @ 2.67GHz with hyperthread enabled for the cpu
-    # and an GeForce GTX 285 for the GPU.
+    #Timming expected are from the buildbot that have an i7-920 @
+    # 2.67GHz with hyperthread enabled for the cpu, 12G of ram. An GeForce GTX
+    # 285 for the GPU. OS=Fedora 14, gcc=4.5.1, python/BLAS from EPD
+    # 7.1-2 (python 2.7.2, mkl unknow). BLAS with only 1 thread.
 
     expected_times_64 = numpy.asarray([10.0, 22.5, 76.1, 73.7, 116.4,
                                        346.9, 381.9, 558.1, 186.3])
