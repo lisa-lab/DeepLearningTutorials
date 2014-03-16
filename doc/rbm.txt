@@ -651,7 +651,7 @@ all bits are independent. Therefore,
 
 Here :math:`x_{-i}` denotes the set of all bits of :math:`x` except bit
 :math:`i`. The log-PL is therefore the sum of the log-probabilities of each
-bit :math:`x_i`, conditionned on the state of all other bits. For MNIST, this
+bit :math:`x_i`, conditioned on the state of all other bits. For MNIST, this
 would involve summing over the 784 input dimensions, which remains rather
 expensive. For this reason, we use the following stochastic approximation to
 log-PL:
