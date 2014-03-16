@@ -573,7 +573,7 @@ chain to get the free energy of the negative phase. Note that the
 ``chain_end`` is a symbolical Theano variable expressed in terms of the model
 parameters, and if we would apply ``T.grad`` naively, the function will
 try to go through the Gibbs chain to get the gradients. This is not what we
-want (it will mess up our gradients) and therefire we need to indicate to
+want (it will mess up our gradients) and therefore we need to indicate to
 ``T.grad`` that ``chain_end`` is a constant. We do this by using the argument
 ``consider_constant`` of ``T.grad``.
 
