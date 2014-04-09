@@ -89,8 +89,8 @@ Recurrent Neural Network Model
 
 **Raw input encoding**
 
-Each token in the ATIS vocabulary is associated to an index. Each sentence is a
-array of indexes (``int32``). Each set is a list of arrays of indexes. A python
+A token corresponds to a word. Each token in the ATIS vocabulary is associated to an index. Each sentence is a
+array of indexes (``int32``). Then, each set (train, valid, test) is a list of arrays of indexes. A python
 dictionnary is defined for mapping the space of indexes to the space of words.
     
     >>> sentence
