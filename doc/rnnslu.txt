@@ -132,7 +132,7 @@ particular word. In details, we have::
         assert win >=1
         l = list(l)
 
-        lpadded = win/2 * [-1] + l + win/2 * [-1]
+        lpadded = win//2 * [-1] + l + win//2 * [-1]
         out = [ lpadded[i:i+win] for i in range(len(l)) ]
 
         assert len(out) == len(l)
@@ -177,7 +177,7 @@ Using Theano, it gives::
     embeddings = theano.shared(0.2 * numpy.random.uniform(-1.0, 1.0, \
         (nv+1, de)).astype(theano.config.floatX)) # add one for PADDING at the end
 
-    idxs = T.imatrix() # as many columns as context window size/lines as words in the sentence
+    idxs = T.imatrix() # as many columns as words in the context window and as many lines as words in the sentence
     x, _ = theano.scan(fn = lambda idx: embeddings[idx].flatten(), sequences = idxs)
 
 The x symbolic variable corresponds to a matrix of shape (number of words in the
