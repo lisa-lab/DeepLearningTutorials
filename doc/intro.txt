@@ -49,6 +49,9 @@ from energy models:
 Building towards including the Contractive auto-encoders tutorial, we have the code for now:
   * `Contractive auto-encoders`_ code - There is some basic doc in the code.
 
+Recurrent neural networks with word embeddings and context window:
+  * :ref:`Semantic Parsing of Speech using Recurrent Net <rnnslu>`
+
 Energy-based recurrent neural network (RNN-RBM):
   * :ref:`Modeling and generating sequences of polyphonic music <rnnrbm>`
 

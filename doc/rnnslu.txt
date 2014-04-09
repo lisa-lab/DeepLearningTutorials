@@ -178,7 +178,7 @@ Using Theano, it gives::
         (nv+1, de)).astype(theano.config.floatX)) # add one for PADDING at the end
 
     idxs = T.imatrix() # as many columns as words in the context window and as many lines as words in the sentence
-    x, _ = theano.scan(fn = lambda idx: embeddings[idx].flatten(), sequences = idxs)
+    x, _ = theano.scan(fn=lambda idx: embeddings[idx].flatten(), sequences=idxs)
 
 The x symbolic variable corresponds to a matrix of shape (number of words in the
 sentences, dimension of the embedding space X context window size).
@@ -193,7 +193,7 @@ Let's compile a theano function to do so
      [-1,  0,  1, 2, 3, 4,-1],
      [ 0,  1,  2, 3, 4,-1,-1],
      [ 1,  2,  3, 4,-1,-1,-1]]
-    >>> f = theano.function( inputs=[idxs], outputs=x)
+    >>> f = theano.function(inputs=[idxs], outputs=x)
     >>> f(cx)
     array([[-0.08088442,  0.08458307,  0.05064092, ...,  0.06876887,
             -0.06648078, -0.15192257],
@@ -250,25 +250,25 @@ It gives the following code::
             de :: dimension of the word embeddings
             cs :: word window context size 
             '''
-            self.emb = theano.shared(name='embeddings', value=0.2 * numpy.random.uniform(-1.0, 1.0,\
+            self.emb = theano.shared(name='embeddings', value=0.2 * numpy.random.uniform(-1.0, 1.0,
                        (ne+1, de)).astype(theano.config.floatX)) # add one for PADDING at the end
-            self.Wx  = theano.shared(name='Wx', value=0.2 * numpy.random.uniform(-1.0, 1.0,\
+            self.Wx  = theano.shared(name='Wx', value=0.2 * numpy.random.uniform(-1.0, 1.0,
                        (de * cs, nh)).astype(theano.config.floatX))
-            self.Wh  = theano.shared(name='Wh', value=0.2 * numpy.random.uniform(-1.0, 1.0,\
+            self.Wh  = theano.shared(name='Wh', value=0.2 * numpy.random.uniform(-1.0, 1.0,
                        (nh, nh)).astype(theano.config.floatX))
-            self.W   = theano.shared(name='W', value=0.2 * numpy.random.uniform(-1.0, 1.0,\
+            self.W   = theano.shared(name='W', value=0.2 * numpy.random.uniform(-1.0, 1.0,
                        (nh, nc)).astype(theano.config.floatX))
             self.bh  = theano.shared(name='bh', value=numpy.zeros(nh, dtype=theano.config.floatX))
             self.b   = theano.shared(name='b', value=numpy.zeros(nc, dtype=theano.config.floatX))
             self.h0  = theano.shared(name='h0', value=numpy.zeros(nh, dtype=theano.config.floatX))
 
             # bundle
-            self.params = [ self.emb, self.Wx, self.Wh, self.W, self.bh, self.b, self.h0 ]
+            self.params = [self.emb, self.Wx, self.Wh, self.W, self.bh, self.b, self.h0]
 
 Then we integrate the way to build the input from the embedding matrix::
 
             idxs = T.imatrix() # as many columns as context window size/lines as words in the sentence
-            x, _ = theano.scan(fn = lambda idx: self.emb[idx].flatten(), sequences = idxs)
+            x, _ = theano.scan(fn=lambda idx: self.emb[idx].flatten(), sequences=idxs)
             y    = T.ivector('y') # label
 
 We use the scan operator to construct the recursion, works like a charm::
@@ -278,11 +278,11 @@ We use the scan operator to construct the recursion, works like a charm::
                 s_t = T.nnet.softmax(T.dot(h_t, self.W) + self.b)
                 return [h_t, s_t]
 
-            [h, s], _ = theano.scan(fn=recurrence, \
-                sequences=x, outputs_info=[self.h0, None], \
+            [h, s], _ = theano.scan(fn=recurrence,
+                sequences=x, outputs_info=[self.h0, None], 
                 n_steps=x.shape[0])
 
-            p_y_given_x_sentence = s[:,0,:]
+            p_y_given_x_sentence = s[:, 0, :]
             y_pred = T.argmax(p_y_given_x_sentence, axis=1)
 
 Theano will then compute all the gradients automatically to maximize the log-likelihood::
@@ -290,21 +290,21 @@ Theano will then compute all the gradients automatically to maximize the log-lik
             lr = T.scalar('lr')
             nll = -T.mean(T.log(p_y_given_x_sentence)[T.arange(x.shape[0]),y])
             gradients = T.grad( nll, self.params )
-            updates = OrderedDict(( p, p-lr*g ) for p, g in zip( self.params , gradients))
+            updates = OrderedDict((p, p - lr*g) for p, g in zip(self.params, gradients))
         
 Next compile those functions::
 
             self.classify = theano.function(inputs=[idxs], outputs=y_pred)
 
-            self.train = theano.function( inputs  = [idxs, y, lr],
-                                          outputs = nll,
-                                          updates = updates )
+            self.train = theano.function(inputs=[idxs, y, lr],
+                                         outputs=nll,
+                                         updates=updates)
 
 We keep the word embeddings on the unit sphere by normalizing them after each update::
 
-            self.normalize = theano.function( inputs = [],
-                             updates = {self.emb:\
-                             self.emb/T.sqrt((self.emb**2).sum(axis=1)).dimshuffle(0,'x')})
+            self.normalize = theano.function(inputs=[],
+                             updates = {self.emb:
+                             self.emb / T.sqrt((self.emb**2).sum(axis=1)).dimshuffle(0, 'x')})
 
 And that's it!
 
@@ -358,7 +358,7 @@ Results
 **Timing**
 
 Running experiments on ATIS using this `repository <https://github.com/mesnilgr/is13>`_ 
-will run one epoch in less than 40 seconds on bart1 processor using less than 200 Mo of RAM::
+will run one epoch in less than 40 seconds on i7 CPU 950 @ 3.07GHz using less than 200 Mo of RAM::
 
     [learning] epoch 0 >> 100.00% completed in 34.48 (sec) <<
 
@@ -378,7 +378,7 @@ After a few epochs, you obtain decent performance **94.48 % of F1 score**.::
 
 **Word Embedding Nearest Neighbors**
 
-We can check the k-nearest neighbors of the thus learned embeddings. L2 and
+We can check the k-nearest neighbors of the learned embeddings. L2 and
 cosine distance gave the same results so we plot them for the cosine distance.
 
 +------------------------------+------------------------------+------------------------------+------------------------------+------------------------------+------------------------------+------------------------------+------------------------------+------------------------------+------------------------------+
