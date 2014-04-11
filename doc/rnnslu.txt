@@ -268,7 +268,7 @@ It gives the following code::
 Then we integrate the way to build the input from the embedding matrix::
 
             idxs = T.imatrix() # as many columns as context window size/lines as words in the sentence
-            x, _ = theano.scan(fn=lambda idx: self.emb[idx].flatten(), sequences=idxs)
+            x    = self.emb[idxs].reshape((idxs.shape[0], de*cs))
             y    = T.ivector('y') # label
 
 We use the scan operator to construct the recursion, works like a charm::
