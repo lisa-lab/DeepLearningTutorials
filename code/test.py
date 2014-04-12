@@ -11,6 +11,11 @@ import mlp
 import rbm
 import rnnrbm
 import SdA
+import rnnslu
+
+
+def test_rnnslu():
+    rnnslu.test(1)
 
 
 def test_logistic_sgd():
@@ -54,7 +59,6 @@ def test_rbm():
 
 def test_rnnrbm():
     rnnrbm.test_rnnrbm(num_epochs=1)
-
 
 def speed():
     """
