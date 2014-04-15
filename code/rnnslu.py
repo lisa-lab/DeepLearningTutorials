@@ -112,22 +112,7 @@ def get_perf(filename):
     return {'p': precision, 'r': recall, 'f1': f1score}
 
 
-# actual model
-class basemodel(object):
-    ''' load/save structure '''
-
-    def save(self, folder):
-        for param in self.params:
-            numpy.save(os.path.join(folder,
-                       param.name + '.npy'), param.get_value())
-
-    def load(self, folder):
-        for param in self.params:
-            param.set_value(numpy.load(os.path.join(folder,
-                            param.name + '.npy')))
-
-
-class model(basemodel):
+class RNNSLU(object):
     ''' elman neural net model '''
     def __init__(self, nh, nc, ne, de, cs):
         '''
@@ -219,8 +204,19 @@ class model(basemodel):
         self.sentence_train(words, labels, learning_rate)
         self.normalize()
 
+    def save(self, folder):
+        for param in self.params:
+            numpy.save(os.path.join(folder,
+                       param.name + '.npy'), param.get_value())
 
-def main(param, sync=None):
+    def load(self, folder):
+        for param in self.params:
+            param.set_value(numpy.load(os.path.join(folder,
+                            param.name + '.npy')))
+
+
+
+def main(param):
 
     folder = os.path.basename(__file__).split('.')[0]
     if not os.path.exists(folder):
@@ -251,11 +247,11 @@ def main(param, sync=None):
     numpy.random.seed(param['seed'])
     random.seed(param['seed'])
 
-    rnn = model(nh=param['nhidden'],
-                nc=nclasses,
-                ne=vocsize,
-                de=param['emb_dimension'],
-                cs=param['win'])
+    rnn = RNNSLU(nh=param['nhidden'],
+                 nc=nclasses,
+                 ne=vocsize,
+                 de=param['emb_dimension'],
+                 cs=param['win'])
 
     # train with early stopping on validation set
     best_f1 = -numpy.inf
@@ -293,8 +289,6 @@ def main(param, sync=None):
 
         if res_valid['f1'] > best_f1:
 
-            if sync is not None:
-                sync()
             if param['savemodel']:
                 rnn.save(folder)
 
@@ -332,8 +326,7 @@ def main(param, sync=None):
           'best test F1', param['tf1'],
           'with the model', folder)
 
-if __name__ == '__main__':
-
+def test_rnnslu(n_epochs):
     # best model
     s = {'fold': 3,
          # 5 folds 0,1,2,3,4
@@ -349,7 +342,8 @@ if __name__ == '__main__':
          'seed': 345,
          'emb_dimension': 50,
          # dimension of word embedding
-         'nepochs': 60,
+         'nepochs': n_epochs,
+         # 60 is recommended
          'savemodel': True}
 
     main(s)
