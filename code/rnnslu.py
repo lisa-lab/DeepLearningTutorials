@@ -326,7 +326,8 @@ def main(param):
           'best test F1', param['tf1'],
           'with the model', folder)
 
-def test_rnnslu(n_epochs):
+
+if __name__ == '__main__':
     # best model
     s = {'fold': 3,
          # 5 folds 0,1,2,3,4
