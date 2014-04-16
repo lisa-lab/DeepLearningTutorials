@@ -255,6 +255,7 @@ Let's have a little bit of fun with this...
 
 .. code-block:: python
 
+        import numpy
         import pylab
         from PIL import Image
 
