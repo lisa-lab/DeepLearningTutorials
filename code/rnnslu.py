@@ -345,7 +345,7 @@ if __name__ == '__main__':
          # dimension of word embedding
          'nepochs': 60,
          # 60 is recommended
-         'savemodel': True}
+         'savemodel': False}
 
     main(s)
     print s

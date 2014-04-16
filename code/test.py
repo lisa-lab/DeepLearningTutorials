@@ -32,7 +32,7 @@ def test_rnnslu():
          # dimension of word embedding
          'nepochs': 1,
          # 60 is recommended
-         'savemodel': True}
+         'savemodel': False}
 
     rnnslu.main(s)
 
