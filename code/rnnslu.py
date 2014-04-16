@@ -343,7 +343,7 @@ if __name__ == '__main__':
          'seed': 345,
          'emb_dimension': 50,
          # dimension of word embedding
-         'nepochs': n_epochs,
+         'nepochs': 60,
          # 60 is recommended
          'savemodel': True}
 
