@@ -25,6 +25,10 @@ If you use this tutorial, cite the following papers:
 
 * `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/RNNSpokenLanguage2013.pdf>`_ Grégoire Mesnil, Xiaodong He, Li Deng and Yoshua Bengio. Investigation of Recurrent-Neural-Network Architectures and Learning Methods for Spoken Language Understanding. Interspeech, 2013.
 
+* `[pdf] <http://research.microsoft.com/en-us/people/gokhant/0000019.pdf>`_ Gokhan Tur, Dilek Hakkani-Tur and Larry Heck. What is left to be understood in ATIS?
+
+* `[pdf] <http://lia.univ-avignon.fr/fileadmin/documents/Users/Intranet/fich_art/997-Interspeech2007.pdf>`_ Christian Raymond and Giuseppe Riccardi. Generative and discriminative algorithms for spoken language understanding. Interspeech, 2007.
+
 * `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/nips2012_deep_workshop_theano_final.pdf>`_ Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Bergstra, James, Goodfellow, Ian, Bergeron, Arnaud, Bouchard, Nicolas, and Bengio, Yoshua. Theano: new features and speed improvements. NIPS Workshop on Deep Learning and Unsupervised Feature Learning, 2012.
 
 * `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/theano_scipy2010.pdf>`_ Bergstra, James, Breuleux, Olivier, Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Desjardins, Guillaume, Turian, Joseph, Warde-Farley, David, and Bengio, Yoshua. Theano: a CPU and GPU math expression compiler. In Proceedings of the Python for Scientific Computing Conference (SciPy), June 2010.
