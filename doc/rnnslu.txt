@@ -320,6 +320,7 @@ It's not trivial to compute those metrics due to the `Inside Outside Beginning
 (IOB) <http://en.wikipedia.org/wiki/Inside_Outside_Beginning>`_ representation
 i.e. a prediction is considered correct if the word-beginnin **and** the
 word-inside **and** the word-outside predictions are **all** correct.
+Note that the extension is `txt` and you will have to cahnge it to `pl`.
 
 Training
 ++++++++
