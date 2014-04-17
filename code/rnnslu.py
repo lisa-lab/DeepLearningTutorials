@@ -84,13 +84,22 @@ def conlleval(p, g, w, filename):
     return get_perf(filename)
 
 
+def download(origin):
+    '''
+    download the corresponding atis file
+    from http://www-etud.iro.umontreal.ca/~mesnilgr/atis/
+    '''
+    print 'Downloading data from %s' % origin
+    name = origin.split('/')[-1]
+    urllib.urlretrieve(origin, name)
+
+
 def get_perf(filename):
     ''' run conlleval.pl perl script to obtain
     precision/recall and F1 score '''
     _conlleval = PREFIX + 'conlleval.pl'
     if not os.path.isfile(_conlleval):
-        #  url = 'http://www-etud.iro.umontreal.ca/
-        #  ~mesnilgr/atis/conlleval.pl'
+        url = 'http://www-etud.iro.umontreal.ca/~mesnilgr/atis/conlleval.pl'
         download(url)
         chmod('conlleval.pl', stat.S_IRWXU)  # give the execute permissions
 
