@@ -68,8 +68,11 @@ The code to do this in Theano is the following:
   b = theano.shared(numpy.zeros((10,)), name='b')
   W = theano.shared(numpy.zeros((784, 10)), name='W')
 
-  # symbolic expression for computing the vector of
-  # class-membership probabilities
+  # symbolic expression for computing the matrix of class-membership probabilities
+  # Where:
+  # W is a matrix where column-k represent the separation hyper plain for class-k
+  # x is a matrix where row-j  represents input training sample-j
+  # b is a vector where element-k represent the free parameter of hyper plain-k
   p_y_given_x = T.nnet.softmax(T.dot(x, W) + b)
 
   # compiled Theano function that returns the vector of class-membership
