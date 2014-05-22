@@ -473,8 +473,8 @@ instantiate the network as follows.
     batch_size = 20  # sized of the minibatch
 
     # allocate symbolic variables for the data
-    x = theano.floatX.xmatrix(theano.config.floatX)  # rasterized images
-    y = T.lvector()  # the labels are presented as 1D vector of [long int] labels
+    x = T.matrix('x')  # rasterized images
+    y = T.lvector('y')  # the labels are presented as 1D vector of [long int] labels
 
     ##############################
     # BEGIN BUILDING ACTUAL MODE
