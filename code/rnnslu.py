@@ -1,14 +1,15 @@
-import numpy
-import time
-import sys
-import subprocess
-import os
-import random
-import copy
-import gzip
-import cPickle
-
 from collections import OrderedDict
+import copy
+import cPickle
+import gzip
+import os
+import urllib
+import random
+import subprocess
+import sys
+import time
+
+import numpy
 
 import theano
 from theano import tensor as T
