@@ -5,6 +5,7 @@ import gzip
 import os
 import urllib
 import random
+import stat
 import subprocess
 import sys
 import time
@@ -102,7 +103,7 @@ def get_perf(filename):
     if not os.path.isfile(_conlleval):
         url = 'http://www-etud.iro.umontreal.ca/~mesnilgr/atis/conlleval.pl'
         download(url)
-        chmod('conlleval.pl', stat.S_IRWXU)  # give the execute permissions
+        os.chmod('conlleval.pl', stat.S_IRWXU)  # give the execute permissions
 
     proc = subprocess.Popen(["perl",
                             _conlleval],
