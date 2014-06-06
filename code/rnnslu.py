@@ -15,7 +15,7 @@ import numpy
 import theano
 from theano import tensor as T
 
-PREFIX = os.getenv('ATISDATA', '')
+PREFIX = os.getenv('ATISDATA', 'data')
 
 
 # utils functions
@@ -99,7 +99,7 @@ def download(origin):
 def get_perf(filename):
     ''' run conlleval.pl perl script to obtain
     precision/recall and F1 score '''
-    _conlleval = PREFIX + 'conlleval.pl'
+    _conlleval = 'conlleval.pl'
     if not os.path.isfile(_conlleval):
         url = 'http://www-etud.iro.umontreal.ca/~mesnilgr/atis/conlleval.pl'
         download(url)

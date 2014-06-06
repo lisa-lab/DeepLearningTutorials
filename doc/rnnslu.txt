@@ -358,8 +358,17 @@ The following intervals can give you some starting point:
 * number of hidden units : random value from {100,200}
 * embedding dimension : random value from {50,100}
 
-Results
-+++++++
+Running the Code
+++++++++++++++++
+
+The user can then run the code by calling:
+
+.. code-block:: bash
+
+    python code/rnnslu.py
+
+UPDATE THE OUTPUT TO THAT SCRIPT
+
 
 **Timing**
 
