@@ -74,7 +74,7 @@ def speed():
     algo_executed = [s for idx, s in enumerate(algo) if to_exec[idx]]
     #Timming expected are from the buildbot that have an i7-920 @
     # 2.67GHz with hyperthread enabled for the cpu, 12G of ram. An GeForce GTX
-    # 285 for the GPU. OS=Fedora 14, gcc=4.5.1, python/BLAS from EPD
+    # 580 for the GPU. OS=Fedora 14, gcc=4.5.1, python/BLAS from EPD
     # 7.1-2 (python 2.7.2, mkl unknow). BLAS with only 1 thread.
 
     expected_times_64 = numpy.asarray([10.0, 22.5, 76.1, 73.7, 116.4,
@@ -87,7 +87,7 @@ def speed():
     # updated, as we where faster in the past!
     # TODO: find why and fix this!
 
-# Here is the value for the buildbot on February 3th 2012.
+# Here is the value for the buildbot on February 3th 2012 with a GTX 285
 #              sgd,         cg           mlp          conv        da
 #              sda          dbn          rbm
 #    gpu times[3.72957802,  9.94316864,  29.1772666,  9.13857198, 25.91144657,
@@ -98,9 +98,11 @@ def speed():
 #              sda          dbn          rbm
 #expected/get [0.82492841,  0.75984178,  0.65092691,  1.04930573, 0.93125138
 #              1.35324519 1.7356905   1.12937868]
-    expected_times_gpu = numpy.asarray([3.07663488, 7.55523491, 18.99226785,
-                                        9.6, 24.13007045,
-                                        20.4,  56, 302.6, 315.4])
+
+    expected_times_gpu = numpy.asarray([3.0, 7.55523491, 18.99226785,
+                                        5.8, 21.5,
+                                        11.8,  47.9, 290.1, 315.4])
+
     expected_times_64 = [s for idx, s in enumerate(expected_times_64)
                          if to_exec[idx]]
     expected_times_32 = [s for idx, s in enumerate(expected_times_32)
