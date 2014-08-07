@@ -43,8 +43,8 @@ class DBN(object):
         :type n_ins: int
         :param n_ins: dimension of the input to the DBN
 
-        :type n_layers_sizes: list of ints
-        :param n_layers_sizes: intermediate layers size, must contain
+        :type hidden_layers_sizes: list of ints
+        :param hidden_layers_sizes: intermediate layers size, must contain
                                at least one value
 
         :type n_outs: int
@@ -263,8 +263,8 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
 
     This is demonstrated on MNIST.
 
-    :type learning_rate: float
-    :param learning_rate: learning rate used in the finetune stage
+    :type finetune_lr: float
+    :param finetune_lr: learning rate used in the finetune stage
     :type pretraining_epochs: int
     :param pretraining_epochs: number of epoch to do pretraining
     :type pretrain_lr: float
