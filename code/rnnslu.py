@@ -297,7 +297,7 @@ def main(param):
                               groundtruth_valid,
                               words_valid,
                               folder + '/current.valid.txt')
-
+        
         if res_valid['f1'] > best_f1:
 
             if param['savemodel']:
@@ -358,5 +358,5 @@ if __name__ == '__main__':
          # 60 is recommended
          'savemodel': False}
 
-    main(s)
     print s
+    main(s)
