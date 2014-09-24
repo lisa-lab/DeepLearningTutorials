@@ -367,8 +367,11 @@ The user can then run the code by calling:
 
     python code/rnnslu.py
 
-UPDATE THE OUTPUT TO THAT SCRIPT
-
+    ('NEW BEST: epoch', 25, 'valid F1', 96.84, 'best test F1', 93.79)
+    [learning] epoch 26 >> 100.00% completed in 28.76 (sec) <<
+    [learning] epoch 27 >> 100.00% completed in 28.76 (sec) <<
+    ...
+    ('BEST RESULT: epoch', 57, 'valid F1', 97.23, 'best test F1', 94.2, 'with the model', 'rnnslu')
 
 **Timing**
 
