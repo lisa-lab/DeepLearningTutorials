@@ -139,10 +139,10 @@ feature map :math:`h^k` is obtained as follows (for :math:`tanh` non-linearities
 
 .. Note::
     Recall the following definition of convolution for a 1D signal.
-    :math:`o[n] = f[n]*g[n] = \sum_{u=-\infty}^{\infty} f[u] g[u-n] = \sum_{u=-\infty}^{\infty} f[n-u] g[u]`.
+    :math:`o[n] = f[n]*g[n] = \sum_{u=-\infty}^{\infty} f[u] g[n-u] = \sum_{u=-\infty}^{\infty} f[n-u] g[u]`.
 
     This can be extended to 2D as follows:
-    :math:`o[m,n] = f[m,n]*g[m,n] = \sum_{u=-\infty}^{\infty} \sum_{v=-\infty}^{\infty} f[u,v] g[u-m,v-n]`.
+    :math:`o[m,n] = f[m,n]*g[m,n] = \sum_{u=-\infty}^{\infty} \sum_{v=-\infty}^{\infty} f[u,v] g[m-u,n-v]`.
 
 To form a richer representation of the data, hidden layers are composed of
 a set of multiple feature maps, :math:`\{h^{(k)}, k=0..K\}`.
