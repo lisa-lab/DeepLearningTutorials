@@ -77,9 +77,9 @@ def speed():
     # 580 for the GPU. OS=Fedora 14, gcc=4.5.1, python/BLAS from EPD
     # 7.1-2 (python 2.7.2, mkl unknow). BLAS with only 1 thread.
 
-    expected_times_64 = numpy.asarray([10.0, 22.5, 76.1, 73.7, 116.4,
+    expected_times_64 = numpy.asarray([9.8, 22.5, 76.1, 73.7, 116.4,
                                        346.9, 381.9, 558.1, 186.3])
-    expected_times_32 = numpy.asarray([11.6, 29.6, 42.5, 66.5, 71,
+    expected_times_32 = numpy.asarray([8.1, 17.9, 42.5, 66.5, 71,
                                        191.2, 226.8, 432.8, 176.2])
 
     # Number with just 1 decimal are new value that are faster with
@@ -219,6 +219,7 @@ def speed():
                 print >> sys.stderr, 'gpu % expected/get', (
                     expected_times_gpu / gpu_times)
 
+            print
             if do_float64 and do_float32:
                 print >> sys.stderr, 'float64/float32', (
                     float64_times / float32_times)
@@ -239,6 +240,7 @@ def speed():
         # time and the real time, we consider this an error.
         return sum((ratio < 0.95) + (ratio > 1.05))
 
+    print
     if do_float64:
         err = compare(expected_times_64, float64_times)
         print >> sys.stderr, 'speed_failure_float64=' + str(err)
