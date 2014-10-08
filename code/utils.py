@@ -47,7 +47,7 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
 
 
     :returns: array suitable for viewing as an image.
-    (See:`PIL.Image.fromarray`.)
+    (See:`Image.fromarray`.)
     :rtype: a 2-d array with same dtype as X.
 
     """

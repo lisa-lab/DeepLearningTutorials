@@ -754,7 +754,7 @@ been shown to lead to a better generative model ([Tieleman08]_).
         # Plot filters after each training epoch
         plotting_start = time.clock()
         # Construct image from the weight matrix
-        image = PIL.Image.fromarray(tile_raster_images(
+        image = Image.fromarray(tile_raster_images(
                  X=rbm.W.get_value(borrow=True).T,
                  img_shape=(28, 28), tile_shape=(10, 10),
                  tile_spacing=(1, 1)))
@@ -841,7 +841,7 @@ samples at every 1000 steps.
                 tile_spacing=(1, 1))
         # construct image
 
-    image = PIL.Image.fromarray(image_data)
+    image = Image.fromarray(image_data)
     print ' ... plotting sample ', idx
     image.save('samples.png')
 

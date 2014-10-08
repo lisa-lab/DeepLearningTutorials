@@ -78,7 +78,7 @@ Tiling minibatches together is done for us by the
 
 
     :returns: array suitable for viewing as an image.
-    (See:`PIL.Image.fromarray`.)
+    (See:`Image.fromarray`.)
     :rtype: a 2-d array with same dtype as X.
 
     """

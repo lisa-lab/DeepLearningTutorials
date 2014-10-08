@@ -7,7 +7,11 @@ to those without visible-visible and hidden-hidden connections.
 import cPickle
 import gzip
 import time
-import PIL.Image
+
+try:
+    import PIL.Image as Image
+except ImportError:
+    import Image
 
 import numpy
 
@@ -396,7 +400,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
         # Plot filters after each training epoch
         plotting_start = time.clock()
         # Construct image from the weight matrix
-        image = PIL.Image.fromarray(tile_raster_images(
+        image = Image.fromarray(tile_raster_images(
                  X=rbm.W.get_value(borrow=True).T,
                  img_shape=(28, 28), tile_shape=(10, 10),
                  tile_spacing=(1, 1)))
@@ -459,7 +463,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
                 tile_spacing=(1, 1))
         # construct image
 
-    image = PIL.Image.fromarray(image_data)
+    image = Image.fromarray(image_data)
     image.save('samples.png')
     os.chdir('../')
 
