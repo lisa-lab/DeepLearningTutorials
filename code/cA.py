@@ -42,7 +42,10 @@ import theano.tensor as T
 from logistic_sgd import load_data
 from utils import tile_raster_images
 
-import PIL.Image
+try:
+    import PIL.Image as Image
+except ImportError:
+    import Image
 
 
 class cA(object):
@@ -290,7 +293,7 @@ def test_cA(learning_rate=0.01, training_epochs=20,
 
     print >> sys.stderr, ('The code for file ' + os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((training_time) / 60.))
-    image = PIL.Image.fromarray(tile_raster_images(
+    image = Image.fromarray(tile_raster_images(
         X=ca.W.get_value(borrow=True).T,
         img_shape=(28, 28), tile_shape=(10, 10),
         tile_spacing=(1, 1)))
