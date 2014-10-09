@@ -75,21 +75,21 @@ class LogisticRegression(object):
 
         # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
         self.W = theano.shared(
-            value = numpy.zeros(
+            value=numpy.zeros(
                 (n_in, n_out),
-                dtype = theano.config.floatX
+                dtype=theano.config.floatX
             ),
-            name = 'W', 
-            borrow = True
+            name='W', 
+            borrow=True
         )
         # initialize the baises b as a vector of n_out 0s
         self.b = theano.shared(
-            value = numpy.zeros(
+            value=numpy.zeros(
                 (n_out,),
-                dtype = theano.config.floatX
+                dtype=theano.config.floatX
             ),
-            name = 'b', 
-            borrow = True
+            name='b', 
+            borrow=True
         )
 
         # symbolic expression for computing the matrix of class-membership probabilities
@@ -101,7 +101,7 @@ class LogisticRegression(object):
 
         # symbolic description of how to compute prediction as class whose probability
         # is maximal
-        self.y_pred = T.argmax(self.p_y_given_x, axis = 1)
+        self.y_pred = T.argmax(self.p_y_given_x, axis=1)
 
         # parameters of the model
         self.params = [self.W, self.b]
@@ -277,7 +277,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
 
     # construct the logistic regression class
     # Each MNIST image has size 28*28
-    classifier = LogisticRegression(input = x, n_in = 28 * 28, n_out = 10)
+    classifier = LogisticRegression(input=x, n_in=28 * 28, n_out=10)
 
     # the cost we minimize during training is the negative log likelihood of
     # the model in symbolic format
@@ -286,26 +286,26 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
     # compiling a Theano function that computes the mistakes that are made by
     # the model on a minibatch
     test_model = theano.function(
-        inputs = [index],
-        outputs = classifier.errors(y),
-        givens = {
+        inputs=[index],
+        outputs=classifier.errors(y),
+        givens={
             x: test_set_x[index * batch_size : (index + 1) * batch_size],
             y: test_set_y[index * batch_size : (index + 1) * batch_size]
         }
     )
 
     validate_model = theano.function(
-        inputs = [index],
-        outputs = classifier.errors(y),
-        givens = {
+        inputs=[index],
+        outputs=classifier.errors(y),
+        givens={
             x: valid_set_x[index * batch_size : (index + 1) * batch_size],
             y: valid_set_y[index * batch_size : (index + 1) * batch_size]
         }
     )
 
     # compute the gradient of cost with respect to theta = (W,b)
-    g_W = T.grad(cost = cost, wrt = classifier.W)
-    g_b = T.grad(cost = cost, wrt = classifier.b)
+    g_W = T.grad(cost=cost, wrt=classifier.W)
+    g_b = T.grad(cost=cost, wrt=classifier.b)
 
     # specify how to update the parameters of the model as a list of
     # (variable, update expression) pairs.
@@ -316,10 +316,10 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
     train_model = theano.function(
-        inputs = [index],
-        outputs = cost,
-        updates = updates,
-        givens = {
+        inputs=[index],
+        outputs=cost,
+        updates=updates,
+        givens={
             x: train_set_x[index * batch_size : (index + 1) * batch_size],
             y: train_set_y[index * batch_size : (index + 1) * batch_size]
         }

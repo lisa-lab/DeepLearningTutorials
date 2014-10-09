@@ -81,20 +81,20 @@ class HiddenLayer(object):
         if W is None:
             W_values = numpy.asarray(
                 rng.uniform(
-                    low = -numpy.sqrt(6. / (n_in + n_out)),
-                    high = numpy.sqrt(6. / (n_in + n_out)),
-                    size = (n_in, n_out)
+                    low=-numpy.sqrt(6. / (n_in + n_out)),
+                    high=numpy.sqrt(6. / (n_in + n_out)),
+                    size=(n_in, n_out)
                 ), 
-                dtype = theano.config.floatX
+                dtype=theano.config.floatX
             )
             if activation == theano.tensor.nnet.sigmoid:
                 W_values *= 4
 
-            W = theano.shared(value = W_values, name = 'W', borrow = True)
+            W = theano.shared(value=W_values, name='W', borrow=True)
 
         if b is None:
-            b_values = numpy.zeros((n_out,), dtype = theano.config.floatX)
-            b = theano.shared(value = b_values, name = 'b', borrow = True)
+            b_values = numpy.zeros((n_out,), dtype=theano.config.floatX)
+            b = theano.shared(value=b_values, name='b', borrow=True)
 
         self.W = W
         self.b = b
@@ -147,19 +147,19 @@ class MLP(object):
         # LogisticRegression layer; the activation function can be replaced by
         # sigmoid or any other nonlinear function
         self.hiddenLayer = HiddenLayer(
-            rng = rng, 
-            input = input,
-            n_in = n_in, 
-            n_out = n_hidden,
-            activation = T.tanh
+            rng=rng, 
+            input=input,
+            n_in=n_in, 
+            n_out=n_hidden,
+            activation=T.tanh
         )
 
         # The logistic regression layer gets as input the hidden units
         # of the hidden layer
         self.logRegressionLayer = LogisticRegression(
-            input = self.hiddenLayer.output,
-            n_in = n_hidden,
-            n_out = n_out
+            input=self.hiddenLayer.output,
+            n_in=n_hidden,
+            n_out=n_out
         )
 
         # L1 norm ; one regularization option is to enforce L1 norm to
@@ -239,11 +239,11 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
 
     # construct the MLP class
     classifier = MLP(
-        rng = rng, 
-        input = x, 
-        n_in = 28 * 28,
-        n_hidden = n_hidden, 
-        n_out = 10
+        rng=rng, 
+        input=x, 
+        n_in=28 * 28,
+        n_hidden=n_hidden, 
+        n_out=10
     )
 
     # the cost we minimize during training is the negative log likelihood of
@@ -287,10 +287,10 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
     # in the same time updates the parameter of the model based on the rules
     # defined in `updates`
     train_model = theano.function(
-        inputs = [index], 
-        outputs = cost,
-        updates = updates,
-        givens = {
+        inputs=[index], 
+        outputs=cost,
+        updates=updates,
+        givens={
             x: train_set_x[index * batch_size : (index + 1) * batch_size],
             y: train_set_y[index * batch_size : (index + 1) * batch_size]
         }

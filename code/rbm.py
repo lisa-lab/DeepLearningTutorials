@@ -29,14 +29,14 @@ class RBM(object):
     """Restricted Boltzmann Machine (RBM)  """
     def __init__(
         self, 
-        input = None, 
-        n_visible = 784, 
-        n_hidden = 500,
-        W = None, 
-        hbias = None, 
-        vbias = None, 
-        numpy_rng = None,
-        theano_rng = None
+        input=None, 
+        n_visible=784, 
+        n_hidden=500,
+        W=None, 
+        hbias=None, 
+        vbias=None, 
+        numpy_rng=None,
+        theano_rng=None
     ):
         """
         RBM constructor. Defines the parameters of the model along with
@@ -80,35 +80,35 @@ class RBM(object):
             # that the code is runable on GPU
             initial_W = numpy.asarray(
                 numpy_rng.uniform(
-                    low = -4 * numpy.sqrt(6. / (n_hidden + n_visible)),
-                    high = 4 * numpy.sqrt(6. / (n_hidden + n_visible)),
-                    size = (n_visible, n_hidden)
+                    low=-4 * numpy.sqrt(6. / (n_hidden + n_visible)),
+                    high=4 * numpy.sqrt(6. / (n_hidden + n_visible)),
+                    size=(n_visible, n_hidden)
                 ),
-                dtype = theano.config.floatX
+                dtype=theano.config.floatX
             )
             # theano shared variables for weights and biases
-            W = theano.shared(value = initial_W, name = 'W', borrow = True)
+            W = theano.shared(value=initial_W, name='W', borrow=True)
 
         if hbias is None:
             # create shared variable for hidden units bias
             hbias = theano.shared(
-                value = numpy.zeros(
+                value=numpy.zeros(
                     n_hidden,
-                    dtype = theano.config.floatX
+                    dtype=theano.config.floatX
                 ),
-                name = 'hbias', 
+                name='hbias', 
                 borrow=True
             )
 
         if vbias is None:
             # create shared variable for visible units bias
             vbias = theano.shared(
-                value = numpy.zeros(
+                value=numpy.zeros(
                     n_visible,
-                    dtype = theano.config.floatX
+                    dtype=theano.config.floatX
                 ),
-                name = 'vbias', 
-                borrow = True
+                name='vbias', 
+                borrow=True
             )
 
         # initialize input layer for standalone RBM or layer0 of DBN

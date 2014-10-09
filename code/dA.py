@@ -78,13 +78,13 @@ class dA(object):
     def __init__(
         self, 
         numpy_rng, 
-        theano_rng = None, 
-        input = None,
-        n_visible = 784, 
-        n_hidden = 500,
-        W = None, 
-        bhid = None, 
-        bvis = None
+        theano_rng=None, 
+        input=None,
+        n_visible=784, 
+        n_hidden=500,
+        W=None, 
+        bhid=None, 
+        bvis=None
     ):
         """
         Initialize the dA class by specifying the number of visible units (the
@@ -287,11 +287,11 @@ def test_dA(learning_rate=0.1, training_epochs=15,
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
     da = dA(
-        numpy_rng = rng, 
-        theano_rng = theano_rng, 
-        input = x,
-        n_visible = 28 * 28, 
-        n_hidden = 500
+        numpy_rng=rng, 
+        theano_rng=theano_rng, 
+        input=x,
+        n_visible=28 * 28, 
+        n_hidden=500
     )
 
     cost, updates = da.get_cost_updates(
@@ -302,8 +302,8 @@ def test_dA(learning_rate=0.1, training_epochs=15,
     train_da = theano.function(
         [index], 
         cost, 
-        updates = updates,
-        givens = {
+        updates=updates,
+        givens={
             x: train_set_x[index * batch_size : (index + 1) * batch_size]
         }
     )
@@ -344,15 +344,15 @@ def test_dA(learning_rate=0.1, training_epochs=15,
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
     da = dA(
-        numpy_rng = rng, 
-        theano_rng = theano_rng, 
-        input = x,
-        n_visible = 28 * 28, 
-        n_hidden = 500
+        numpy_rng=rng, 
+        theano_rng=theano_rng, 
+        input=x,
+        n_visible=28 * 28, 
+        n_hidden=500
     )
 
     cost, updates = da.get_cost_updates(
-        corruption_level = 0.3,
+        corruption_level=0.3,
         learning_rate=learning_rate
     )
 
