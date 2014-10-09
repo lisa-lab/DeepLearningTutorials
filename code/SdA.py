@@ -57,7 +57,8 @@ class SdA(object):
     the dAs are only used to initialize the weights.
     """
 
-    def __init__(self, 
+    def __init__(
+        self, 
         numpy_rng, 
         theano_rng=None, 
         n_ins=784,
