@@ -74,20 +74,34 @@ class LogisticRegression(object):
         """
 
         # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
-        self.W = theano.shared(value=numpy.zeros((n_in, n_out),
-                                                 dtype=theano.config.floatX),
-                                name='W', borrow=True)
+        self.W = theano.shared(
+            value = numpy.zeros(
+                (n_in, n_out),
+                dtype = theano.config.floatX
+            ),
+            name = 'W', 
+            borrow = True
+        )
         # initialize the baises b as a vector of n_out 0s
-        self.b = theano.shared(value=numpy.zeros((n_out,),
-                                                 dtype=theano.config.floatX),
-                               name='b', borrow=True)
+        self.b = theano.shared(
+            value = numpy.zeros(
+                (n_out,),
+                dtype = theano.config.floatX
+            ),
+            name = 'b', 
+            borrow = True
+        )
 
-        # compute vector of class-membership probabilities in symbolic form
+        # symbolic expression for computing the matrix of class-membership probabilities
+        # Where:
+        # W is a matrix where column-k represent the separation hyper plain for class-k
+        # x is a matrix where row-j  represents input training sample-j
+        # b is a vector where element-k represent the free parameter of hyper plain-k
         self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W) + self.b)
 
-        # compute prediction as class whose probability is maximal in
-        # symbolic form
-        self.y_pred = T.argmax(self.p_y_given_x, axis=1)
+        # symbolic description of how to compute prediction as class whose probability
+        # is maximal
+        self.y_pred = T.argmax(self.p_y_given_x, axis = 1)
 
         # parameters of the model
         self.params = [self.W, self.b]
@@ -255,13 +269,15 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
 
     # allocate symbolic variables for the data
     index = T.lscalar()  # index to a [mini]batch
-    x = T.matrix('x')  # the data is presented as rasterized images
-    y = T.ivector('y')  # the labels are presented as 1D vector of
-                           # [int] labels
+
+    # generate symbolic variables for input (x and y represent a
+    # minibatch)
+    x = T.matrix('x') # data, presented as rasterized images
+    y = T.ivector('y') # labels, presented as 1D vector of [int] labels
 
     # construct the logistic regression class
     # Each MNIST image has size 28*28
-    classifier = LogisticRegression(input=x, n_in=28 * 28, n_out=10)
+    classifier = LogisticRegression(input = x, n_in = 28 * 28, n_out = 10)
 
     # the cost we minimize during training is the negative log likelihood of
     # the model in symbolic format
@@ -269,21 +285,27 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
 
     # compiling a Theano function that computes the mistakes that are made by
     # the model on a minibatch
-    test_model = theano.function(inputs=[index],
-            outputs=classifier.errors(y),
-            givens={
-                x: test_set_x[index * batch_size: (index + 1) * batch_size],
-                y: test_set_y[index * batch_size: (index + 1) * batch_size]})
+    test_model = theano.function(
+        inputs = [index],
+        outputs = classifier.errors(y),
+        givens = {
+            x: test_set_x[index * batch_size : (index + 1) * batch_size],
+            y: test_set_y[index * batch_size : (index + 1) * batch_size]
+        }
+    )
 
-    validate_model = theano.function(inputs=[index],
-            outputs=classifier.errors(y),
-            givens={
-                x: valid_set_x[index * batch_size:(index + 1) * batch_size],
-                y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
+    validate_model = theano.function(
+        inputs = [index],
+        outputs = classifier.errors(y),
+        givens = {
+            x: valid_set_x[index * batch_size : (index + 1) * batch_size],
+            y: valid_set_y[index * batch_size : (index + 1) * batch_size]
+        }
+    )
 
     # compute the gradient of cost with respect to theta = (W,b)
-    g_W = T.grad(cost=cost, wrt=classifier.W)
-    g_b = T.grad(cost=cost, wrt=classifier.b)
+    g_W = T.grad(cost = cost, wrt = classifier.W)
+    g_b = T.grad(cost = cost, wrt = classifier.b)
 
     # specify how to update the parameters of the model as a list of
     # (variable, update expression) pairs.
@@ -293,12 +315,15 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
-    train_model = theano.function(inputs=[index],
-            outputs=cost,
-            updates=updates,
-            givens={
-                x: train_set_x[index * batch_size:(index + 1) * batch_size],
-                y: train_set_y[index * batch_size:(index + 1) * batch_size]})
+    train_model = theano.function(
+        inputs = [index],
+        outputs = cost,
+        updates = updates,
+        givens = {
+            x: train_set_x[index * batch_size : (index + 1) * batch_size],
+            y: train_set_y[index * batch_size : (index + 1) * batch_size]
+        }
+    )
 
     ###############
     # TRAIN MODEL #

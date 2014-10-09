@@ -27,9 +27,17 @@ from logistic_sgd import load_data
 
 class RBM(object):
     """Restricted Boltzmann Machine (RBM)  """
-    def __init__(self, input=None, n_visible=784, n_hidden=500, \
-        W=None, hbias=None, vbias=None, numpy_rng=None,
-        theano_rng=None):
+    def __init__(
+        self, 
+        input = None, 
+        n_visible = 784, 
+        n_hidden = 500,
+        W = None, 
+        hbias = None, 
+        vbias = None, 
+        numpy_rng = None,
+        theano_rng = None
+    ):
         """
         RBM constructor. Defines the parameters of the model along with
         basic operations for inferring hidden from visible (and vice-versa),
@@ -70,25 +78,38 @@ class RBM(object):
             # 4*sqrt(6./(n_hidden+n_visible)) the output of uniform if
             # converted using asarray to dtype theano.config.floatX so
             # that the code is runable on GPU
-            initial_W = numpy.asarray(numpy_rng.uniform(
-                      low=-4 * numpy.sqrt(6. / (n_hidden + n_visible)),
-                      high=4 * numpy.sqrt(6. / (n_hidden + n_visible)),
-                      size=(n_visible, n_hidden)),
-                      dtype=theano.config.floatX)
+            initial_W = numpy.asarray(
+                numpy_rng.uniform(
+                    low = -4 * numpy.sqrt(6. / (n_hidden + n_visible)),
+                    high = 4 * numpy.sqrt(6. / (n_hidden + n_visible)),
+                    size = (n_visible, n_hidden)
+                ),
+                dtype = theano.config.floatX
+            )
             # theano shared variables for weights and biases
-            W = theano.shared(value=initial_W, name='W', borrow=True)
+            W = theano.shared(value = initial_W, name = 'W', borrow = True)
 
         if hbias is None:
             # create shared variable for hidden units bias
-            hbias = theano.shared(value=numpy.zeros(n_hidden,
-                                                    dtype=theano.config.floatX),
-                                  name='hbias', borrow=True)
+            hbias = theano.shared(
+                value = numpy.zeros(
+                    n_hidden,
+                    dtype = theano.config.floatX
+                ),
+                name = 'hbias', 
+                borrow=True
+            )
 
         if vbias is None:
             # create shared variable for visible units bias
-            vbias = theano.shared(value=numpy.zeros(n_visible,
-                                                    dtype=theano.config.floatX),
-                                  name='vbias', borrow=True)
+            vbias = theano.shared(
+                value = numpy.zeros(
+                    n_visible,
+                    dtype = theano.config.floatX
+                ),
+                name = 'vbias', 
+                borrow = True
+            )
 
         # initialize input layer for standalone RBM or layer0 of DBN
         self.input = input

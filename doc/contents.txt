@@ -11,9 +11,9 @@ Contents
    LICENSE
    intro
    gettingstarted
-   logreg
+   logistic_sgd
    mlp
-   lenet
+   convolutional_mlp
    dA
    SdA
    rbm

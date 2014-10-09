@@ -79,25 +79,31 @@ class HiddenLayer(object):
         #        We have no info for other function, so we use the same as
         #        tanh.
         if W is None:
-            W_values = numpy.asarray(rng.uniform(
-                    low=-numpy.sqrt(6. / (n_in + n_out)),
-                    high=numpy.sqrt(6. / (n_in + n_out)),
-                    size=(n_in, n_out)), dtype=theano.config.floatX)
+            W_values = numpy.asarray(
+                rng.uniform(
+                    low = -numpy.sqrt(6. / (n_in + n_out)),
+                    high = numpy.sqrt(6. / (n_in + n_out)),
+                    size = (n_in, n_out)
+                ), 
+                dtype = theano.config.floatX
+            )
             if activation == theano.tensor.nnet.sigmoid:
                 W_values *= 4
 
-            W = theano.shared(value=W_values, name='W', borrow=True)
+            W = theano.shared(value = W_values, name = 'W', borrow = True)
 
         if b is None:
-            b_values = numpy.zeros((n_out,), dtype=theano.config.floatX)
-            b = theano.shared(value=b_values, name='b', borrow=True)
+            b_values = numpy.zeros((n_out,), dtype = theano.config.floatX)
+            b = theano.shared(value = b_values, name = 'b', borrow = True)
 
         self.W = W
         self.b = b
 
         lin_output = T.dot(input, self.W) + self.b
-        self.output = (lin_output if activation is None
-                       else activation(lin_output))
+        self.output = (
+            lin_output if activation is None
+            else activation(lin_output)
+        )
         # parameters of the model
         self.params = [self.W, self.b]
 
@@ -140,16 +146,21 @@ class MLP(object):
         # into a HiddenLayer with a tanh activation function connected to the
         # LogisticRegression layer; the activation function can be replaced by
         # sigmoid or any other nonlinear function
-        self.hiddenLayer = HiddenLayer(rng=rng, input=input,
-                                       n_in=n_in, n_out=n_hidden,
-                                       activation=T.tanh)
+        self.hiddenLayer = HiddenLayer(
+            rng = rng, 
+            input = input,
+            n_in = n_in, 
+            n_out = n_hidden,
+            activation = T.tanh
+        )
 
         # The logistic regression layer gets as input the hidden units
         # of the hidden layer
         self.logRegressionLayer = LogisticRegression(
-            input=self.hiddenLayer.output,
-            n_in=n_hidden,
-            n_out=n_out)
+            input = self.hiddenLayer.output,
+            n_in = n_hidden,
+            n_out = n_out
+        )
 
         # L1 norm ; one regularization option is to enforce L1 norm to
         # be small
@@ -227,8 +238,13 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
     rng = numpy.random.RandomState(1234)
 
     # construct the MLP class
-    classifier = MLP(rng=rng, input=x, n_in=28 * 28,
-                     n_hidden=n_hidden, n_out=10)
+    classifier = MLP(
+        rng = rng, 
+        input = x, 
+        n_in = 28 * 28,
+        n_hidden = n_hidden, 
+        n_out = 10
+    )
 
     # the cost we minimize during training is the negative log likelihood of
     # the model plus the regularization terms (L1 and L2); cost is expressed
@@ -253,29 +269,32 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
 
     # compute the gradient of cost with respect to theta (sotred in params)
     # the resulting gradients will be stored in a list gparams
-    gparams = []
-    for param in classifier.params:
-        gparam = T.grad(cost, param)
-        gparams.append(gparam)
+    gparams = [T.grad(cost, param) for param in classifier.params]
 
     # specify how to update the parameters of the model as a list of
     # (variable, update expression) pairs
-    updates = []
+
     # given two list the zip A = [a1, a2, a3, a4] and B = [b1, b2, b3, b4] of
     # same length, zip generates a list C of same size, where each element
     # is a pair formed from the two lists :
     #    C = [(a1, b1), (a2, b2), (a3, b3), (a4, b4)]
-    for param, gparam in zip(classifier.params, gparams):
-        updates.append((param, param - learning_rate * gparam))
+    updates = [
+        (param, param - learning_rate * gparam) 
+        for param, gparam in zip(classifier.params, gparams)
+    ]
 
     # compiling a Theano function `train_model` that returns the cost, but
     # in the same time updates the parameter of the model based on the rules
     # defined in `updates`
-    train_model = theano.function(inputs=[index], outputs=cost,
-            updates=updates,
-            givens={
-                x: train_set_x[index * batch_size:(index + 1) * batch_size],
-                y: train_set_y[index * batch_size:(index + 1) * batch_size]})
+    train_model = theano.function(
+        inputs = [index], 
+        outputs = cost,
+        updates = updates,
+        givens = {
+            x: train_set_x[index * batch_size : (index + 1) * batch_size],
+            y: train_set_y[index * batch_size : (index + 1) * batch_size]
+        }
+    )
 
     ###############
     # TRAIN MODEL #

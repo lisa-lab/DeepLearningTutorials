@@ -75,9 +75,17 @@ class dA(object):
 
     """
 
-    def __init__(self, numpy_rng, theano_rng=None, input=None,
-                 n_visible=784, n_hidden=500,
-                 W=None, bhid=None, bvis=None):
+    def __init__(
+        self, 
+        numpy_rng, 
+        theano_rng = None, 
+        input = None,
+        n_visible = 784, 
+        n_hidden = 500,
+        W = None, 
+        bhid = None, 
+        bvis = None
+    ):
         """
         Initialize the dA class by specifying the number of visible units (the
         dimension d of the input ), the number of hidden units ( the dimension
@@ -232,9 +240,10 @@ class dA(object):
         # to its parameters
         gparams = T.grad(cost, self.params)
         # generate the list of updates
-        updates = []
-        for param, gparam in zip(self.params, gparams):
-            updates.append((param, param - learning_rate * gparam))
+        updates = [
+            (param, param - learning_rate * gparam)
+            for param, gparam in zip(self.params, gparams)
+        ]
 
         return (cost, updates)
 
@@ -277,15 +286,27 @@ def test_dA(learning_rate=0.1, training_epochs=15,
     rng = numpy.random.RandomState(123)
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
-    da = dA(numpy_rng=rng, theano_rng=theano_rng, input=x,
-            n_visible=28 * 28, n_hidden=500)
+    da = dA(
+        numpy_rng = rng, 
+        theano_rng = theano_rng, 
+        input = x,
+        n_visible = 28 * 28, 
+        n_hidden = 500
+    )
 
-    cost, updates = da.get_cost_updates(corruption_level=0.,
-                                        learning_rate=learning_rate)
+    cost, updates = da.get_cost_updates(
+        corruption_level=0.,
+        learning_rate=learning_rate
+    )
 
-    train_da = theano.function([index], cost, updates=updates,
-         givens={x: train_set_x[index * batch_size:
-                                (index + 1) * batch_size]})
+    train_da = theano.function(
+        [index], 
+        cost, 
+        updates = updates,
+        givens = {
+            x: train_set_x[index * batch_size : (index + 1) * batch_size]
+        }
+    )
 
     start_time = time.clock()
 
@@ -322,11 +343,18 @@ def test_dA(learning_rate=0.1, training_epochs=15,
     rng = numpy.random.RandomState(123)
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
-    da = dA(numpy_rng=rng, theano_rng=theano_rng, input=x,
-            n_visible=28 * 28, n_hidden=500)
+    da = dA(
+        numpy_rng = rng, 
+        theano_rng = theano_rng, 
+        input = x,
+        n_visible = 28 * 28, 
+        n_hidden = 500
+    )
 
-    cost, updates = da.get_cost_updates(corruption_level=0.3,
-                                        learning_rate=learning_rate)
+    cost, updates = da.get_cost_updates(
+        corruption_level = 0.3,
+        learning_rate=learning_rate
+    )
 
     train_da = theano.function([index], cost, updates=updates,
          givens={x: train_set_x[index * batch_size:

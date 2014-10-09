@@ -29,7 +29,7 @@ read through our :ref:`gettingstarted` chapter -- it introduces the notation, an
 
 The purely supervised learning algorithms are meant to be read in order:
 
-  #. :ref:`Logistic Regression <logreg>` - using Theano for something simple
+  #. :ref:`Logistic Regression <logistic_sgd>` - using Theano for something simple
   #. :ref:`Multilayer perceptron <mlp>` - introduction to layers
   #. :ref:`Deep Convolutional Network <lenet>` - a simplified version of LeNet5
 
