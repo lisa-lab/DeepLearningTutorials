@@ -1,4 +1,4 @@
-.. _lenet:
+.. _convolutional_mlp:
 
 Convolutional Neural Networks (LeNet)
 =====================================
