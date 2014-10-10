@@ -158,7 +158,7 @@ The last step involves defining a (symbolic) cost variable to minimize, using
 the instance method ``classifier.negative_log_likelihood``.
 
 .. literalinclude:: ../code/logistic_sgd.py
-  :start-after: classifier = LogisticRegression(input = x, n_in = 28 * 28, n_out = 10) 
+  :start-after: classifier = LogisticRegression(input=x, n_in=28 * 28, n_out=10) 
   :end-before: # compiling a Theano function that computes the mistakes
 
 Note how x is an implicit symbolic input to the symbolic definition of cost,
@@ -191,7 +191,7 @@ computation graph. Performing one-step of gradient descent can then be done as
 follows:
 
 .. literalinclude:: ../code/logistic_sgd.py
-  :start-after: g_b = T.grad(cost = cost, wrt = classifier.b)
+  :start-after: g_b = T.grad(cost=cost, wrt=classifier.b)
   :end-before: # TRAIN MODEL
 
 The ``updates`` list contains, for each parameter, the
