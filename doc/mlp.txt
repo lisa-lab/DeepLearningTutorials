@@ -7,7 +7,7 @@ Multilayer Perceptron
 =====================
 
 .. note::
-    This section assumes the reader has already read through :doc:`logistic_sgd`.
+    This section assumes the reader has already read through :doc:`logreg`.
     Additionally, it uses the following new Theano functions and concepts:
     `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_,
     :ref:`L1_L2_regularization`, `floatX`_. If you intend to run the
@@ -80,7 +80,7 @@ extension to vectors and tensors consists in applying them element-wise
 
 The output vector is then obtained as: :math:`o(x) = G(b^{(2)} + W^{(2)} h(x))`.
 The reader should recognize the form we already used for
-:doc:`logistic_sgd`. As before,
+:doc:`logreg`. As before,
 class-membership probabilities can be obtained by choosing :math:`G` as the
 :math:`softmax` function (in the case of multi-class classification).
 
@@ -129,7 +129,7 @@ to use something else.
 If you look into theory this class implements the graph that computes
 the hidden layer value :math:`h(x) = \Phi(x) = s(b^{(1)} + W^{(1)} x)`.
 If you give this as input to the ``LogisticRegression`` class,
-implemented in the previous tutorial :doc:`logistic_sgd`, you get the output
+implemented in the previous tutorial :doc:`logreg`, you get the output
 of the MLP. You can see this in the following short implementation of
 the ``MLP`` class.
 

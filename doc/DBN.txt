@@ -4,7 +4,7 @@ Deep Belief Networks
 ====================
 
 .. note::
-  This section assumes the reader has already read through :doc:`logistic_sgd`
+  This section assumes the reader has already read through :doc:`logreg`
   and :doc:`mlp` and :doc:`rbm`. Additionally it uses the following Theano
   functions and concepts : `T.tanh`_, `shared variables`_, `basic arithmetic
   ops`_, `T.grad`_, `Random numbers`_, `floatX`_. If you intend to run the
@@ -164,7 +164,7 @@ hidden bias with its corresponding sigmoid layer.
 
 All that is left is to stack one last logistic regression layer in order to
 form an MLP. We will use the ``LogisticRegression`` class introduced in
-:ref:`logistic_sgd`. 
+:ref:`logreg`. 
 
 .. literalinclude:: ../code/DBN.py
   :start-after: # We now need to add a logistic layer on top of the MLP

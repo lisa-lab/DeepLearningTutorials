@@ -1,6 +1,6 @@
 .. index:: Logistic Regression
 
-.. _logistic_sgd :
+.. _logreg :
 
 
 Classifying MNIST digits using Logistic Regression

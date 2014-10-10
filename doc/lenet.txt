@@ -1,10 +1,10 @@
-.. _convolutional_mlp:
+.. _lenet:
 
 Convolutional Neural Networks (LeNet)
 =====================================
 
 .. note::
-    This section assumes the reader has already read through :doc:`logistic_sgd` and
+    This section assumes the reader has already read through :doc:`logreg` and
     :doc:`mlp`. Additionally, it uses the following new Theano functions and concepts:
     `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_,
     `floatX`_, `downsample`_ , `conv2d`_, `dimshuffle`_. If you intend to run the
@@ -406,7 +406,7 @@ layer.
 Notice that when initializing the weight values, the fan-in is determined by
 the size of the receptive fields and the number of input feature maps.
 
-Finally, using the LogisticRegression class defined in :doc:`logistic_sgd` and
+Finally, using the LogisticRegression class defined in :doc:`logreg` and
 the HiddenLayer class defined in :doc:`mlp` , we can
 instantiate the network as follows.
 
