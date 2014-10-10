@@ -90,16 +90,16 @@ class LeNetConvPoolLayer(object):
 
         # convolve input feature maps with filters
         conv_out = conv.conv2d(
-            input=input, 
+            input=input,
             filters=self.W,
-            filter_shape=filter_shape, 
+            filter_shape=filter_shape,
             image_shape=image_shape
         )
 
         # downsample each feature map individually, using maxpooling
         pooled_out = downsample.max_pool_2d(
             input=conv_out,
-            ds=poolsize, 
+            ds=poolsize,
             ignore_border=True
         )
 
@@ -170,7 +170,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     # maxpooling reduces this further to (24/2,24/2) = (12,12)
     # 4D output tensor is thus of shape (batch_size,nkerns[0],12,12)
     layer0 = LeNetConvPoolLayer(
-        rng, 
+        rng,
         input=layer0_input,
         image_shape=(batch_size, 1, 28, 28),
         filter_shape=(nkerns[0], 1, 5, 5),
@@ -182,10 +182,10 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     # maxpooling reduces this further to (8/2,8/2) = (4,4)
     # 4D output tensor is thus of shape (nkerns[0],nkerns[1],4,4)
     layer1 = LeNetConvPoolLayer(
-        rng, 
+        rng,
         input=layer0.output,
         image_shape=(batch_size, nkerns[0], 12, 12),
-        filter_shape=(nkerns[1], nkerns[0], 5, 5), 
+        filter_shape=(nkerns[1], nkerns[0], 5, 5),
         poolsize=(2, 2)
     )
 
@@ -196,10 +196,10 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
 
     # construct a fully-connected sigmoidal layer
     layer2 = HiddenLayer(
-        rng, 
-        input=layer2_input, 
+        rng,
+        input=layer2_input,
         n_in=nkerns[1] * 4 * 4,
-        n_out=500, 
+        n_out=500,
         activation=T.tanh
     )
 
@@ -211,20 +211,20 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
 
     # create a function to compute the mistakes that are made by the model
     test_model = theano.function(
-        [index], 
+        [index],
         layer3.errors(y),
         givens={
-            x: test_set_x[index * batch_size : (index + 1) * batch_size],
-            y: test_set_y[index * batch_size : (index + 1) * batch_size]
+            x: test_set_x[index * batch_size: (index + 1) * batch_size],
+            y: test_set_y[index * batch_size: (index + 1) * batch_size]
         }
     )
 
     validate_model = theano.function(
-        [index], 
+        [index],
         layer3.errors(y),
         givens={
-            x: valid_set_x[index * batch_size : (index + 1) * batch_size],
-            y: valid_set_y[index * batch_size : (index + 1) * batch_size]
+            x: valid_set_x[index * batch_size: (index + 1) * batch_size],
+            y: valid_set_y[index * batch_size: (index + 1) * batch_size]
         }
     )
 
@@ -245,12 +245,12 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     ]
 
     train_model = theano.function(
-        [index], 
-        cost, 
+        [index],
+        cost,
         updates=updates,
         givens={
-            x: train_set_x[index * batch_size : (index + 1) * batch_size],
-            y: train_set_y[index * batch_size : (index + 1) * batch_size]
+            x: train_set_x[index * batch_size: (index + 1) * batch_size],
+            y: train_set_y[index * batch_size: (index + 1) * batch_size]
         }
     )
 
@@ -312,10 +312,13 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
                     best_iter = iter
 
                     # test it on the test set
-                    test_losses = [test_model(i) for i in xrange(n_test_batches)]
+                    test_losses = [
+                        test_model(i)
+                        for i in xrange(n_test_batches)
+                    ]
                     test_score = numpy.mean(test_losses)
-                    print(('     epoch %i, minibatch %i/%i, test error of best '
-                           'model %f %%') %
+                    print(('     epoch %i, minibatch %i/%i, test error of '
+                           'best model %f %%') %
                           (epoch, minibatch_index + 1, n_train_batches,
                            test_score * 100.))
 

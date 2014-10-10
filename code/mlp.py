@@ -84,7 +84,7 @@ class HiddenLayer(object):
                     low=-numpy.sqrt(6. / (n_in + n_out)),
                     high=numpy.sqrt(6. / (n_in + n_out)),
                     size=(n_in, n_out)
-                ), 
+                ),
                 dtype=theano.config.floatX
             )
             if activation == theano.tensor.nnet.sigmoid:
@@ -147,9 +147,9 @@ class MLP(object):
         # LogisticRegression layer; the activation function can be replaced by
         # sigmoid or any other nonlinear function
         self.hiddenLayer = HiddenLayer(
-            rng=rng, 
+            rng=rng,
             input=input,
-            n_in=n_in, 
+            n_in=n_in,
             n_out=n_hidden,
             activation=T.tanh
         )
@@ -175,7 +175,9 @@ class MLP(object):
         # negative log likelihood of the MLP is given by the negative
         # log likelihood of the output of the model, computed in the
         # logistic regression layer
-        self.negative_log_likelihood = self.logRegressionLayer.negative_log_likelihood
+        self.negative_log_likelihood = (
+            self.logRegressionLayer.negative_log_likelihood
+        )
         # same holds for the function computing the number of errors
         self.errors = self.logRegressionLayer.errors
 
@@ -239,10 +241,10 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
 
     # construct the MLP class
     classifier = MLP(
-        rng=rng, 
-        input=x, 
+        rng=rng,
+        input=x,
         n_in=28 * 28,
-        n_hidden=n_hidden, 
+        n_hidden=n_hidden,
         n_out=10
     )
 
@@ -279,7 +281,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
     # is a pair formed from the two lists :
     #    C = [(a1, b1), (a2, b2), (a3, b3), (a4, b4)]
     updates = [
-        (param, param - learning_rate * gparam) 
+        (param, param - learning_rate * gparam)
         for param, gparam in zip(classifier.params, gparams)
     ]
 
@@ -287,12 +289,12 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
     # in the same time updates the parameter of the model based on the rules
     # defined in `updates`
     train_model = theano.function(
-        inputs=[index], 
+        inputs=[index],
         outputs=cost,
         updates=updates,
         givens={
-            x: train_set_x[index * batch_size : (index + 1) * batch_size],
-            y: train_set_y[index * batch_size : (index + 1) * batch_size]
+            x: train_set_x[index * batch_size: (index + 1) * batch_size],
+            y: train_set_y[index * batch_size: (index + 1) * batch_size]
         }
     )
 

@@ -58,11 +58,11 @@ class SdA(object):
     """
 
     def __init__(
-        self, 
-        numpy_rng, 
-        theano_rng=None, 
+        self,
+        numpy_rng,
+        theano_rng=None,
         n_ins=784,
-        hidden_layers_sizes=[500, 500], 
+        hidden_layers_sizes=[500, 500],
         n_outs=10,
         corruption_levels=[0.1, 0.1]
     ):
@@ -268,28 +268,40 @@ class SdA(object):
             outputs=self.finetune_cost,
             updates=updates,
             givens={
-                self.x: train_set_x[index * batch_size : (index + 1) * batch_size],
-                self.y: train_set_y[index * batch_size : (index + 1) * batch_size]
+                self.x: train_set_x[
+                    index * batch_size: (index + 1) * batch_size
+                ],
+                self.y: train_set_y[
+                    index * batch_size: (index + 1) * batch_size
+                ]
             },
             name='train'
         )
 
         test_score_i = theano.function(
-            [index], 
+            [index],
             self.errors,
             givens={
-               self.x: test_set_x[index * batch_size : (index + 1) * batch_size],
-               self.y: test_set_y[index * batch_size : (index + 1) * batch_size]
+               self.x: test_set_x[
+                   index * batch_size: (index + 1) * batch_size
+               ],
+               self.y: test_set_y[
+                   index * batch_size: (index + 1) * batch_size
+               ]
             },
             name='test'
         )
 
         valid_score_i = theano.function(
-            [index], 
+            [index],
             self.errors,
             givens={
-                self.x: valid_set_x[index * batch_size : (index + 1) * batch_size],
-                self.y: valid_set_y[index * batch_size : (index + 1) * batch_size]
+                self.x: valid_set_x[
+                    index * batch_size: (index + 1) * batch_size
+                ],
+                self.y: valid_set_y[
+                    index * batch_size: (index + 1) * batch_size
+                ]
             },
             name='valid'
         )
@@ -346,7 +358,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
     print '... building the model'
     # construct the stacked denoising autoencoder class
     sda = SdA(
-        numpy_rng=numpy_rng, 
+        numpy_rng=numpy_rng,
         n_ins=28 * 28,
         hidden_layers_sizes=[1000, 1000, 1000],
         n_outs=10

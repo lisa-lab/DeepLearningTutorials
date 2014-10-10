@@ -28,13 +28,13 @@ from logistic_sgd import load_data
 class RBM(object):
     """Restricted Boltzmann Machine (RBM)  """
     def __init__(
-        self, 
-        input=None, 
-        n_visible=784, 
+        self,
+        input=None,
+        n_visible=784,
         n_hidden=500,
-        W=None, 
-        hbias=None, 
-        vbias=None, 
+        W=None,
+        hbias=None,
+        vbias=None,
         numpy_rng=None,
         theano_rng=None
     ):
@@ -96,7 +96,7 @@ class RBM(object):
                     n_hidden,
                     dtype=theano.config.floatX
                 ),
-                name='hbias', 
+                name='hbias',
                 borrow=True
             )
 
@@ -107,7 +107,7 @@ class RBM(object):
                     n_visible,
                     dtype=theano.config.floatX
                 ),
-                name='vbias', 
+                name='vbias',
                 borrow=True
             )
 

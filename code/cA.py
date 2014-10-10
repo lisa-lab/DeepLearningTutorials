@@ -12,7 +12,7 @@
  squared Frobenius norm of the Jacobian of the hidden mapping h with
  respect to the visible units yields the contractive auto-encoder:
 
-      - \sum_{k=1}^d[ x_k \log z_k + (1-x_k) \log( 1-z_k)]  + \| \frac{\partial h(x)}{\partial x} \|^2
+      - \sum_{k=1}^d[ x_k \log z_k + (1-x_k) \log( 1-z_k)] + \| \frac{\partial h(x)}{\partial x} \|^2
 
  References :
    - S. Rifai, P. Vincent, X. Muller, X. Glorot, Y. Bengio: Contractive

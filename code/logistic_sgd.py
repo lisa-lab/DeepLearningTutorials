@@ -79,7 +79,7 @@ class LogisticRegression(object):
                 (n_in, n_out),
                 dtype=theano.config.floatX
             ),
-            name='W', 
+            name='W',
             borrow=True
         )
         # initialize the baises b as a vector of n_out 0s
@@ -88,19 +88,22 @@ class LogisticRegression(object):
                 (n_out,),
                 dtype=theano.config.floatX
             ),
-            name='b', 
+            name='b',
             borrow=True
         )
 
-        # symbolic expression for computing the matrix of class-membership probabilities
+        # symbolic expression for computing the matrix of class-membership
+        # probabilities
         # Where:
-        # W is a matrix where column-k represent the separation hyper plain for class-k
+        # W is a matrix where column-k represent the separation hyper plain for
+        # class-k
         # x is a matrix where row-j  represents input training sample-j
-        # b is a vector where element-k represent the free parameter of hyper plain-k
+        # b is a vector where element-k represent the free parameter of hyper
+        # plain-k
         self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W) + self.b)
 
-        # symbolic description of how to compute prediction as class whose probability
-        # is maximal
+        # symbolic description of how to compute prediction as class whose
+        # probability is maximal
         self.y_pred = T.argmax(self.p_y_given_x, axis=1)
 
         # parameters of the model
@@ -173,13 +176,20 @@ def load_data(dataset):
     data_dir, data_file = os.path.split(dataset)
     if data_dir == "" and not os.path.isfile(dataset):
         # Check if dataset is in the data directory.
-        new_path = os.path.join(os.path.split(__file__)[0], "..", "data", dataset)
+        new_path = os.path.join(
+            os.path.split(__file__)[0],
+            "..",
+            "data",
+            dataset
+        )
         if os.path.isfile(new_path) or data_file == 'mnist.pkl.gz':
             dataset = new_path
 
     if (not os.path.isfile(dataset)) and data_file == 'mnist.pkl.gz':
         import urllib
-        origin = 'http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz'
+        origin = (
+            'http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz'
+        )
         print 'Downloading data from %s' % origin
         urllib.urlretrieve(origin, dataset)
 
@@ -289,8 +299,8 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
         inputs=[index],
         outputs=classifier.errors(y),
         givens={
-            x: test_set_x[index * batch_size : (index + 1) * batch_size],
-            y: test_set_y[index * batch_size : (index + 1) * batch_size]
+            x: test_set_x[index * batch_size: (index + 1) * batch_size],
+            y: test_set_y[index * batch_size: (index + 1) * batch_size]
         }
     )
 
@@ -298,8 +308,8 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
         inputs=[index],
         outputs=classifier.errors(y),
         givens={
-            x: valid_set_x[index * batch_size : (index + 1) * batch_size],
-            y: valid_set_y[index * batch_size : (index + 1) * batch_size]
+            x: valid_set_x[index * batch_size: (index + 1) * batch_size],
+            y: valid_set_y[index * batch_size: (index + 1) * batch_size]
         }
     )
 
@@ -320,8 +330,8 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
         outputs=cost,
         updates=updates,
         givens={
-            x: train_set_x[index * batch_size : (index + 1) * batch_size],
-            y: train_set_y[index * batch_size : (index + 1) * batch_size]
+            x: train_set_x[index * batch_size: (index + 1) * batch_size],
+            y: train_set_y[index * batch_size: (index + 1) * batch_size]
         }
     )
 

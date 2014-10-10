@@ -11,7 +11,9 @@ import numpy
 try:
     import pylab
 except ImportError:
-    print "pylab isn't available, if you use their fonctionality, it will crash"
+    print (
+        "pylab isn't available. If you use its functionality, it will crash."
+    )
     print "It can be installed with 'pip install -q Pillow'"
 
 from midi.utils import midiread, midiwrite
@@ -44,9 +46,9 @@ def build_rbm(v, W, bv, bh, k):
     v_sample : Theano vector or matrix with the same shape as `v`
         Corresponds to the generated sample(s).
     cost : Theano scalar
-        Expression whose gradient with respect to W, bv, bh is the CD-k approximation
-        to the log-likelihood of `v` (training example) under the RBM.
-        The cost is averaged in the batch case.
+        Expression whose gradient with respect to W, bv, bh is the CD-k
+        approximation to the log-likelihood of `v` (training example) under the
+        RBM. The cost is averaged in the batch case.
     monitor: Theano scalar
         Pseudo log-likelihood (also averaged in the batch case).
     updates: dictionary of Theano variable -> Theano variable
@@ -107,20 +109,20 @@ def build_rnnrbm(n_visible, n_hidden, n_hidden_recurrent):
         Symbolic variable holding the negative particles for CD log-likelihood
         gradient estimation (used during training)
     cost : Theano scalar
-        Expression whose gradient (considering v_sample constant) corresponds to the
-        LL gradient of the RNN-RBM (used during training)
+        Expression whose gradient (considering v_sample constant) corresponds
+        to the LL gradient of the RNN-RBM (used during training)
     monitor : Theano scalar
         Frame-level pseudo-likelihood (useful for monitoring during training)
     params : tuple of Theano shared variables
         The parameters of the model to be optimized during training.
     updates_train : dictionary of Theano variable -> Theano variable
-        Update object that should be passed to theano.function when compiling the
-        training function.
+        Update object that should be passed to theano.function when compiling
+        the training function.
     v_t : Theano matrix
         Symbolic variable holding a generated sequence (used during sampling)
     updates_generate : dictionary of Theano variable -> Theano variable
-        Update object that should be passed to theano.function when compiling the
-        generation function.'''
+        Update object that should be passed to theano.function when compiling
+        the generation function.'''
 
     W = shared_normal(n_visible, n_hidden, 0.01)
     bv = shared_zeros(n_visible)
@@ -177,11 +179,11 @@ class RnnRbm:
     sequences.'''
 
     def __init__(
-        self, 
-        n_hidden=150, 
-        n_hidden_recurrent=100, 
+        self,
+        n_hidden=150,
+        n_hidden_recurrent=100,
         lr=0.001,
-        r=(21, 109), 
+        r=(21, 109),
         dt=0.3
     ):
         '''Constructs and compiles Theano functions for training and sequence
@@ -194,10 +196,10 @@ class RnnRbm:
         lr : float
             Learning rate
         r : (integer, integer) tuple
-            Specifies the pitch range of the piano-roll in MIDI note numbers, including
-            r[0] but not r[1], such that r[1]-r[0] is the number of visible units of the
-            RBM at a given time step. The default (21, 109) corresponds to the full range
-            of piano (88 notes).
+            Specifies the pitch range of the piano-roll in MIDI note numbers,
+            including r[0] but not r[1], such that r[1]-r[0] is the number of
+            visible units of the RBM at a given time step. The default (21,
+            109) corresponds to the full range of piano (88 notes).
         dt : float
             Sampling period when converting the MIDI files into piano-rolls, or
             equivalently the time difference between consecutive time steps.'''
@@ -223,11 +225,11 @@ class RnnRbm:
         files : list of strings
             List of MIDI files that will be loaded as piano-rolls for training.
         batch_size : integer
-            Training sequences will be split into subsequences of at most this size
-            before applying the SGD updates.
+            Training sequences will be split into subsequences of at most this
+            size before applying the SGD updates.
         num_epochs : integer
-            Number of epochs (pass over the training set) performed. The user can
-            safely interrupt training with Ctrl+C at any time.'''
+            Number of epochs (pass over the training set) performed. The user
+            can safely interrupt training with Ctrl+C at any time.'''
 
         assert len(files) > 0, 'Training set is empty!' \
                                ' (did you download the data files?)'

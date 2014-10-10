@@ -76,14 +76,14 @@ class dA(object):
     """
 
     def __init__(
-        self, 
-        numpy_rng, 
-        theano_rng=None, 
+        self,
+        numpy_rng,
+        theano_rng=None,
         input=None,
-        n_visible=784, 
+        n_visible=784,
         n_hidden=500,
-        W=None, 
-        bhid=None, 
+        W=None,
+        bhid=None,
         bvis=None
     ):
         """
@@ -287,10 +287,10 @@ def test_dA(learning_rate=0.1, training_epochs=15,
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
     da = dA(
-        numpy_rng=rng, 
-        theano_rng=theano_rng, 
+        numpy_rng=rng,
+        theano_rng=theano_rng,
         input=x,
-        n_visible=28 * 28, 
+        n_visible=28 * 28,
         n_hidden=500
     )
 
@@ -300,11 +300,11 @@ def test_dA(learning_rate=0.1, training_epochs=15,
     )
 
     train_da = theano.function(
-        [index], 
-        cost, 
+        [index],
+        cost,
         updates=updates,
         givens={
-            x: train_set_x[index * batch_size : (index + 1) * batch_size]
+            x: train_set_x[index * batch_size: (index + 1) * batch_size]
         }
     )
 
@@ -344,10 +344,10 @@ def test_dA(learning_rate=0.1, training_epochs=15,
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
     da = dA(
-        numpy_rng=rng, 
-        theano_rng=theano_rng, 
+        numpy_rng=rng,
+        theano_rng=theano_rng,
         input=x,
-        n_visible=28 * 28, 
+        n_visible=28 * 28,
         n_hidden=500
     )
 
