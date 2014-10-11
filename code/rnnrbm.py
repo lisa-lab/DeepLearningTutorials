@@ -11,7 +11,9 @@ import numpy
 try:
     import pylab
 except ImportError:
-    print "pylab isn't available, if you use their fonctionality, it will crash"
+    print (
+        "pylab isn't available. If you use its functionality, it will crash."
+    )
     print "It can be installed with 'pip install -q Pillow'"
 
 from midi.utils import midiread, midiwrite
@@ -28,29 +30,29 @@ theano.config.warn.subtensor_merge_bug = False
 def build_rbm(v, W, bv, bh, k):
     '''Construct a k-step Gibbs chain starting at v for an RBM.
 
-v : Theano vector or matrix
-  If a matrix, multiple chains will be run in parallel (batch).
-W : Theano matrix
-  Weight matrix of the RBM.
-bv : Theano vector
-  Visible bias vector of the RBM.
-bh : Theano vector
-  Hidden bias vector of the RBM.
-k : scalar or Theano scalar
-  Length of the Gibbs chain.
+    v : Theano vector or matrix
+        If a matrix, multiple chains will be run in parallel (batch).
+    W : Theano matrix
+        Weight matrix of the RBM.
+    bv : Theano vector
+        Visible bias vector of the RBM.
+    bh : Theano vector
+        Hidden bias vector of the RBM.
+    k : scalar or Theano scalar
+        Length of the Gibbs chain.
 
-Return a (v_sample, cost, monitor, updates) tuple:
+    Return a (v_sample, cost, monitor, updates) tuple:
 
-v_sample : Theano vector or matrix with the same shape as `v`
-  Corresponds to the generated sample(s).
-cost : Theano scalar
-  Expression whose gradient with respect to W, bv, bh is the CD-k approximation
-  to the log-likelihood of `v` (training example) under the RBM.
-  The cost is averaged in the batch case.
-monitor: Theano scalar
-  Pseudo log-likelihood (also averaged in the batch case).
-updates: dictionary of Theano variable -> Theano variable
-  The `updates` object returned by scan.'''
+    v_sample : Theano vector or matrix with the same shape as `v`
+        Corresponds to the generated sample(s).
+    cost : Theano scalar
+        Expression whose gradient with respect to W, bv, bh is the CD-k
+        approximation to the log-likelihood of `v` (training example) under the
+        RBM. The cost is averaged in the batch case.
+    monitor: Theano scalar
+        Pseudo log-likelihood (also averaged in the batch case).
+    updates: dictionary of Theano variable -> Theano variable
+        The `updates` object returned by scan.'''
 
     def gibbs_step(v):
         mean_h = T.nnet.sigmoid(T.dot(v, W) + bh)
@@ -78,7 +80,7 @@ updates: dictionary of Theano variable -> Theano variable
 
 def shared_normal(num_rows, num_cols, scale=1):
     '''Initialize a matrix shared variable with normally distributed
-elements.'''
+    elements.'''
     return theano.shared(numpy.random.normal(
         scale=scale, size=(num_rows, num_cols)).astype(theano.config.floatX))
 
@@ -91,36 +93,36 @@ def shared_zeros(*shape):
 def build_rnnrbm(n_visible, n_hidden, n_hidden_recurrent):
     '''Construct a symbolic RNN-RBM and initialize parameters.
 
-n_visible : integer
-  Number of visible units.
-n_hidden : integer
-  Number of hidden units of the conditional RBMs.
-n_hidden_recurrent : integer
-  Number of hidden units of the RNN.
+    n_visible : integer
+        Number of visible units.
+    n_hidden : integer
+        Number of hidden units of the conditional RBMs.
+    n_hidden_recurrent : integer
+        Number of hidden units of the RNN.
 
-Return a (v, v_sample, cost, monitor, params, updates_train, v_t,
-          updates_generate) tuple:
+    Return a (v, v_sample, cost, monitor, params, updates_train, v_t,
+    updates_generate) tuple:
 
-v : Theano matrix
-  Symbolic variable holding an input sequence (used during training)
-v_sample : Theano matrix
-  Symbolic variable holding the negative particles for CD log-likelihood
-  gradient estimation (used during training)
-cost : Theano scalar
-  Expression whose gradient (considering v_sample constant) corresponds to the
-  LL gradient of the RNN-RBM (used during training)
-monitor : Theano scalar
-  Frame-level pseudo-likelihood (useful for monitoring during training)
-params : tuple of Theano shared variables
-  The parameters of the model to be optimized during training.
-updates_train : dictionary of Theano variable -> Theano variable
-  Update object that should be passed to theano.function when compiling the
-  training function.
-v_t : Theano matrix
-  Symbolic variable holding a generated sequence (used during sampling)
-updates_generate : dictionary of Theano variable -> Theano variable
-  Update object that should be passed to theano.function when compiling the
-  generation function.'''
+    v : Theano matrix
+        Symbolic variable holding an input sequence (used during training)
+    v_sample : Theano matrix
+        Symbolic variable holding the negative particles for CD log-likelihood
+        gradient estimation (used during training)
+    cost : Theano scalar
+        Expression whose gradient (considering v_sample constant) corresponds
+        to the LL gradient of the RNN-RBM (used during training)
+    monitor : Theano scalar
+        Frame-level pseudo-likelihood (useful for monitoring during training)
+    params : tuple of Theano shared variables
+        The parameters of the model to be optimized during training.
+    updates_train : dictionary of Theano variable -> Theano variable
+        Update object that should be passed to theano.function when compiling
+        the training function.
+    v_t : Theano matrix
+        Symbolic variable holding a generated sequence (used during sampling)
+    updates_generate : dictionary of Theano variable -> Theano variable
+        Update object that should be passed to theano.function when compiling
+        the generation function.'''
 
     W = shared_normal(n_visible, n_hidden, 0.01)
     bv = shared_zeros(n_visible)
@@ -174,54 +176,70 @@ updates_generate : dictionary of Theano variable -> Theano variable
 
 class RnnRbm:
     '''Simple class to train an RNN-RBM from MIDI files and to generate sample
-sequences.'''
+    sequences.'''
 
-    def __init__(self, n_hidden=150, n_hidden_recurrent=100, lr=0.001,
-                 r=(21, 109), dt=0.3):
+    def __init__(
+        self,
+        n_hidden=150,
+        n_hidden_recurrent=100,
+        lr=0.001,
+        r=(21, 109),
+        dt=0.3
+    ):
         '''Constructs and compiles Theano functions for training and sequence
-generation.
+        generation.
 
-n_hidden : integer
-  Number of hidden units of the conditional RBMs.
-n_hidden_recurrent : integer
-  Number of hidden units of the RNN.
-lr : float
-  Learning rate
-r : (integer, integer) tuple
-  Specifies the pitch range of the piano-roll in MIDI note numbers, including
-  r[0] but not r[1], such that r[1]-r[0] is the number of visible units of the
-  RBM at a given time step. The default (21, 109) corresponds to the full range
-  of piano (88 notes).
-dt : float
-  Sampling period when converting the MIDI files into piano-rolls, or
-  equivalently the time difference between consecutive time steps.'''
+        n_hidden : integer
+            Number of hidden units of the conditional RBMs.
+        n_hidden_recurrent : integer
+            Number of hidden units of the RNN.
+        lr : float
+            Learning rate
+        r : (integer, integer) tuple
+            Specifies the pitch range of the piano-roll in MIDI note numbers,
+            including r[0] but not r[1], such that r[1]-r[0] is the number of
+            visible units of the RBM at a given time step. The default (21,
+            109) corresponds to the full range of piano (88 notes).
+        dt : float
+            Sampling period when converting the MIDI files into piano-rolls, or
+            equivalently the time difference between consecutive time steps.'''
 
         self.r = r
         self.dt = dt
         (v, v_sample, cost, monitor, params, updates_train, v_t,
-         updates_generate) = build_rnnrbm(r[1] - r[0], n_hidden,
-                                           n_hidden_recurrent)
+         updates_generate) = build_rnnrbm(
+             r[1] - r[0],
+             n_hidden,
+             n_hidden_recurrent
+        )
 
         gradient = T.grad(cost, params, consider_constant=[v_sample])
-        updates_train.update(((p, p - lr * g) for p, g in zip(params,
-                                                                gradient)))
-        self.train_function = theano.function([v], monitor,
-                                               updates=updates_train)
-        self.generate_function = theano.function([], v_t,
-                                                 updates=updates_generate)
+        updates_train.update(
+            ((p, p - lr * g) for p, g in zip(params, gradient))
+        )
+        self.train_function = theano.function(
+            [v],
+            monitor,
+            updates=updates_train
+        )
+        self.generate_function = theano.function(
+            [],
+            v_t,
+            updates=updates_generate
+        )
 
     def train(self, files, batch_size=100, num_epochs=200):
         '''Train the RNN-RBM via stochastic gradient descent (SGD) using MIDI
-files converted to piano-rolls.
+        files converted to piano-rolls.
 
-files : list of strings
-  List of MIDI files that will be loaded as piano-rolls for training.
-batch_size : integer
-  Training sequences will be split into subsequences of at most this size
-  before applying the SGD updates.
-num_epochs : integer
-  Number of epochs (pass over the training set) performed. The user can
-  safely interrupt training with Ctrl+C at any time.'''
+        files : list of strings
+            List of MIDI files that will be loaded as piano-rolls for training.
+        batch_size : integer
+            Training sequences will be split into subsequences of at most this
+            size before applying the SGD updates.
+        num_epochs : integer
+            Number of epochs (pass over the training set) performed. The user
+            can safely interrupt training with Ctrl+C at any time.'''
 
         assert len(files) > 0, 'Training set is empty!' \
                                ' (did you download the data files?)'
@@ -248,12 +266,12 @@ num_epochs : integer
 
     def generate(self, filename, show=True):
         '''Generate a sample sequence, plot the resulting piano-roll and save
-it as a MIDI file.
+        it as a MIDI file.
 
-filename : string
-  A MIDI file will be created at this location.
-show : boolean
-  If True, a piano-roll of the generated sequence will be shown.'''
+        filename : string
+            A MIDI file will be created at this location.
+        show : boolean
+            If True, a piano-roll of the generated sequence will be shown.'''
 
         piano_roll = self.generate_function()
         midiwrite(filename, piano_roll, self.r, self.dt)

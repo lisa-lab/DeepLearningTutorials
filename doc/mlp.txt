@@ -102,39 +102,9 @@ implementing a class that will represent any given hidden layer. To
 construct the MLP we will then only need to throw a logistic regression
 layer on top.
 
-
-.. code-block:: python
-
-    class HiddenLayer(object):
-        def __init__(self, rng, input, n_in, n_out, activation=T.tanh):
-            """
-            Typical hidden layer of a MLP: units are fully-connected and have
-            sigmoidal activation function. Weight matrix W is of shape (n_in,n_out)
-            and the bias vector b is of shape (n_out,).
-
-            NOTE : The nonlinearity used here is tanh
-
-            Hidden unit activation is given by: tanh(dot(input,W) + b)
-
-            :type rng: numpy.random.RandomState
-            :param rng: a random number generator used to initialize weights
-
-            :type input: theano.tensor.dmatrix
-            :param input: a symbolic tensor of shape (n_examples, n_in)
-
-            :type n_in: int
-            :param n_in: dimensionality of input
-
-            :type n_out: int
-            :param n_out: number of hidden units
-
-            :type activation: theano.Op or function
-            :param activation: Non linearity to be applied in the hidden
-                                  layer
-            """
-            self.input = input
-
-
+.. literalinclude:: ../code/mlp.py
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
 
 The initial values for the weights of a hidden layer :math:`i` should be uniformly
 sampled from a symmetric interval that depends on the activation function. For
@@ -149,133 +119,35 @@ regime of its activation function where information can easily be propagated
 both upward (activations flowing from inputs to outputs) and backward
 (gradients flowing from outputs to inputs).
 
-.. code-block:: python
-
-        # `W` is initialized with `W_values` which is uniformely sampled
-        # from sqrt(-6./(n_in+n_hidden)) and sqrt(6./(n_in+n_hidden))
-        # for tanh activation function
-        # the output of uniform is converted using asarray to dtype
-        # theano.config.floatX so that the code is runable on GPU
-        # Note : optimal initialization of weights is dependent on the
-        #        activation function used (among other things).
-        #        For example, results presented in [Xavier10]_ suggest that you
-        #        should use 4 times larger initial weights for sigmoid
-        #        compared to tanh
-        #        We have no info for other function, so we use the same as tanh.
-        W_values = numpy.asarray(rng.uniform(
-                low=-numpy.sqrt(6. / (n_in + n_out)),
-                high=numpy.sqrt(6. / (n_in + n_out)),
-                size=(n_in, n_out)), dtype=theano.config.floatX)
-        if activation == theano.tensor.nnet.sigmoid:
-            W_values *= 4
-
-        self.W = theano.shared(value=W_values, name='W')
-
-        b_values = numpy.zeros((n_out,), dtype=theano.config.floatX)
-        self.b = theano.shared(value=b_values, name='b')
-
+.. literalinclude:: ../code/mlp.py
+  :start-after: end-snippet-1
+  :end-before:  lin_output = T.dot(input, self.W) + self.b
 
 Note that we used a given non-linear function as the activation function of the hidden layer. By default this is ``tanh``, but in many cases we might want
 to use something else.
 
-.. code-block:: python
-
-        self.output = activation(T.dot(input, self.W) + self.b)
-        # parameters of the model
-        self.params = [self.W, self.b]
+.. literalinclude:: ../code/mlp.py
+  :start-after: self.b = b
+  :end-before: # parameters of the model
 
 If you look into theory this class implements the graph that computes
 the hidden layer value :math:`h(x) = \Phi(x) = s(b^{(1)} + W^{(1)} x)`.
 If you give this as input to the ``LogisticRegression`` class,
 implemented in the previous tutorial :doc:`logreg`, you get the output
 of the MLP. You can see this in the following short implementation of
-the ``MLP`` class :
+the ``MLP`` class.
 
-.. code-block:: python
-
-  class MLP(object):
-    """Multi-Layer Perceptron Class
-
-    A multilayer perceptron is a feedforward artificial neural network model
-    that has one layer or more of hidden units and nonlinear activations.
-    Intermediate layers usually have as activation function tanh or the
-    sigmoid function (defined here by a ``HiddenLayer`` class)  while the
-    top layer is a softamx layer (defined here by a ``LogisticRegression``
-    class).
-    """
-
-
-
-    def __init__(self, rng, input, n_in, n_hidden, n_out):
-        """Initialize the parameters for the multilayer perceptron
-
-        :type rng: numpy.random.RandomState
-        :param rng: a random number generator used to initialize weights
-
-        :type input: theano.tensor.TensorType
-        :param input: symbolic variable that describes the input of the
-        architecture (one minibatch)
-
-        :type n_in: int
-        :param n_in: number of input units, the dimension of the space in
-        which the datapoints lie
-
-        :type n_hidden: int
-        :param n_hidden: number of hidden units
-
-        :type n_out: int
-        :param n_out: number of output units, the dimension of the space in
-        which the labels lie
-
-        """
-
-        # Since we are dealing with a one hidden layer MLP, this will
-        # translate into a Hidden Layer connected to the LogisticRegression
-        # layer
-        self.hiddenLayer = HiddenLayer(rng = rng, input = input,
-                                 n_in = n_in, n_out = n_hidden,
-                                 activation = T.tanh)
-
-        # The logistic regression layer gets as input the hidden units
-        # of the hidden layer
-        self.logRegressionLayer = LogisticRegression(
-                                    input=self.hiddenLayer.output,
-                                    n_in=n_hidden,
-                                    n_out=n_out)
-
+.. literalinclude:: ../code/mlp.py
+  :start-after: start-snippet-2
+  :end-before: end-snippet-2
 
 In this tutorial we will also use L1 and L2 regularization (see
 :ref:`L1_L2_regularization`). For this, we need to compute the L1 norm and the squared L2
 norm of the weights :math:`W^{(1)}, W^{(2)}`.
 
-.. code-block:: python
-
-        # L1 norm ; one regularization option is to enforce L1 norm to
-        # be small
-        self.L1 = abs(self.hiddenLayer.W).sum() \
-                + abs(self.logRegressionLayer.W).sum()
-
-        # square of L2 norm ; one regularization option is to enforce
-        # square of L2 norm to be small
-        self.L2_sqr = (self.hiddenLayer.W ** 2).sum() \
-                    + (self.logRegressionLayer.W ** 2).sum()
-
-        # negative log likelihood of the MLP is given by the negative
-        # log likelihood of the output of the model, computed in the
-        # logistic regression layer
-        self.negative_log_likelihood = self.logRegressionLayer.negative_log_likelihood
-        # same holds for the function computing the number of errors
-        self.errors = self.logRegressionLayer.errors
-
-        # the parameters of the model are the parameters of the two layer it is
-        # made out of
-        self.params = self.hiddenLayer.params + self.logRegressionLayer.params
-
-
-
-
-
-
+.. literalinclude:: ../code/mlp.py
+  :start-after: start-snippet-3
+  :end-before: end-snippet-3
 
 As before, we train this model using stochastic gradient descent with
 mini-batches. The difference is that we modify the cost function to include the
@@ -283,15 +155,9 @@ regularization term. ``L1_reg`` and ``L2_reg`` are the hyperparameters
 controlling the weight of these regularization terms in the total cost function.
 The code that computes the new cost is:
 
-.. code-block:: python
-
-    # the cost we minimize during training is the negative log likelihood of
-    # the model plus the regularization terms (L1 and L2); cost is expressed
-    # here symbolically
-    cost = classifier.negative_log_likelihood(y) \
-         + L1_reg * classifier.L1 \
-         + L2_reg * classifier.L2_sqr
-
+.. literalinclude:: ../code/mlp.py
+  :start-after: start-snippet-4
+  :end-before: end-snippet-4
 
 We then update the parameters of the model using the gradient. This code is
 almost identical to the one for logistic regression. Only the number of
@@ -300,37 +166,9 @@ for any number of parameters) we will use the list of parameters that
 we created with the model ``params`` and parse it, computing a gradient
 at each step.
 
-.. code-block:: python
-
-    # compute the gradient of cost with respect to theta (stored in params)
-    # the resulting gradients will be stored in a list gparams
-    gparams = []
-    for param in classifier.params:
-        gparam  = T.grad(cost, param)
-        gparams.append(gparam)
-
-
-    # specify how to update the parameters of the model as a list of
-    # (variable, update expression) pairs
-    updates = []
-    # given two list the zip A = [a1, a2, a3, a4] and B = [b1, b2, b3, b4] of
-    # same length, zip generates a list C of same size, where each element
-    # is a pair formed from the two lists :
-    #    C = [(a1, b1), (a2, b2), (a3, b3) , (a4, b4)]
-    for param, gparam in zip(classifier.params, gparams):
-        updates.append((param, param - learning_rate * gparam))
-
-
-    # compiling a Theano function `train_model` that returns the cost, butx
-    # in the same time updates the parameter of the model based on the rules
-    # defined in `updates`
-    train_model = theano.function(inputs=[index], outputs=cost,
-            updates=updates,
-            givens={
-                x: train_set_x[index * batch_size:(index + 1) * batch_size],
-                y: train_set_y[index * batch_size:(index + 1) * batch_size]})
-
-
+.. literalinclude:: ../code/mlp.py
+  :start-after: start-snippet-5
+  :end-before: end-snippet-5
 
 Putting it All Together
 +++++++++++++++++++++++

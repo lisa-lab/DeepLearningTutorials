@@ -171,7 +171,7 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
     # return new proposal state
     return final_pos, final_vel
 
-
+# start-snippet-1
 def hmc_move(s_rng, positions, energy_fn, stepsize, n_steps):
     """
     This function performs one-step of Hybrid Monte-Carlo sampling. We start by
@@ -202,27 +202,29 @@ def hmc_move(s_rng, positions, energy_fn, stepsize, n_steps):
     rval2: theano matrix
         Matrix whose rows contain the proposed "new position"
     """
-
+    # end-snippet-1 start-snippet-2
     # sample random velocity
     initial_vel = s_rng.normal(size=positions.shape)
-
+    # end-snippet-2 start-snippet-3
     # perform simulation of particles subject to Hamiltonian dynamics
     final_pos, final_vel = simulate_dynamics(
-            initial_pos=positions,
-            initial_vel=initial_vel,
-            stepsize=stepsize,
-            n_steps=n_steps,
-            energy_fn=energy_fn)
-
+        initial_pos=positions,
+        initial_vel=initial_vel,
+        stepsize=stepsize,
+        n_steps=n_steps,
+        energy_fn=energy_fn
+    )
+    # end-snippet-3 start-snippet-4
     # accept/reject the proposed move based on the joint distribution
     accept = metropolis_hastings_accept(
-            energy_prev=hamiltonian(positions, initial_vel, energy_fn),
-            energy_next=hamiltonian(final_pos, final_vel, energy_fn),
-            s_rng=s_rng)
-
+        energy_prev=hamiltonian(positions, initial_vel, energy_fn),
+        energy_next=hamiltonian(final_pos, final_vel, energy_fn),
+        s_rng=s_rng
+    )
+    # end-snippet-4
     return accept, final_pos
 
-
+# start-snippet-5
 def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
                  target_acceptance_rate, stepsize_inc, stepsize_dec,
                  stepsize_min, stepsize_max, avg_acceptance_slowness):
@@ -276,7 +278,7 @@ def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
     accept_matrix = accept.dimshuffle(0, *(('x',) * (final_pos.ndim - 1)))
     # if accept is True, update to `final_pos` else stay put
     new_positions = TT.switch(accept_matrix, final_pos, positions)
-
+    # end-snippet-5 start-snippet-7
     ## STEPSIZE UPDATES ##
     # if acceptance rate is too low, our sampler is too "noisy" and we reduce
     # the stepsize. If it is too high, our sampler is too conservative, we can
@@ -286,17 +288,18 @@ def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
     # maintain stepsize in [stepsize_min, stepsize_max]
     new_stepsize = TT.clip(_new_stepsize, stepsize_min, stepsize_max)
 
+    # end-snippet-7 start-snippet-6
     ## ACCEPT RATE UPDATES ##
     # perform exponential moving average
     mean_dtype = theano.scalar.upcast(accept.dtype, avg_acceptance_rate.dtype)
     new_acceptance_rate = TT.add(
             avg_acceptance_slowness * avg_acceptance_rate,
             (1.0 - avg_acceptance_slowness) * accept.mean(dtype=mean_dtype))
-
+    # end-snippet-6 start-snippet-8
     return [(positions, new_positions),
             (stepsize, new_stepsize),
             (avg_acceptance_rate, new_acceptance_rate)]
-
+    # end-snippet-8
 
 class HMC_sampler(object):
     """
@@ -318,15 +321,21 @@ class HMC_sampler(object):
         self.__dict__.update(kwargs)
 
     @classmethod
-    def new_from_shared_positions(cls, shared_positions, energy_fn,
-            initial_stepsize=0.01, target_acceptance_rate=.9, n_steps=20,
-            stepsize_dec=0.98,
-            stepsize_min=0.001,
-            stepsize_max=0.25,
-            stepsize_inc=1.02,
- # used in geometric avg. 1.0 would be not moving at all
-            avg_acceptance_slowness=0.9,
-            seed=12345):
+    def new_from_shared_positions(
+        cls, 
+        shared_positions, 
+        energy_fn,
+        initial_stepsize=0.01, 
+        target_acceptance_rate=.9, 
+        n_steps=20,
+        stepsize_dec=0.98,
+        stepsize_min=0.001,
+        stepsize_max=0.25,
+        stepsize_inc=1.02,
+        # used in geometric avg. 1.0 would be not moving at all
+        avg_acceptance_slowness=0.9,
+        seed=12345
+    ):
         """
         :param shared_positions: theano ndarray shared var with
             many particle [initial] positions

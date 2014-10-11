@@ -17,6 +17,7 @@ from mlp import HiddenLayer
 from rbm import RBM
 
 
+# start-snippet-1
 class DBN(object):
     """Deep Belief Network
 
@@ -65,7 +66,7 @@ class DBN(object):
         self.x = T.matrix('x')  # the data is presented as rasterized images
         self.y = T.ivector('y')  # the labels are presented as 1D vector
                                  # of [int] labels
-
+        # end-snippet-1
         # The DBN is an MLP, for which all weights of intermediate
         # layers are shared with a different RBM.  We will first
         # construct the DBN as a deep multilayer perceptron, and when
@@ -174,12 +175,14 @@ class DBN(object):
                                                  persistent=None, k=k)
 
             # compile the theano function
-            fn = theano.function(inputs=[index,
-                            theano.Param(learning_rate, default=0.1)],
-                                 outputs=cost,
-                                 updates=updates,
-                                 givens={self.x:
-                                    train_set_x[batch_begin:batch_end]})
+            fn = theano.function(
+                inputs=[index, theano.Param(learning_rate, default=0.1)],
+                outputs=cost,
+                updates=updates,
+                givens={
+                    self.x: train_set_x[batch_begin:batch_end]
+                }
+            )
             # append `fn` to the list of functions
             pretrain_fns.append(fn)
 
@@ -224,25 +227,45 @@ class DBN(object):
         for param, gparam in zip(self.params, gparams):
             updates.append((param, param - gparam * learning_rate))
 
-        train_fn = theano.function(inputs=[index],
-              outputs=self.finetune_cost,
-              updates=updates,
-              givens={self.x: train_set_x[index * batch_size:
-                                          (index + 1) * batch_size],
-                      self.y: train_set_y[index * batch_size:
-                                          (index + 1) * batch_size]})
+        train_fn = theano.function(
+            inputs=[index],
+            outputs=self.finetune_cost,
+            updates=updates,
+            givens={
+                self.x: train_set_x[
+                    index * batch_size: (index + 1) * batch_size
+                ],
+                self.y: train_set_y[
+                    index * batch_size: (index + 1) * batch_size
+                ]
+            }
+        )
 
-        test_score_i = theano.function([index], self.errors,
-                 givens={self.x: test_set_x[index * batch_size:
-                                            (index + 1) * batch_size],
-                         self.y: test_set_y[index * batch_size:
-                                            (index + 1) * batch_size]})
+        test_score_i = theano.function(
+            [index],
+            self.errors,
+            givens={
+                self.x: test_set_x[
+                    index * batch_size: (index + 1) * batch_size
+                ],
+                self.y: test_set_y[
+                    index * batch_size: (index + 1) * batch_size
+                ]
+            }
+        )
 
-        valid_score_i = theano.function([index], self.errors,
-              givens={self.x: valid_set_x[index * batch_size:
-                                          (index + 1) * batch_size],
-                      self.y: valid_set_y[index * batch_size:
-                                          (index + 1) * batch_size]})
+        valid_score_i = theano.function(
+            [index],
+            self.errors,
+            givens={
+                self.x: valid_set_x[
+                    index * batch_size: (index + 1) * batch_size
+                ],
+                self.y: valid_set_y[
+                    index * batch_size: (index + 1) * batch_size
+                ]
+            }
+        )
 
         # Create a function that scans the entire validation set
         def valid_score():
@@ -296,6 +319,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
               hidden_layers_sizes=[1000, 1000, 1000],
               n_outs=10)
 
+    # start-snippet-2
     #########################
     # PRETRAINING THE MODEL #
     #########################
@@ -319,10 +343,10 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
             print numpy.mean(c)
 
     end_time = time.clock()
+    # end-snippet-2
     print >> sys.stderr, ('The pretraining code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
-
     ########################
     # FINETUNING THE MODEL #
     ########################
@@ -330,10 +354,12 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
     # get the training, validation and testing function for the model
     print '... getting the finetuning functions'
     train_fn, validate_model, test_model = dbn.build_finetune_functions(
-                datasets=datasets, batch_size=batch_size,
-                learning_rate=finetune_lr)
+        datasets=datasets,
+        batch_size=batch_size,
+        learning_rate=finetune_lr
+    )
 
-    print '... finetunning the model'
+    print '... finetuning the model'
     # early-stopping parameters
     patience = 4 * n_train_batches  # look as this many examples regardless
     patience_increase = 2.    # wait this much longer when a new best is
@@ -342,7 +368,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
                                    # considered significant
     validation_frequency = min(n_train_batches, patience / 2)
                                   # go through this many
-                                  # minibatche before checking the network
+                                  # minibatches before checking the network
                                   # on the validation set; in this case we
                                   # check every epoch
 
@@ -365,16 +391,24 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
 
                 validation_losses = validate_model()
                 this_validation_loss = numpy.mean(validation_losses)
-                print('epoch %i, minibatch %i/%i, validation error %f %%' % \
-                      (epoch, minibatch_index + 1, n_train_batches,
-                       this_validation_loss * 100.))
+                print(
+                    'epoch %i, minibatch %i/%i, validation error %f %%'
+                    % (
+                        epoch,
+                        minibatch_index + 1,
+                        n_train_batches,
+                        this_validation_loss * 100.
+                    )
+                )
 
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
 
                     #improve patience if loss improvement is good enough
-                    if (this_validation_loss < best_validation_loss *
-                        improvement_threshold):
+                    if (
+                        this_validation_loss < best_validation_loss *
+                        improvement_threshold
+                    ):
                         patience = max(patience, iter * patience_increase)
 
                     # save best validation score and iteration number
@@ -394,9 +428,12 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
                 break
 
     end_time = time.clock()
-    print(('Optimization complete with best validation score of %f %%,'
-           'with test performance %f %%') %
-                 (best_validation_loss * 100., test_score * 100.))
+    print(
+        (
+            'Optimization complete with best validation score of %f %%,'
+            'with test performance %f %%'
+        ) % (best_validation_loss * 100., test_score * 100.)
+    )
     print >> sys.stderr, ('The fine tuning code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time)

@@ -43,7 +43,7 @@ Observations :
 
 
     RESULTS : 
-    logreg on maggie46
+    logistic_sgd on maggie46
 
 Total error: 0.015611011103
 Total error: 0.00966772673335

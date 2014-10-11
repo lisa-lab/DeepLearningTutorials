@@ -1,4 +1,5 @@
 code/*.pyc
+code/tmp*
 code/midi
 data/mnist.pkl.gz
 data/mnist_py3k.pkl.gz

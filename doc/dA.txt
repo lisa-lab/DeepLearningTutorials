@@ -105,89 +105,9 @@ first step is to create shared variables for the parameters of the
 autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
 :math:`\mathbf{b'}`, since we are using tied weights in this tutorial ):
 
-
-
-.. code-block:: python
-
-    class AutoEncoder(object):
-
-      def __init__(self, numpy_rng, input=None, n_visible=784, n_hidden=500,
-               W=None, bhid=None, bvis=None):
-        """
-
-        :type numpy_rng: numpy.random.RandomState
-        :param numpy_rng: number random generator used to generate weights
-
-
-        :type input: theano.tensor.TensorType
-        :paran input: a symbolic description of the input or None for standalone
-                      dA
-
-        :type n_visible: int
-        :param n_visible: number of visible units
-
-        :type n_hidden: int
-        :param n_hidden:  number of hidden units
-
-        :type W: theano.tensor.TensorType
-        :param W: Theano variable pointing to a set of weights that should be
-                  shared belong the dA and another architecture; if dA should
-                  be standalone set this to None
-
-        :type bhid: theano.tensor.TensorType
-        :param bhid: Theano variable pointing to a set of biases values (for
-                     hidden units) that should be shared belong dA and another
-                     architecture; if dA should be standalone set this to None
-
-        :type bvis: theano.tensor.TensorType
-        :param bvis: Theano variable pointing to a set of biases values (for
-                     visible units) that should be shared belong dA and another
-                     architecture; if dA should be standalone set this to None
-
-
-        """
-        self.n_visible = n_visible
-        self.n_hidden = n_hidden
-
-
-        # note : W' was written as `W_prime` and b' as `b_prime`
-        if not W:
-            # W is initialized with `initial_W` which is uniformely sampled
-            # from -4*sqrt(6./(n_visible+n_hidden)) and 4*sqrt(6./(n_hidden+n_visible))
-            # the output of uniform if converted using asarray to dtype
-            # theano.config.floatX so that the code is runable on GPU
-            initial_W = numpy.asarray(numpy_rng.uniform(
-                      low=-4 * numpy.sqrt(6. / (n_hidden + n_visible)),
-                      high=4 * numpy.sqrt(6. / (n_hidden + n_visible)),
-                      size=(n_visible, n_hidden)), dtype=theano.config.floatX)
-            W = theano.shared(value=initial_W, name='W')
-
-        if not bvis:
-            bvis = theano.shared(value=numpy.zeros(n_visible,
-                                        dtype=theano.config.floatX), name='bvis')
-
-        if not bhid:
-            bhid = theano.shared(value=numpy.zeros(n_hidden,
-                                              dtype=theano.config.floatX), name='bhid')
-
-
-        self.W = W
-        # b corresponds to the bias of the hidden
-        self.b = bhid
-        # b_prime corresponds to the bias of the visible
-        self.b_prime = bvis
-        # tied weights, therefore W_prime is W transpose
-        self.W_prime = self.W.T
-        # if no input is given, generate a variable representing the input
-        if input == None:
-            # we use a matrix because we expect a minibatch of several examples,
-            # each example being a row
-            self.x = T.dmatrix(name='input')
-        else:
-            self.x = input
-
-        self.params = [self.W, self.b, self.b_prime]
-
+.. literalinclude:: ../code/dA.py
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
 
 Note that we pass the symbolic ``input``  to the autoencoder as a
 parameter. This is such that later we can concatenate layers of
@@ -197,56 +117,25 @@ the k-th layer will be the symbolic input of the (k+1)-th.
 Now we can express the computation of the latent representation and of the reconstructed
 signal:
 
-.. code-block:: python
+.. literalinclude:: ../code/dA.py
+  :pyobject: dA.get_hidden_values
 
-    def get_hidden_values(self, input):
-        """ Computes the values of the hidden layer """
-        return T.nnet.sigmoid(T.dot(input, self.W) + self.b)
-
-    def get_reconstructed_input(self, hidden):
-        """ Computes the reconstructed input given the values of the hidden layer """
-        return  T.nnet.sigmoid(T.dot(hidden, self.W_prime) + self.b_prime)
+.. literalinclude:: ../code/dA.py
+  :pyobject: dA.get_reconstructed_input
 
 And using these function we can compute the cost and the updates of
 one stochastic gradient descent step :
 
-.. code-block:: python
-
-    def get_cost_updates(self, learning_rate):
-        """ This function computes the cost and the updates for one trainng
-        step """
-
-        y = self.get_hidden_values(self.x)
-        z = self.get_reconstructed_input(y)
-        # note : we sum over the size of a datapoint; if we are using minibatches,
-        #        L will  be a vector, with one entry per example in minibatch
-        L = -T.sum(self.x * T.log(z) + (1 - self.x) * T.log(1 - z), axis=1)
-        # note : L is now a vector, where each element is the cross-entropy cost
-        #        of the reconstruction of the corresponding example of the
-        #        minibatch. We need to compute the average of all these to get
-        #        the cost of the minibatch
-        cost = T.mean(L)
-
-        # compute the gradients of the cost of the `dA` with respect
-        # to its parameters
-        gparams = T.grad(cost, self.params)
-        # generate the list of updates
-        updates = []
-        for param, gparam in zip(self.params, gparams):
-            updates.append((param, param - learning_rate * gparam))
-
-        return (cost, updates)
-
+.. literalinclude:: ../code/dA.py
+  :pyobject: dA.get_cost_updates
 
 We can now define a function that applied iteratively will update the
 parameters ``W``, ``b`` and ``b_prime`` such that the
 reconstruction cost is approximately minimized.
 
-.. code-block:: python
-
-  autoencoder = AutoEncoder(numpy_rng=numpy.random.RandomState(1234), n_visible=784, n_hidden=500)
-  cost, updates = autoencoder.get_cost_updates(learning_rate=0.1)
-  train = theano.function([x], cost, updates=updates)
+.. literalinclude:: ../code/dA.py
+  :start-after: theano_rng = RandomStreams(rng.randint(2 ** 30))
+  :end-before: start_time = time.clock()
 
 One serious potential issue with auto-encoders is that if there is no other
 constraint besides minimizing the reconstruction error,
