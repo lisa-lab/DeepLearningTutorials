@@ -214,7 +214,7 @@ The few lines of code below constructs the deep belief network :
 
 .. literalinclude:: ../code/DBN.py
   :start-after: # numpy random generator
-  :end-before: #########################
+  :end-before: start-snippet-2
 
 There are two stages in training this network: (1) a layer-wise pre-training and
 (2) a fine-tuning stage.

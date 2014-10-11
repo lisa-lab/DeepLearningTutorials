@@ -321,15 +321,21 @@ class HMC_sampler(object):
         self.__dict__.update(kwargs)
 
     @classmethod
-    def new_from_shared_positions(cls, shared_positions, energy_fn,
-            initial_stepsize=0.01, target_acceptance_rate=.9, n_steps=20,
-            stepsize_dec=0.98,
-            stepsize_min=0.001,
-            stepsize_max=0.25,
-            stepsize_inc=1.02,
- # used in geometric avg. 1.0 would be not moving at all
-            avg_acceptance_slowness=0.9,
-            seed=12345):
+    def new_from_shared_positions(
+        cls, 
+        shared_positions, 
+        energy_fn,
+        initial_stepsize=0.01, 
+        target_acceptance_rate=.9, 
+        n_steps=20,
+        stepsize_dec=0.98,
+        stepsize_min=0.001,
+        stepsize_max=0.25,
+        stepsize_inc=1.02,
+        # used in geometric avg. 1.0 would be not moving at all
+        avg_acceptance_slowness=0.9,
+        seed=12345
+    ):
         """
         :param shared_positions: theano ndarray shared var with
             many particle [initial] positions
