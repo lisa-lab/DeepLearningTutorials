@@ -310,7 +310,8 @@ case the weight matrix and the hidden layer bias is shared with the
 corresponding sigmoidal layer of an MLP network.
 
 .. literalinclude:: ../code/rbm.py
-  :pyobject: RBM.__init__
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
 
 Next step is to define functions which construct the symbolic graph associated
 with Eqs. :eq:`rbm_propup` - :eq:`rbm_propdown`. The code is as follows:
@@ -378,8 +379,8 @@ We then add a ``get_cost_updates`` method, whose purpose is to generate the symb
 gradients for CD-k and PCD-k updates.
 
 .. literalinclude:: ../code/rbm.py
-  :start-after: def gibbs_vhv
-  :end-before: # perform actual negative phase
+  :start-after: start-snippet-2
+  :end-before: end-snippet-2
 
 Note that ``get_cost_updates`` takes as argument a variable called ``persistent``. This allows us to use the same code to implement both CD and PCD.
 To use PCD, ``persistent`` should refer to a shared variable which contains the
@@ -392,8 +393,8 @@ Gibbs chain, sample that we need for getting the gradient (see  Eq. :eq:`free_en
 op provided by Theano, therefore we urge the reader to look it up by following this `link <http://deeplearning.net/software/theano/library/scan.html>`_.
 
 .. literalinclude:: ../code/rbm.py
-  :start-after: chain_start = persistent
-  :end-before: # determine gradients on RBM parameters
+  :start-after: end-snippet-2
+  :end-before: start-snippet-3
 
 Once we have the generated the chain we take the sample at the end of the
 chain to get the free energy of the negative phase. Note that the
@@ -405,8 +406,8 @@ want (it will mess up our gradients) and therefore we need to indicate to
 ``consider_constant`` of ``T.grad``.
 
 .. literalinclude:: ../code/rbm.py
-  :start-after: # determine gradients on RBM parameters
-  :end-before: # constructs the update dictionary
+  :start-after: start-snippet-3
+  :end-before: end-snippet-3
 
 Finally, we add to the updates dictionary returned by scan (which contains
 updates rules for random states of ``theano_rng``) to contain the parameter
@@ -414,8 +415,8 @@ updates. In the case of PCD, these should also update the shared variable
 containing the state of the Gibbs chain.
 
 .. literalinclude:: ../code/rbm.py
-  :start-after: # constructs the update dictionary
-  :end-before: def get_pseudo_likelihood_cost
+  :start-after: start-snippet-4
+  :end-before: end-snippet-4
 
 Tracking Progress
 -----------------
@@ -509,8 +510,8 @@ the filters after each training epoch.  We train the RBM using PCD, as it has
 been shown to lead to a better generative model ([Tieleman08]_).
 
 .. literalinclude:: ../code/rbm.py
-  :start-after: os.chdir(output_folder)
-  :end-before: Sampling from the RBM
+  :start-after: start-snippet-5
+  :end-before: end-snippet-5
 
 Once the RBM is trained, we can then use the ``gibbs_vhv`` function to implement
 the Gibbs chain required for sampling. We initialize the Gibbs chain starting
@@ -520,8 +521,8 @@ initialization. We again use Theano's ``scan`` op to do 1000 steps before
 each plotting.
 
 .. literalinclude:: ../code/rbm.py
-  :start-after: Sampling from the RBM
-  :end-before: plot_every = 1000
+  :start-after: start-snippet-6
+  :end-before: end-snippet-6
 
 Next we create the 20 persistent chains in parallel to get our
 samples. To do so, we compile a theano function which performs one Gibbs step
@@ -530,8 +531,8 @@ apply this function iteratively for a large number of steps, plotting the
 samples at every 1000 steps.
 
 .. literalinclude:: ../code/rbm.py
-  :start-after: find out the number of test
-  :end-before: os.chdir('../')
+  :start-after: start-snippet-7
+  :end-before: end-snippet-7
 
 Results
 +++++++

@@ -72,7 +72,7 @@ class LogisticRegression(object):
                       which the labels lie
 
         """
-
+        # start-snippet-1
         # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
         self.W = theano.shared(
             value=numpy.zeros(
@@ -105,7 +105,8 @@ class LogisticRegression(object):
         # symbolic description of how to compute prediction as class whose
         # probability is maximal
         self.y_pred = T.argmax(self.p_y_given_x, axis=1)
-
+        # end-snippet-1
+    
         # parameters of the model
         self.params = [self.W, self.b]
 
@@ -126,6 +127,7 @@ class LogisticRegression(object):
         Note: we use the mean instead of the sum so that
               the learning rate is less dependent on the batch size
         """
+        # start-snippet-2
         # y.shape[0] is (symbolically) the number of rows in y, i.e.,
         # number of examples (call it n) in the minibatch
         # T.arange(y.shape[0]) is a symbolic vector which will contain
@@ -137,6 +139,7 @@ class LogisticRegression(object):
         # the mean (across minibatch examples) of the elements in v,
         # i.e., the mean log-likelihood across the minibatch.
         return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]), y])
+        # end-snippet-2
 
     def errors(self, y):
         """Return a float representing the number of errors in the minibatch
@@ -150,8 +153,10 @@ class LogisticRegression(object):
 
         # check if y has same dimension of y_pred
         if y.ndim != self.y_pred.ndim:
-            raise TypeError('y should have the same shape as self.y_pred',
-                ('y', target.type, 'y_pred', self.y_pred.type))
+            raise TypeError(
+                'y should have the same shape as self.y_pred',
+                ('y', target.type, 'y_pred', self.y_pred.type)
+            )
         # check if y is of the correct datatype
         if y.dtype.startswith('int'):
             # the T.neq operator returns a vector of 0s and 1s, where 1
@@ -282,8 +287,8 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
 
     # generate symbolic variables for input (x and y represent a
     # minibatch)
-    x = T.matrix('x') # data, presented as rasterized images
-    y = T.ivector('y') # labels, presented as 1D vector of [int] labels
+    x = T.matrix('x')  # data, presented as rasterized images
+    y = T.ivector('y')  # labels, presented as 1D vector of [int] labels
 
     # construct the logistic regression class
     # Each MNIST image has size 28*28
@@ -317,6 +322,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
     g_W = T.grad(cost=cost, wrt=classifier.W)
     g_b = T.grad(cost=cost, wrt=classifier.b)
 
+    # start-snippet-3
     # specify how to update the parameters of the model as a list of
     # (variable, update expression) pairs.
     updates = [(classifier.W, classifier.W - learning_rate * g_W),
@@ -334,6 +340,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
             y: train_set_y[index * batch_size: (index + 1) * batch_size]
         }
     )
+    # end-snippet-3
 
     ###############
     # TRAIN MODEL #
@@ -372,9 +379,15 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
                                      for i in xrange(n_valid_batches)]
                 this_validation_loss = numpy.mean(validation_losses)
 
-                print('epoch %i, minibatch %i/%i, validation error %f %%' % \
-                    (epoch, minibatch_index + 1, n_train_batches,
-                    this_validation_loss * 100.))
+                print(
+                    'epoch %i, minibatch %i/%i, validation error %f %%' %
+                    (
+                        epoch,
+                        minibatch_index + 1,
+                        n_train_batches,
+                        this_validation_loss * 100.
+                    )
+                )
 
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
@@ -390,19 +403,31 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
                                    for i in xrange(n_test_batches)]
                     test_score = numpy.mean(test_losses)
 
-                    print(('     epoch %i, minibatch %i/%i, test error of best'
-                       ' model %f %%') %
-                        (epoch, minibatch_index + 1, n_train_batches,
-                         test_score * 100.))
+                    print(
+                        (
+                            '     epoch %i, minibatch %i/%i, test error of best'
+                            ' model %f %%'
+                        ) %
+                        (
+                            epoch,
+                            minibatch_index + 1,
+                            n_train_batches,
+                            test_score * 100.
+                        )
+                    )
 
             if patience <= iter:
                 done_looping = True
                 break
 
     end_time = time.clock()
-    print(('Optimization complete with best validation score of %f %%,'
-           'with test performance %f %%') %
-                 (best_validation_loss * 100., test_score * 100.))
+    print(
+        (
+            'Optimization complete with best validation score of %f %%,'
+            'with test performance %f %%'
+        )
+        % (best_validation_loss * 100., test_score * 100.)
+    )
     print 'The code run for %d epochs, with %f epochs/sec' % (
         epoch, 1. * epoch / (end_time - start_time))
     print >> sys.stderr, ('The code for file ' +

@@ -207,16 +207,26 @@ class RnnRbm:
         self.r = r
         self.dt = dt
         (v, v_sample, cost, monitor, params, updates_train, v_t,
-         updates_generate) = build_rnnrbm(r[1] - r[0], n_hidden,
-                                           n_hidden_recurrent)
+         updates_generate) = build_rnnrbm(
+             r[1] - r[0],
+             n_hidden,
+             n_hidden_recurrent
+        )
 
         gradient = T.grad(cost, params, consider_constant=[v_sample])
-        updates_train.update(((p, p - lr * g) for p, g in zip(params,
-                                                                gradient)))
-        self.train_function = theano.function([v], monitor,
-                                               updates=updates_train)
-        self.generate_function = theano.function([], v_t,
-                                                 updates=updates_generate)
+        updates_train.update(
+            ((p, p - lr * g) for p, g in zip(params, gradient))
+        )
+        self.train_function = theano.function(
+            [v],
+            monitor,
+            updates=updates_train
+        )
+        self.generate_function = theano.function(
+            [],
+            v_t,
+            updates=updates_generate
+        )
 
     def train(self, files, batch_size=100, num_epochs=200):
         '''Train the RNN-RBM via stochastic gradient descent (SGD) using MIDI

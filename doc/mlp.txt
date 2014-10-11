@@ -102,6 +102,10 @@ implementing a class that will represent any given hidden layer. To
 construct the MLP we will then only need to throw a logistic regression
 layer on top.
 
+.. literalinclude:: ../code/mlp.py
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
+
 The initial values for the weights of a hidden layer :math:`i` should be uniformly
 sampled from a symmetric interval that depends on the activation function. For
 :math:`tanh` activation function results obtained in [Xavier10]_ show that the
@@ -116,7 +120,7 @@ both upward (activations flowing from inputs to outputs) and backward
 (gradients flowing from outputs to inputs).
 
 .. literalinclude:: ../code/mlp.py
-  :start-after: self.input = input
+  :start-after: end-snippet-1
   :end-before:  lin_output = T.dot(input, self.W) + self.b
 
 Note that we used a given non-linear function as the activation function of the hidden layer. By default this is ``tanh``, but in many cases we might want
@@ -133,12 +137,17 @@ implemented in the previous tutorial :doc:`logreg`, you get the output
 of the MLP. You can see this in the following short implementation of
 the ``MLP`` class.
 
+.. literalinclude:: ../code/mlp.py
+  :start-after: start-snippet-2
+  :end-before: end-snippet-2
+
 In this tutorial we will also use L1 and L2 regularization (see
 :ref:`L1_L2_regularization`). For this, we need to compute the L1 norm and the squared L2
 norm of the weights :math:`W^{(1)}, W^{(2)}`.
 
 .. literalinclude:: ../code/mlp.py
-  :pyobject: MLP
+  :start-after: start-snippet-3
+  :end-before: end-snippet-3
 
 As before, we train this model using stochastic gradient descent with
 mini-batches. The difference is that we modify the cost function to include the
@@ -147,8 +156,8 @@ controlling the weight of these regularization terms in the total cost function.
 The code that computes the new cost is:
 
 .. literalinclude:: ../code/mlp.py
-  :start-after: # the cost we minimize during training
-  :end-before: # compiling a Theano function that computes the mistakes
+  :start-after: start-snippet-4
+  :end-before: end-snippet-4
 
 We then update the parameters of the model using the gradient. This code is
 almost identical to the one for logistic regression. Only the number of
@@ -158,8 +167,8 @@ we created with the model ``params`` and parse it, computing a gradient
 at each step.
 
 .. literalinclude:: ../code/mlp.py
-  :start-after: # compute the gradient of cost
-  :end-before: # TRAIN MODEL
+  :start-after: start-snippet-5
+  :end-before: end-snippet-5
 
 Putting it All Together
 +++++++++++++++++++++++

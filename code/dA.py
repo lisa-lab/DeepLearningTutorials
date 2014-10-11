@@ -51,6 +51,7 @@ except ImportError:
     import Image
 
 
+# start-snippet-1
 class dA(object):
     """Denoising Auto-Encoder class (dA)
 
@@ -146,22 +147,34 @@ class dA(object):
             # 4*sqrt(6./(n_hidden+n_visible))the output of uniform if
             # converted using asarray to dtype
             # theano.config.floatX so that the code is runable on GPU
-            initial_W = numpy.asarray(numpy_rng.uniform(
-                      low=-4 * numpy.sqrt(6. / (n_hidden + n_visible)),
-                      high=4 * numpy.sqrt(6. / (n_hidden + n_visible)),
-                      size=(n_visible, n_hidden)), dtype=theano.config.floatX)
+            initial_W = numpy.asarray(
+                numpy_rng.uniform(
+                    low=-4 * numpy.sqrt(6. / (n_hidden + n_visible)),
+                    high=4 * numpy.sqrt(6. / (n_hidden + n_visible)),
+                    size=(n_visible, n_hidden)
+                ),
+                dtype=theano.config.floatX
+            )
             W = theano.shared(value=initial_W, name='W', borrow=True)
 
         if not bvis:
-            bvis = theano.shared(value=numpy.zeros(n_visible,
-                                         dtype=theano.config.floatX),
-                                 borrow=True)
+            bvis = theano.shared(
+                value=numpy.zeros(
+                    n_visible,
+                    dtype=theano.config.floatX
+                ),
+                borrow=True
+            )
 
         if not bhid:
-            bhid = theano.shared(value=numpy.zeros(n_hidden,
-                                                   dtype=theano.config.floatX),
-                                 name='b',
-                                 borrow=True)
+            bhid = theano.shared(
+                value=numpy.zeros(
+                    n_hidden,
+                    dtype=theano.config.floatX
+                ),
+                name='b',
+                borrow=True
+            )
 
         self.W = W
         # b corresponds to the bias of the hidden
@@ -180,6 +193,7 @@ class dA(object):
             self.x = input
 
         self.params = [self.W, self.b, self.b_prime]
+    # end-snippet-1
 
     def get_corrupted_input(self, input, corruption_level):
         """This function keeps ``1-corruption_level`` entries of the inputs the
@@ -203,9 +217,9 @@ class dA(object):
                 correctly as it only support float32 for now.
 
         """
-        return  self.theano_rng.binomial(size=input.shape, n=1,
-                                         p=1 - corruption_level,
-                                         dtype=theano.config.floatX) * input
+        return self.theano_rng.binomial(size=input.shape, n=1,
+                                        p=1 - corruption_level,
+                                        dtype=theano.config.floatX) * input
 
     def get_hidden_values(self, input):
         """ Computes the values of the hidden layer """
@@ -216,7 +230,7 @@ class dA(object):
         hidden layer
 
         """
-        return  T.nnet.sigmoid(T.dot(hidden, self.W_prime) + self.b_prime)
+        return T.nnet.sigmoid(T.dot(hidden, self.W_prime) + self.b_prime)
 
     def get_cost_updates(self, corruption_level, learning_rate):
         """ This function computes the cost and the updates for one trainng
@@ -356,9 +370,14 @@ def test_dA(learning_rate=0.1, training_epochs=15,
         learning_rate=learning_rate
     )
 
-    train_da = theano.function([index], cost, updates=updates,
-         givens={x: train_set_x[index * batch_size:
-                                  (index + 1) * batch_size]})
+    train_da = theano.function(
+        [index],
+        cost,
+        updates=updates,
+        givens={
+            x: train_set_x[index * batch_size: (index + 1) * batch_size]
+        }
+    )
 
     start_time = time.clock()
 

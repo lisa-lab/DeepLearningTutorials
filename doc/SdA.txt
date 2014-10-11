@@ -74,8 +74,8 @@ the MLP share parameters, and the fact that autoencoders get as input latent
 representations of intermediate layers of the MLP. 
 
 .. literalinclude:: ../code/SdA.py
-  :start-after: class SdA(object):
-  :end-before: # The SdA is an MLP
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
 
 ``self.sigmoid_layers`` will store the sigmoid layers of the MLP facade, while
 ``self.dA_layers`` will store  the denoising autoencoder associated with the layers of the MLP. 
@@ -90,15 +90,15 @@ each denoising autoencoder such that they share the weight matrix and the
 bias of the encoding part with its corresponding sigmoid layer.
 
 .. literalinclude:: ../code/SdA.py
-  :start-after: [int] labels
-  :end-before: # We now need to add a logistic layer on top of the MLP
+  :start-after: start-snippet-2
+  :end-before: end-snippet-2
 
 All we need now is to add the logistic layer on top of the sigmoid
 layers such that we have an MLP. We will 
 use the ``LogisticRegression`` class introduced in :ref:`logreg`. 
 
 .. literalinclude:: ../code/SdA.py
-  :start-after: self.dA_layers.append(dA_layer)
+  :start-after: end-snippet-2
   :end-before: def pretraining_functions
 
 The class also provides a method that generates training functions for
@@ -144,8 +144,8 @@ The few lines of code below constructs the stacked denoising
 autoencoder : 
 
 .. literalinclude:: ../code/SdA.py
-  :start-after: # numpy random generator
-  :end-before: PRETRAINING THE MODEL
+  :start-after: start-snippet-3
+  :end-before: end-snippet-3
 
 There are two stages in training this network, a layer-wise pre-training and 
 fine-tuning afterwards. 
@@ -158,8 +158,8 @@ to the training set for a fixed number of epochs given by
 ``pretraining_epochs``.
 
 .. literalinclude:: ../code/SdA.py
-  :start-after: PRETRAINING THE MODEL
-  :end-before: FINETUNING THE MODEL
+  :start-after: start-snippet-4
+  :end-before: end-snippet-4
 
 The fine-tuning loop is very similar with the one in the :ref:`mlp`, the
 only difference is that we will use now the functions given by

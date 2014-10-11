@@ -143,8 +143,8 @@ much as possible the RBMs used to initialize the network and the MLP used for
 classification.
 
 .. literalinclude:: ../code/DBN.py
-  :start-after: class DBN(object):
-  :end-before: # The DBN is an MLP
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
 
 ``self.sigmoid_layers`` will store the feed-forward graphs which together form
 the MLP, while ``self.rbm_layers`` will store the RBMs used to pretrain each
@@ -226,8 +226,8 @@ This function is applied to the training set for a fixed number of epochs
 given by ``pretraining_epochs``.
 
 .. literalinclude:: ../code/DBN.py
-  :start-after: PRETRAINING THE MODEL
-  :end-before: print >> sys.stderr
+  :start-after: start-snippet-2
+  :end-before: end-snippet-2
 
 The fine-tuning loop is very similar to the one in the :ref:`mlp` tutorial,
 the only difference being that we now use the functions given by

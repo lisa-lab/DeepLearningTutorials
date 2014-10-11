@@ -150,10 +150,11 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
 
     # allocate symbolic variables for the data
     index = T.lscalar()  # index to a [mini]batch
+
+    # start-snippet-1
     x = T.matrix('x')   # the data is presented as rasterized images
     y = T.ivector('y')  # the labels are presented as 1D vector of
                         # [int] labels
-
     ishape = (28, 28)  # this is the size of MNIST images
 
     ######################
@@ -253,6 +254,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
             y: train_set_y[index * batch_size: (index + 1) * batch_size]
         }
     )
+    # end-snippet-1
 
     ###############
     # TRAIN MODEL #
@@ -295,8 +297,8 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
                 validation_losses = [validate_model(i) for i
                                      in xrange(n_valid_batches)]
                 this_validation_loss = numpy.mean(validation_losses)
-                print('epoch %i, minibatch %i/%i, validation error %f %%' % \
-                      (epoch, minibatch_index + 1, n_train_batches, \
+                print('epoch %i, minibatch %i/%i, validation error %f %%' %
+                      (epoch, minibatch_index + 1, n_train_batches,
                        this_validation_loss * 100.))
 
                 # if we got the best validation score until now
@@ -328,7 +330,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
 
     end_time = time.clock()
     print('Optimization complete.')
-    print('Best validation score of %f %% obtained at iteration %i,'\
+    print('Best validation score of %f %% obtained at iteration %i,'
           'with test performance %f %%' %
           (best_validation_loss * 100., best_iter + 1, test_score * 100.))
     print >> sys.stderr, ('The code for file ' +

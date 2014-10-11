@@ -195,16 +195,29 @@ computing `n\_steps` of HMC, using a given `stepsize`. The function prototype
 is as follows:
 
 .. literalinclude:: ../code/hmc/hmc.py
-  :pyobject: hmc_move
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
 
 We start by sampling random velocities, using the provided shared RandomStream
 object. Velocities are sampled independently for each dimension and for each
 particle under simulation, yielding a :math:`N \times D` matrix.
 
+.. literalinclude:: ../code/hmc/hmc.py
+  :start-after: start-snippet-2
+  :end-before: end-snippet-2
+
 Since we now have an initial position and velocity, we can now call the
 `simulate\_dynamics` to obtain the proposal for the new state :math:`\chi'`.
 
+.. literalinclude:: ../code/hmc/hmc.py
+  :start-after: start-snippet-3
+  :end-before: end-snippet-3
+
 We then accept/reject the proposed state based on the Metropolis algorithm.
+
+.. literalinclude:: ../code/hmc/hmc.py
+  :start-after: start-snippet-4
+  :end-before: end-snippet-4
 
 where `metropolis\_hastings\_accept` and `hamiltonian` are helper functions,
 defined as follows.
@@ -237,7 +250,8 @@ receives as parameters, a series of shared variables to update (`positions`, `st
 state.
 
 .. literalinclude:: ../code/hmc/hmc.py
-  :pyobject: hmc_updates
+  :start-after: start-snippet-5
+  :end-before: end-snippet-5
 
 Using the above code, the dictionary `{positions: new\_positions}` can be used
 to update the state of the sampler with either (1) the new state `final\_pos`
@@ -255,6 +269,10 @@ average acceptance rate of the HMC move proposals (across many simulations),
 using an exponential moving average with time constant
 `1-avg\_acceptance\_slowness`.
 
+.. literalinclude:: ../code/hmc/hmc.py
+  :start-after: start-snippet-6
+  :end-before: end-snippet-6
+
 If the average acceptance rate is larger than the `target\_acceptance\_rate`, we
 increase the `stepsize` by a factor of `stepsize\_inc` in order to increase the
 mixing rate of our chain. If the average acceptance rate is too low however,
@@ -262,7 +280,15 @@ mixing rate of our chain. If the average acceptance rate is too low however,
 conservative mixing rate. The `clip`_ op allows us to maintain the `stepsize`
 in the range [`stepsize\_min`, `stepsize\_max`].
 
+.. literalinclude:: ../code/hmc/hmc.py
+  :start-after: start-snippet-7
+  :end-before: end-snippet-7
+
 The final updates list is then returned.
+
+.. literalinclude:: ../code/hmc/hmc.py
+  :start-after: start-snippet-8
+  :end-before: end-snippet-8
 
 **HMC_sampler**
 

@@ -61,7 +61,8 @@ The code to do this in Theano is the following:
 
 
 .. literalinclude:: ../code/logistic_sgd.py
-  :pyobject: LogisticRegression.__init__
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
 
 We first start by allocating symbolic variables for the inputs :math:`x,y`.
 Since the parameters of the model must maintain a persistent state throughout
@@ -118,7 +119,8 @@ mini-batches (MSGD). See :ref:`opt_SGD` for more details.
 The following Theano code defines the (symbolic) loss for a given minibatch:
 
 .. literalinclude:: ../code/logistic_sgd.py
-  :pyobject: LogisticRegression.negative_log_likelihood
+  :start-after: start-snippet-2
+  :end-before: end-snippet-2
 
 .. note::
 
@@ -184,15 +186,15 @@ To get the gradients :math:`\partial{\ell}/\partial{W}` and
 
 .. literalinclude:: ../code/logistic_sgd.py
   :start-after: # compute the gradient of cost
-  :end-before: # specify how to update the parameters
+  :end-before: # start-snippet-3
 
 ``g_W`` and ``g_b`` are again symbolic variables, which can be used as part of a
 computation graph. Performing one-step of gradient descent can then be done as
 follows:
 
 .. literalinclude:: ../code/logistic_sgd.py
-  :start-after: g_b = T.grad(cost=cost, wrt=classifier.b)
-  :end-before: # TRAIN MODEL
+  :start-after: start-snippet-3
+  :end-before: end-snippet-3
 
 The ``updates`` list contains, for each parameter, the
 stochastic gradient update operation. The ``givens`` dictionary indicates with

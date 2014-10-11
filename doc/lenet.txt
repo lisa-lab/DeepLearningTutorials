@@ -411,8 +411,8 @@ the HiddenLayer class defined in :doc:`mlp` , we can
 instantiate the network as follows.
 
 .. literalinclude:: ../code/convolutional_mlp.py
-  :start-after: allocate symbolic variables for the data
-  :end-before: TRAIN MODEL
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
   
 We leave out the code that performs the actual training and early-stopping,
 since it is exactly the same as with an MLP. The interested reader can

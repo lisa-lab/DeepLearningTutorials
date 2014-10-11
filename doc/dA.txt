@@ -106,7 +106,8 @@ autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
 :math:`\mathbf{b'}`, since we are using tied weights in this tutorial ):
 
 .. literalinclude:: ../code/dA.py
-  :pyobject: dA.__init__
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
 
 Note that we pass the symbolic ``input``  to the autoencoder as a
 parameter. This is such that later we can concatenate layers of

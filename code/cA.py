@@ -131,11 +131,14 @@ class cA(object):
             # 4*sqrt(6./(n_hidden+n_visible))the output of uniform if
             # converted using asarray to dtype
             # theano.config.floatX so that the code is runable on GPU
-            initial_W = numpy.asarray(numpy_rng.uniform(
-                      low=-4 * numpy.sqrt(6. / (n_hidden + n_visible)),
-                      high=4 * numpy.sqrt(6. / (n_hidden + n_visible)),
-                      size=(n_visible, n_hidden)),
-                                      dtype=theano.config.floatX)
+            initial_W = numpy.asarray(
+                numpy_rng.uniform(
+                    low=-4 * numpy.sqrt(6. / (n_hidden + n_visible)),
+                    high=4 * numpy.sqrt(6. / (n_hidden + n_visible)),
+                    size=(n_visible, n_hidden)
+                ),
+                dtype=theano.config.floatX
+            )
             W = theano.shared(value=initial_W, name='W', borrow=True)
 
         if not bvis:
@@ -186,7 +189,7 @@ class cA(object):
         hidden layer
 
         """
-        return  T.nnet.sigmoid(T.dot(hidden, self.W_prime) + self.b_prime)
+        return T.nnet.sigmoid(T.dot(hidden, self.W_prime) + self.b_prime)
 
     def get_cost_updates(self, contraction_level, learning_rate):
         """ This function computes the cost and the updates for one trainng
@@ -265,10 +268,14 @@ def test_cA(learning_rate=0.01, training_epochs=20,
     cost, updates = ca.get_cost_updates(contraction_level=contraction_level,
                                         learning_rate=learning_rate)
 
-    train_ca = theano.function([index], [T.mean(ca.L_rec), ca.L_jacob],
-                               updates=updates,
-                               givens={x: train_set_x[index * batch_size:
-                                                    (index + 1) * batch_size]})
+    train_ca = theano.function(
+        [index],
+        [T.mean(ca.L_rec), ca.L_jacob],
+        updates=updates,
+        givens={
+            x: train_set_x[index * batch_size: (index + 1) * batch_size]
+        }
+    )
 
     start_time = time.clock()
 

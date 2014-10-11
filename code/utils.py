@@ -64,8 +64,10 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
     #                tile_spacing[0]
     # out_shape[1] = (img_shape[1]+tile_spacing[1])*tile_shape[1] -
     #                tile_spacing[1]
-    out_shape = [(ishp + tsp) * tshp - tsp for ishp, tshp, tsp
-                        in zip(img_shape, tile_shape, tile_spacing)]
+    out_shape = [
+        (ishp + tsp) * tshp - tsp
+        for ishp, tshp, tsp in zip(img_shape, tile_shape, tile_spacing)
+    ]
 
     if isinstance(X, tuple):
         assert len(X) == 4
@@ -90,8 +92,10 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
                 dt = out_array.dtype
                 if output_pixel_vals:
                     dt = 'uint8'
-                out_array[:, :, i] = numpy.zeros(out_shape,
-                        dtype=dt) + channel_defaults[i]
+                out_array[:, :, i] = numpy.zeros(
+                    out_shape,
+                    dtype=dt
+                ) + channel_defaults[i]
             else:
                 # use a recurrent call to compute the channel and store it
                 # in the output

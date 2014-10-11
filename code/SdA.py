@@ -46,6 +46,7 @@ from mlp import HiddenLayer
 from dA import dA
 
 
+# start-snippet-1
 class SdA(object):
     """Stacked denoising auto-encoder class (SdA)
 
@@ -104,6 +105,7 @@ class SdA(object):
         self.x = T.matrix('x')  # the data is presented as rasterized images
         self.y = T.ivector('y')  # the labels are presented as 1D vector of
                                  # [int] labels
+        # end-snippet-1
 
         # The SdA is an MLP, for which all weights of intermediate layers
         # are shared with a different denoising autoencoders
@@ -115,6 +117,7 @@ class SdA(object):
         # During finetunining we will finish training the SdA by doing
         # stochastich gradient descent on the MLP
 
+        # start-snippet-2
         for i in xrange(self.n_layers):
             # construct the sigmoidal layer
 
@@ -157,11 +160,13 @@ class SdA(object):
                           W=sigmoid_layer.W,
                           bhid=sigmoid_layer.b)
             self.dA_layers.append(dA_layer)
-
+        # end-snippet-2
         # We now need to add a logistic layer on top of the MLP
         self.logLayer = LogisticRegression(
-                         input=self.sigmoid_layers[-1].output,
-                         n_in=hidden_layers_sizes[-1], n_out=n_outs)
+            input=self.sigmoid_layers[-1].output,
+            n_in=hidden_layers_sizes[-1],
+            n_out=n_outs
+        )
 
         self.params.extend(self.logLayer.params)
         # construct a function that implements one step of finetunining
@@ -210,13 +215,18 @@ class SdA(object):
             cost, updates = dA.get_cost_updates(corruption_level,
                                                 learning_rate)
             # compile the theano function
-            fn = theano.function(inputs=[index,
-                              theano.Param(corruption_level, default=0.2),
-                              theano.Param(learning_rate, default=0.1)],
-                                 outputs=cost,
-                                 updates=updates,
-                                 givens={self.x: train_set_x[batch_begin:
-                                                             batch_end]})
+            fn = theano.function(
+                inputs=[
+                    index,
+                    theano.Param(corruption_level, default=0.2),
+                    theano.Param(learning_rate, default=0.1)
+                ],
+                outputs=cost,
+                updates=updates,
+                givens={
+                    self.x: train_set_x[batch_begin: batch_end]
+                }
+            )
             # append `fn` to the list of functions
             pretrain_fns.append(fn)
 
@@ -282,12 +292,12 @@ class SdA(object):
             [index],
             self.errors,
             givens={
-               self.x: test_set_x[
-                   index * batch_size: (index + 1) * batch_size
-               ],
-               self.y: test_set_y[
-                   index * batch_size: (index + 1) * batch_size
-               ]
+                self.x: test_set_x[
+                    index * batch_size: (index + 1) * batch_size
+                ],
+                self.y: test_set_y[
+                    index * batch_size: (index + 1) * batch_size
+                ]
             },
             name='test'
         )
@@ -354,6 +364,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
     n_train_batches /= batch_size
 
     # numpy random generator
+    # start-snippet-3
     numpy_rng = numpy.random.RandomState(89677)
     print '... building the model'
     # construct the stacked denoising autoencoder class
@@ -363,7 +374,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
         hidden_layers_sizes=[1000, 1000, 1000],
         n_outs=10
     )
-
+    # end-snippet-3 start-snippet-4
     #########################
     # PRETRAINING THE MODEL #
     #########################
@@ -392,7 +403,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
     print >> sys.stderr, ('The pretraining code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
-
+    # end-snippet-4
     ########################
     # FINETUNING THE MODEL #
     ########################
@@ -400,8 +411,10 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
     # get the training, validation and testing function for the model
     print '... getting the finetuning functions'
     train_fn, validate_model, test_model = sda.build_finetune_functions(
-                datasets=datasets, batch_size=batch_size,
-                learning_rate=finetune_lr)
+        datasets=datasets,
+        batch_size=batch_size,
+        learning_rate=finetune_lr
+    )
 
     print '... finetunning the model'
     # early-stopping parameters
@@ -441,8 +454,10 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
                 if this_validation_loss < best_validation_loss:
 
                     #improve patience if loss improvement is good enough
-                    if (this_validation_loss < best_validation_loss *
-                        improvement_threshold):
+                    if (
+                        this_validation_loss < best_validation_loss *
+                        improvement_threshold
+                    ):
                         patience = max(patience, iter * patience_increase)
 
                     # save best validation score and iteration number
@@ -462,9 +477,13 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
                 break
 
     end_time = time.clock()
-    print(('Optimization complete with best validation score of %f %%,'
-           'with test performance %f %%') %
-                 (best_validation_loss * 100., test_score * 100.))
+    print(
+        (
+            'Optimization complete with best validation score of %f %%,'
+            'with test performance %f %%'
+        )
+        % (best_validation_loss * 100., test_score * 100.)
+    )
     print >> sys.stderr, ('The training code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
