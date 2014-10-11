@@ -41,78 +41,81 @@ Autoencoders
 
 See section 4.6 of [Bengio09]_ for an overview of auto-encoders.
 An autoencoder takes an input :math:`\mathbf{x} \in [0,1]^d` and first
-maps it (with an *encoder*) to a hidden representation :math:`\mathbf{y} \in [0,1]^{d'}`
+maps it (with an *encoder)* to a hidden representation :math:`\mathbf{y} \in [0,1]^{d'}`
 through a deterministic mapping, e.g.:
 
 .. math::
 
   \mathbf{y} = s(\mathbf{W}\mathbf{x} + \mathbf{b})
 
-Where :math:`s` is a non-linearity such as the sigmoid.
-The latent representation :math:`\mathbf{y}`, or **code** is then mapped back (with a *decoder*) into a
-**reconstruction** :math:`\mathbf{z}` of same shape as
-:math:`\mathbf{x}` through a similar transformation, e.g.:
+Where :math:`s` is a non-linearity such as the sigmoid. The latent
+representation :math:`\mathbf{y}`, or **code** is then mapped back (with a
+*decoder)* into a **reconstruction** :math:`\mathbf{z}` of the same shape as
+:math:`\mathbf{x}`. The mapping happens through a similar transformation, e.g.:
 
 .. math::
 
   \mathbf{z} = s(\mathbf{W'}\mathbf{y} + \mathbf{b'})
 
-where ' does not indicate transpose, and
-:math:`\mathbf{z}` should be seen as a prediction of :math:`\mathbf{x}`, given the code :math:`\mathbf{y}`.
-The weight matrix :math:`\mathbf{W'}` of the reverse mapping may be
-optionally constrained by :math:`\mathbf{W'} = \mathbf{W}^T`, which is
-an instance of *tied weights*. The parameters of this model (namely
-:math:`\mathbf{W}`, :math:`\mathbf{b}`,
-:math:`\mathbf{b'}` and, if one doesn't use tied weights, also
-:math:`\mathbf{W'}`) are optimized such that the average reconstruction
-error is minimized. The reconstruction error can be measured in many ways, depending
-on the appropriate distributional assumptions on the input given the code, e.g., using the
-traditional *squared error* :math:`L(\mathbf{x}, \mathbf{z}) = || \mathbf{x} - \mathbf{z} ||^2`,
-or if the input is interpreted as either bit vectors or vectors of
-bit probabilities by the reconstruction *cross-entropy* defined as :
+(Here, the prime symbol does *not necessarily* indicate matrix transposition.)
+:math:`\mathbf{z}` should be seen as a prediction of :math:`\mathbf{x}`, given
+the code :math:`\mathbf{y}`. Optionally, the weight matrix :math:`\mathbf{W'}`
+of the reverse mapping may be constrained to be the transpose of the forward
+mapping: :math:`\mathbf{W'} = \mathbf{W}^T`. This is referred to as *tied
+weights*. The parameters of this model (namely :math:`\mathbf{W}`,
+:math:`\mathbf{b}`, :math:`\mathbf{b'}` and, if one doesn't use tied weights,
+also :math:`\mathbf{W'}`) are optimized such that the average reconstruction
+error is minimized.
+
+The reconstruction error can be measured in many ways, depending on the
+appropriate distributional assumptions on the input given the code. The
+traditional *squared error* :math:`L(\mathbf{x} \mathbf{z}) = || \mathbf{x} -
+\mathbf{z} ||^2`, can be used. If the input is interpreted as either bit
+vectors or vectors of bit probabilities, *cross-entropy* of the reconstruction
+can be used:
 
 .. math::
 
   L_{H} (\mathbf{x}, \mathbf{z}) = - \sum^d_{k=1}[\mathbf{x}_k \log
           \mathbf{z}_k + (1 - \mathbf{x}_k)\log(1 - \mathbf{z}_k)]
 
-The hope is that the code :math:`\mathbf{y}` is a distributed representation
-that captures the coordinates along the main factors of variation in the data
-(similarly to how the projection on principal components captures the main factors
-of variation in the data).
-Because :math:`\mathbf{y}` is viewed as a lossy compression of :math:`\mathbf{x}`, it cannot
-be a good compression (with small loss) for all :math:`\mathbf{x}`, so learning
-drives it to be one that is a good compression in particular for training
-examples, and hopefully for others as well, but not for arbitrary inputs.
-That is the sense in which an auto-encoder generalizes: it gives low reconstruction
-error to test examples from the same distribution as the training examples,
-but generally high reconstruction error to uniformly chosen configurations of the
-input vector.
+The hope is that the code :math:`\mathbf{y}` is a *distributed* representation
+that captures the coordinates along the main factors of variation in the data.
+This is similar to the way the projection on principal components would capture
+the main factors of variation in the data. Indeed, if there is one linear
+hidden layer (the *code)* and the mean squared error criterion is used to train
+the network, then the :math:`k` hidden units learn to project the input in the
+span of the first :math:`k` principal components of the data. If the hidden
+layer is non-linear, the auto-encoder behaves differently from PCA, with the
+ability to capture multi-modal aspects of the input distribution. The departure
+from PCA becomes even more important when we consider *stacking multiple
+encoders* (and their corresponding decoders) when building a deep auto-encoder
+[Hinton06]_.
 
-If there is one linear hidden layer (the code) and
-the mean squared error criterion is used to train the network, then the :math:`k`
-hidden units learn to project the input in the span of the first :math:`k`
-principal components of the data. If the hidden
-layer is non-linear, the auto-encoder behaves differently from PCA,
-with the ability to capture multi-modal aspects of the input
-distribution. The departure from PCA becomes even more important when
-we consider *stacking multiple encoders* (and their corresponding decoders)
-when building a deep auto-encoder [Hinton06]_.
+Because :math:`\mathbf{y}` is viewed as a lossy compression of
+:math:`\mathbf{x}`, it cannot be a good (small-loss) compression for all
+:math:`\mathbf{x}`. Optimization makes it a good compression for training
+examples, and hopefully for other inputs as well, but not for arbitrary inputs.
+That is the sense in which an auto-encoder generalizes: it gives low
+reconstruction error on test examples from the same distribution as the
+training examples, but generally high reconstruction error on samples randomly
+chosen from the input space.
 
-We want to implement an auto-encoder using Theano, in the form of a class,
-that could be afterwards used in constructing a stacked autoencoder. The
-first step is to create shared variables for the parameters of the
-autoencoder ( :math:`\mathbf{W}`, :math:`\mathbf{b}` and
-:math:`\mathbf{b'}`, since we are using tied weights in this tutorial ):
+We want to implement an auto-encoder using Theano, in the form of a class, that
+could be afterwards used in constructing a stacked autoencoder. The first step
+is to create shared variables for the parameters of the autoencoder
+:math:`\mathbf{W}`, :math:`\mathbf{b}` and :math:`\mathbf{b'}`. (Since we are
+using tied weights in this tutorial, :math:`\mathbf{W}^T` will be used for
+:math:`\mathbf{W'}`):
 
 .. literalinclude:: ../code/dA.py
   :start-after: start-snippet-1
   :end-before: end-snippet-1
 
-Note that we pass the symbolic ``input``  to the autoencoder as a
-parameter. This is such that later we can concatenate layers of
-autoencoders to form a deep network: the symbolic output (the :math:`\mathbf{y}` above) of
-the k-th layer will be the symbolic input of the (k+1)-th.
+Note that we pass the symbolic ``input`` to the autoencoder as a parameter.
+This is so that we can concatenate layers of autoencoders to form a deep
+network: the symbolic output (the :math:`\mathbf{y}` above) of layer :math:`k` will
+be the symbolic input of layer :math:`k+1`.
 
 Now we can express the computation of the latent representation and of the reconstructed
 signal:
@@ -137,45 +140,41 @@ reconstruction cost is approximately minimized.
   :start-after: theano_rng = RandomStreams(rng.randint(2 ** 30))
   :end-before: start_time = time.clock()
 
-One serious potential issue with auto-encoders is that if there is no other
-constraint besides minimizing the reconstruction error,
-then an auto-encoder with :math:`n` inputs and an
-encoding of dimension at least :math:`n` could potentially just learn
-the identity function, for which many encodings would be useless (e.g.,
-just copying the input), i.e., the autoencoder would not differentiate
-test examples (from the training distribution) from other input configurations.
-Surprisingly, experiments reported in [Bengio07]_ nonetheless
-suggest that in practice, when trained with
-stochastic gradient descent, non-linear auto-encoders with more hidden units
-than inputs (called overcomplete) yield useful representations
-(in the sense of classification error measured on a network taking this
-representation in input). A simple explanation is based on the
-observation that stochastic gradient
-descent with early stopping is similar to an L2 regularization of the
-parameters. To achieve perfect reconstruction of continuous
-inputs, a one-hidden layer auto-encoder with non-linear hidden units
-(exactly like in the above code)
-needs very small weights in the first (encoding) layer (to bring the non-linearity of
-the hidden units in their linear regime) and very large weights in the
-second (decoding) layer.
-With binary inputs, very large weights are
-also needed to completely minimize the reconstruction error. Since the
-implicit or explicit regularization makes it difficult to reach
-large-weight solutions, the optimization algorithm finds encodings which
-only work well for examples similar to those in the training set, which is
-what we want. It means that the representation is exploiting statistical
-regularities present in the training set, rather than learning to
-replicate the identity function.
+If there is no constraint besides minimizing the reconstruction error, one
+might expect an auto-encoder with :math:`n` inputs and an encoding of dimension
+:math:`n` (or greater) to learn the identity function, merely mapping an input
+to its copy. Such an autoencoder would not differentiate test examples (from
+the training distribution) from other input configurations. 
 
-There are different ways that an auto-encoder with more hidden units
-than inputs could be prevented from learning the identity, and still
-capture something useful about the input in its hidden representation.
-One is the addition of sparsity (forcing many of the hidden units to
-be zero or near-zero), and it has been exploited very successfully
-by many [Ranzato07]_ [Lee08]_. Another is to add randomness in the transformation from
-input to reconstruction. This is exploited in Restricted Boltzmann
-Machines (discussed later in :ref:`rbm`), as well as in
-Denoising Auto-Encoders, discussed below.
+Surprisingly,
+experiments reported in [Bengio07]_ suggest that, in practice, when trained
+with stochastic gradient descent, non-linear auto-encoders with more hidden
+units than inputs (called overcomplete) yield useful representations. (Here,
+"useful" means that a network taking the encoding as input has low
+classification error.) 
+
+A simple explanation is that stochastic gradient descent with early stopping is
+similar to an L2 regularization of the parameters. To achieve perfect
+reconstruction of continuous inputs, a one-hidden layer auto-encoder with
+non-linear hidden units (exactly like in the above code) needs very small
+weights in the first (encoding) layer, to bring the non-linearity of the hidden
+units into their linear regime, and very large weights in the second (decoding)
+layer. With binary inputs, very large weights are also needed to completely
+minimize the reconstruction error. Since the implicit or explicit
+regularization makes it difficult to reach large-weight solutions, the
+optimization algorithm finds encodings which only work well for examples
+similar to those in the training set, which is what we want. It means that the
+*representation is exploiting statistical regularities present in the training
+set,* rather than merely learning to replicate the input.
+
+There are other ways by which an auto-encoder with more hidden units than inputs
+could be prevented from learning the identity function, capturing something
+useful about the input in its hidden representation. One is the addition of
+*sparsity* (forcing many of the hidden units to be zero or near-zero). Sparsity
+has been exploited very successfully by many [Ranzato07]_ [Lee08]_. Another is
+to add randomness in the transformation from input to reconstruction. This
+technique is used in Restricted Boltzmann Machines (discussed later in
+:ref:`rbm`), as well as in Denoising Auto-Encoders, discussed below.
 
 .. _DA:
 
@@ -188,27 +187,23 @@ from simply learning the identity, we train the
 autoencoder to *reconstruct the input from a corrupted version of it*.
 
 The denoising auto-encoder is a stochastic version of the auto-encoder.
-Intuitively, a denoising auto-encoder does two things: try to encode the
-input (preserve the information about the input), and try to undo the
-effect of a corruption process stochastically applied to the input of the
-auto-encoder. The latter can only be done by capturing the statistical
-dependencies between the inputs. The denoising
-auto-encoder can be understood from different perspectives
-( the manifold learning perspective,
-stochastic operator perspective,
-bottom-up -- information theoretic perspective,
-top-down -- generative model perspective ), all of which are explained in
-[Vincent08].
-See also section 7.2 of [Bengio09]_ for an overview of auto-encoders.
+Intuitively, a denoising auto-encoder does two things: try to encode the input
+(preserve the information about the input), and try to undo the effect of a
+corruption process stochastically applied to the input of the auto-encoder. The
+latter can only be done by capturing the statistical dependencies between the
+inputs. The denoising auto-encoder can be understood from different
+perspectives ( the manifold learning perspective, stochastic operator
+perspective, bottom-up -- information theoretic perspective, top-down --
+generative model perspective ), all of which are explained in [Vincent08]_. See
+also section 7.2 of [Bengio09]_ for an overview of auto-encoders.
 
-In [Vincent08], the stochastic corruption process
-consists in randomly setting some of the inputs (as many as half of them)
-to zero. Hence the denoising auto-encoder is trying to *predict the corrupted (i.e. missing)
-values from the uncorrupted (i.e., non-missing) values*, for randomly selected subsets of
-missing patterns. Note how being able to predict any subset of variables
-from the rest is a sufficient condition for completely capturing the
-joint distribution between a set of variables (this is how Gibbs
-sampling works).
+In [Vincent08]_, the stochastic corruption process randomly sets some of the
+inputs (as many as half of them) to zero. Hence the denoising auto-encoder is
+trying to *predict the corrupted (i.e. missing) values from the uncorrupted
+(i.e., non-missing) values*, for randomly selected subsets of missing patterns.
+Note how being able to predict any subset of variables from the rest is a
+sufficient condition for completely capturing the joint distribution between a
+set of variables (this is how Gibbs sampling works).
 
 To convert the autoencoder class into a denoising autoencoder class, all we
 need to do is to add a stochastic corruption step operating on the input. The input can be
@@ -236,11 +231,11 @@ does just that :
 
 
 
-In the stacked autoencoder class (:ref:`stacked_autoencoders`) the
-weights of the ``dA`` class have to be shared with those of an
-corresponding sigmoid layer. For this reason, the constructor of the ``dA`` also gets Theano
-variables pointing to the shared parameters. If those parameters are left
-to ``None``, new ones will be constructed.
+In the stacked autoencoder class (:ref:`stacked_autoencoders`) the weights of
+the ``dA`` class have to be shared with those of a corresponding sigmoid layer.
+For this reason, the constructor of the ``dA`` also gets Theano variables
+pointing to the shared parameters. If those parameters are left to ``None``,
+new ones will be constructed.
 
 The final denoising autoencoder class becomes :
 
@@ -465,14 +460,14 @@ it.
     print ('Training took %f minutes' % (pretraining_time / 60.))
 
 In order to get a feeling of what the network learned we are going to
-plot the filters (defined by the weight matrix). Bare in mind however,
+plot the filters (defined by the weight matrix). Bear in mind, however,
 that this does not provide the entire story,
 since we neglect the biases and plot the weights up to a multiplicative
 constant (weights are converted to values between 0 and 1).
 
 To plot our filters we will need the help of ``tile_raster_images`` (see
-:ref:`how-to-plot`) so we urge the reader to familiarize himself with
-it. Also using the help of PIL library, the following lines of code will
+:ref:`how-to-plot`) so we urge the reader to familiarize himself with it. Also
+using the help of the Python Image Library, the following lines of code will
 save the filters as an image :
 
 .. code-block:: python
