@@ -10,16 +10,18 @@ Convolutional Neural Networks (LeNet)
     `floatX`_, `downsample`_ , `conv2d`_, `dimshuffle`_. If you intend to run the
     code on GPU also read `GPU`_.
 
-    To run this example on a GPU, you need a good GPU. First, it need
-    at least 1G of GPU RAM and possibly more if your monitor is
+    To run this example on a GPU, you need a good GPU. It needs
+    at least 1GB of GPU RAM.  More may be required if your monitor is
     connected to the GPU.
 
-    Second, when the GPU is connected to the monitor, there is a limit
+    When the GPU is connected to the monitor, there is a limit
     of a few seconds for each GPU function call. This is needed as
-    current GPU can't be used for the monitor while doing
-    computation. If there wasn't this limit, the screen would freeze
-    for too long and this look as if the computer froze. User don't
-    like this.  This example hit this limit with medium GPU. When the
+    current GPUs can't be used for the monitor while doing
+    computation. Without this limit, the screen would freeze
+    for too long and make it look as if the computer froze. 
+    This example hits this limit with medium-quality GPUs. 
+    
+    When the
     GPU isn't connected to a monitor, there is no time limit. You can
     lower the batch size to fix the time out problem.
 
@@ -301,7 +303,7 @@ a set of non-overlapping rectangles and, for each such sub-region, outputs the
 maximum value.
 
 Max-pooling is useful in vision for two reasons: 
-  #. By eliminating non-maximal values, it reduces computation for upper layers
+  #. By eliminating non-maximal values, it reduces computation for upper layers.
 
   #. It provides a form of translation invariance. Imagine
      cascading a max-pooling layer with a convolutional layer. There are 8
@@ -310,7 +312,7 @@ Max-pooling is useful in vision for two reasons:
      configurations will produce exactly the same output at the convolutional
      layer. For max-pooling over a 3x3 window, this jumps to 5/8.
 
-     Since it provides additional robustness to position, max-pooling is thus a
+     Since it provides additional robustness to position, max-pooling is a
      "smart" way of reducing the dimensionality of intermediate representations.
 
 Max-pooling is done in Theano by way of
