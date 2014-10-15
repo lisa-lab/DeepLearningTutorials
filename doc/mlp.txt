@@ -31,16 +31,17 @@ Multilayer Perceptron
 .. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html
 
 
-The next architecture we are going to present using Theano is the single-hidden
-layer Multi-Layer Perceptron (MLP). An MLP can be viewed as a logistic
-regressor, where the input is first transformed using a learnt non-linear
-transformation :math:`\Phi`. The purpose of this transformation is to project the
+The next architecture we are going to present using Theano is the
+single-hidden-layer Multi-Layer Perceptron (MLP). An MLP can be viewed as a
+logistic regression classifier where the input is first transformed using a
+learnt non-linear transformation :math:`\Phi`. This transformation projects the
 input data into a space where it becomes linearly separable. This intermediate
-layer is referred to as a **hidden layer**.  A single hidden layer is
-sufficient to make MLPs a **universal approximator**. However we will see later
-on that there are substantial benefits to using many such hidden layers, i.e. the
-very premise of **deep learning**. See these course notes for an `introduction
-to MLPs, the back-propagation algorithm, and how to train MLPs <http://www.iro.umontreal.ca/~pift6266/H10/notes/mlp.html>`_.
+layer is referred to as a **hidden layer**. A single hidden layer is sufficient
+to make MLPs a **universal approximator**. However we will see later on that
+there are substantial benefits to using many such hidden layers, i.e. the very
+premise of **deep learning**. See these course notes for an `introduction to
+MLPs, the back-propagation algorithm, and how to train MLPs
+<http://www.iro.umontreal.ca/~pift6266/H10/notes/mlp.html>`_.
 
 This tutorial will again tackle the problem of MNIST digit classification.
 
@@ -54,10 +55,9 @@ follows:
 .. figure:: images/mlp.png
     :align: center
 
-Formally, a one-hidden layer MLP constitutes a function :math:`f: R^D \rightarrow R^L`,
-where :math:`D` is the size of input vector :math:`x`
-and :math:`L` is the size of the output vector :math:`f(x)`, such that,
-in matrix notation:
+Formally, a one-hidden-layer MLP is a function :math:`f: R^D \rightarrow
+R^L`, where :math:`D` is the size of input vector :math:`x` and :math:`L` is
+the size of the output vector :math:`f(x)`, such that, in matrix notation:
 
 .. math::
 
@@ -97,8 +97,8 @@ cover this in the tutorial !
 Going from logistic regression to MLP
 +++++++++++++++++++++++++++++++++++++
 
-This tutorial will focus on a single-layer MLP. We start off by
-implementing a class that will represent any given hidden layer. To
+This tutorial will focus on a single-hidden-layer MLP. We start off by
+implementing a class that will represent a hidden layer. To
 construct the MLP we will then only need to throw a logistic regression
 layer on top.
 
@@ -132,7 +132,7 @@ to use something else.
 
 If you look into theory this class implements the graph that computes
 the hidden layer value :math:`h(x) = \Phi(x) = s(b^{(1)} + W^{(1)} x)`.
-If you give this as input to the ``LogisticRegression`` class,
+If you give this graph as input to the ``LogisticRegression`` class,
 implemented in the previous tutorial :doc:`logreg`, you get the output
 of the MLP. You can see this in the following short implementation of
 the ``MLP`` class.
