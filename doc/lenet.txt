@@ -13,15 +13,13 @@ Convolutional Neural Networks (LeNet)
     To run this example on a GPU, you need a good GPU. It needs
     at least 1GB of GPU RAM.  More may be required if your monitor is
     connected to the GPU.
-
+    
     When the GPU is connected to the monitor, there is a limit
     of a few seconds for each GPU function call. This is needed as
     current GPUs can't be used for the monitor while doing
     computation. Without this limit, the screen would freeze
     for too long and make it look as if the computer froze. 
-    This example hits this limit with medium-quality GPUs. 
-    
-    When the
+    This example hits this limit with medium-quality GPUs. When the
     GPU isn't connected to a monitor, there is no time limit. You can
     lower the batch size to fix the time out problem.
 
@@ -177,9 +175,8 @@ each pixel of the k-th feature map at layer m, with the pixel at coordinates
 The Convolution Operator
 ++++++++++++++++++++++++
 
-The ``conv2d`` function in Theano is the main workhorse for implementing a
-convolutional layer. It replicates the behaviour of scipy.signal.convolve2d.
-``conv2d`` takes two symbolic inputs:
+ConvOp is the main workhorse for implementing a convolutional layer in Theano.
+ConvOp is used by ``theano.tensor.signal.conv2d``, which takes two symbolic inputs:
 
 
 * a 4D tensor corresponding to a mini-batch of input images. The shape of the
