@@ -55,7 +55,7 @@ follows:
 .. figure:: images/mlp.png
     :align: center
 
-Formally, a one-hidden-layer MLP computes a function :math:`f: R^D \rightarrow
+Formally, a one-hidden-layer MLP is a function :math:`f: R^D \rightarrow
 R^L`, where :math:`D` is the size of input vector :math:`x` and :math:`L` is
 the size of the output vector :math:`f(x)`, such that, in matrix notation:
 
@@ -132,7 +132,7 @@ to use something else.
 
 If you look into theory this class implements the graph that computes
 the hidden layer value :math:`h(x) = \Phi(x) = s(b^{(1)} + W^{(1)} x)`.
-If you give this value as input to the ``LogisticRegression`` class,
+If you give this graph as input to the ``LogisticRegression`` class,
 implemented in the previous tutorial :doc:`logreg`, you get the output
 of the MLP. You can see this in the following short implementation of
 the ``MLP`` class.
