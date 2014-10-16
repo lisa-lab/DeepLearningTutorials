@@ -39,16 +39,18 @@ The Model
 
 Logistic regression is a probabilistic, linear classifier. It is parametrized
 by a weight matrix :math:`W` and a bias vector :math:`b`. Classification is
-done by projecting data points onto a set of hyperplanes, the distance to
-which reflects a class membership probability.
+done by projecting an input vector onto a set of hyperplanes, each of which
+corresponds to a class. The distance from the input to a hyperplane reflects
+the probability that the input is a member of the corresponding class.
 
-Mathematically, this can be written as:
+Mathematically, the probability that an input vector :math:`x` is a member of a
+class :math:`i`, a value of a stochastic variable :math:`Y`, can be written as:
 
 .. math::
   P(Y=i|x, W,b) &= softmax_i(W x + b) \\
                 &= \frac {e^{W_i x + b_i}} {\sum_j e^{W_j x + b_j}}
 
-The output of the model or prediction is then done by taking the argmax of the vector whose i'th element is P(Y=i|x).
+The model's prediction :math:`y_{pred}` is the class whose probability is maximal, specifically:
 
 .. math::
   y_{pred} = {\rm argmax}_i P(Y=i|x,W,b)
@@ -56,38 +58,21 @@ The output of the model or prediction is then done by taking the argmax of the v
 The code to do this in Theano is the following:
 
 .. literalinclude:: ../code/logistic_sgd.py
-  :start-after: index = T.lscalar()
-  :end-before: # construct the logistic regression class
-
-
-.. literalinclude:: ../code/logistic_sgd.py
   :start-after: start-snippet-1
   :end-before: end-snippet-1
 
-We first start by allocating symbolic variables for the inputs :math:`x,y`.
 Since the parameters of the model must maintain a persistent state throughout
-training, we allocate shared variables for :math:`W,b`.
-This declares them both as being symbolic Theano variables, but also
-initializes their contents. The dot and softmax operators are then used to compute the vector
-:math:`P(Y|x, W,b)`. The resulting variable p_y_given_x is a symbolic variable
-of vector-type.
+training, we allocate shared variables for :math:`W,b`. This declares them both
+as being symbolic Theano variables, but also initializes their contents. The
+dot and softmax operators are then used to compute the vector :math:`P(Y|x,
+W,b)`. The result ``p_y_given_x`` is a symbolic variable of vector-type.
 
-Up to this point, we have only defined the graph of computations which Theano
-should perform. To get the actual numerical value of :math:`P(Y|x, W,b)`, we
-must create a function ``get_p_y_given_x``, which takes as input ``x`` and
-returns ``p_y_given_x``. We can then index its return value with the
-index :math:`i` to get the membership probability of the :math:`i` th class.
+To get the actual model prediction, we can use the ``T.argmax`` operator, which
+will return the index at which ``p_y_given_x`` is maximal (i.e. the class with
+maximum probability).
 
-Now let's finish building the Theano graph. To get the actual model
-prediction, we can use the ``T.argmax`` operator, which will return the index at
-which ``p_y_given_x`` is maximal (i.e. the class with maximum probability).
-
-Again, to calculate the actual prediction for a given input, we construct a
-function ``classify``. This function takes as argument a batch of inputs x (as a matrix),
-and outputs a vector containing the predicted class for each example (row) in x.
-
-Now of course, the model we have defined so far does not do anything useful yet,
-since its parameters are still in their initial random state. The following
+Now of course, the model we have defined so far does not do anything useful
+yet, since its parameters are still in their initial state. The following
 section will thus cover how to learn the optimal parameters.
 
 
@@ -146,25 +131,25 @@ We instantiate this class as follows:
   :start-after: index = T.lscalar()  
   :end-before: # the cost we minimize during
 
-Note that the inputs x and y are defined outside the scope of the
-``LogisticRegression`` object. Since the class requires the input x to build its
-graph however, it is passed as a parameter of the ``__init__`` function.
-This is usefull in the case when you would want to concatenate such
-classes to form a deep network (case in which the input is not a new
-variable but the output of the layer below). While in this example we
-will not do that, the tutorials are designed such that the code is as
-similar as possible among them, making it easy to go from one tutorial
-to the other.
+We start by allocating symbolic variables for the training inputs :math:`x` and
+their corresponding classes :math:`y`. Note that ``x`` and ``y`` are defined
+outside the scope of the ``LogisticRegression`` object. Since the class
+requires the input to build its graph, it is passed as a parameter of the
+``__init__`` function. This is useful in case you want to connect instances of
+such classes to form a deep network. The output of one layer can be passed as
+the input of the layer above. (This tutorial does not build a multi-layer
+network, but this code will be reused in future tutorials that do.)
 
-The last step involves defining a (symbolic) cost variable to minimize, using
-the instance method ``classifier.negative_log_likelihood``.
+Finally, we define a (symbolic) ``cost`` variable to minimize, using the instance
+method ``classifier.negative_log_likelihood``.
 
 .. literalinclude:: ../code/logistic_sgd.py
   :start-after: classifier = LogisticRegression(input=x, n_in=28 * 28, n_out=10) 
   :end-before: # compiling a Theano function that computes the mistakes
 
-Note how x is an implicit symbolic input to the symbolic definition of cost,
-here, because classifier.__init__ has defined its symbolic variables in terms of x.
+Note that ``x`` is an implicit symbolic input to the definition of ``cost``,
+because the symbolic variables of ``classifier`` were defined in terms of ``x``
+at initialization.
 
 Learning the Model
 ++++++++++++++++++
@@ -177,7 +162,7 @@ models, as expressions for :math:`\partial{\ell}/\partial{\theta}` can get
 fairly complex, especially when taking into account problems of numerical
 stability.
 
-With Theano, this work is greatly simplified as it performs
+With Theano, this work is greatly simplified. It performs
 automatic differentiation and applies certain math transforms to improve
 numerical stability.
 
@@ -188,33 +173,35 @@ To get the gradients :math:`\partial{\ell}/\partial{W}` and
   :start-after: # compute the gradient of cost
   :end-before: # start-snippet-3
 
-``g_W`` and ``g_b`` are again symbolic variables, which can be used as part of a
-computation graph. Performing one-step of gradient descent can then be done as
-follows:
+``g_W`` and ``g_b`` are symbolic variables, which can be used as part
+of a computation graph. The function ``train_model``, which performs one step
+of gradient descent, can then be defined as follows:
 
 .. literalinclude:: ../code/logistic_sgd.py
   :start-after: start-snippet-3
   :end-before: end-snippet-3
 
-The ``updates`` list contains, for each parameter, the
-stochastic gradient update operation. The ``givens`` dictionary indicates with
-what to replace certain variables of the graph. The function ``train_model`` is then
-defined such that:
+``updates`` is a list of pairs. In each pair, the first element is the symbolic
+variable to be updated in the step, and the second element is the symbolic
+function for calculating its new value. Similarly, ``givens`` is a dictionary
+whose keys are symbolic variables and whose values specify
+their replacements during the step. The function ``train_model`` is then defined such
+that:
 
-* the input is the mini-batch index ``index`` that together with the batch
-  size( which is not an input since it is fixed) defines :math:`x` with
+* the input is the mini-batch index ``index`` that, together with the batch
+  size (which is not an input since it is fixed) defines :math:`x` with
   corresponding labels :math:`y`
 * the return value is the cost/loss associated with the x, y defined by
   the ``index``
-* on every function call, it will first replace ``x`` and ``y`` with the
-  corresponding slices from the training set as defined by the
-  ``index`` and afterwards it will evaluate the cost
+* on every function call, it will first replace ``x`` and ``y`` with the slices
+  from the training set specified by ``index``. Then, it will evaluate the cost
   associated with that minibatch and apply the operations defined by the
   ``updates`` list.
 
-Each time ``train_model(index)`` function is called, it will thus compute and
-return the appropriate cost, while also performing a step of MSGD. The entire
-learning algorithm thus consists in looping over all examples in the dataset,
+Each time ``train_model(index)`` is called, it will thus compute and return the
+cost of a minibatch, while also performing a step of MSGD. The entire learning
+algorithm thus consists in looping over all examples in the dataset, considering
+all the examples in one minibatch at a time,
 and repeatedly calling the ``train_model`` function.
 
 
@@ -232,13 +219,14 @@ The code is as follows:
 .. literalinclude:: ../code/logistic_sgd.py
   :pyobject: LogisticRegression.errors
 
-We then create a function ``test_model`` and a function ``validate_model``, which we can call to retrieve this
-value. As you will see shortly, ``validate_model`` is key to our early-stopping
-implementation (see :ref:`opt_early_stopping`). Both of these function
-will get as input a batch offset and will compute the number of
-missclassified examples for that mini-batch. The only difference between them
-is that one draws its batches from the testing set, while
-the other from the validation set.
+We then create a function ``test_model`` and a function ``validate_model``,
+which we can call to retrieve this value. As you will see shortly,
+``validate_model`` is key to our early-stopping implementation (see
+:ref:`opt_early_stopping`). These functions take a minibatch index and compute,
+for the examples in that minibatch, the number that were misclassified by the
+model. The only difference between them is that ``test_model`` draws its
+minibatches from the testing set, while ``validate_model`` draws its from the
+validation set.
 
 .. literalinclude:: ../code/logistic_sgd.py
   :start-after: cost = classifier.negative_log_likelihood(y)
