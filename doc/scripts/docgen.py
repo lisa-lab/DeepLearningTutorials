@@ -1,8 +1,7 @@
-
+from __future__ import print_function
 import sys
 import os
 import shutil
-import inspect
 
 import getopt
 from collections import defaultdict
@@ -12,13 +11,14 @@ if __name__ == '__main__':
     throot = "/".join(sys.path[0].split("/")[:-2])
 
     options = defaultdict(bool)
-    options.update(dict([x, y or True] for x, y in getopt.getopt(sys.argv[1:], 'o:', ['rst', 'help', 'nopdf'])[0]))
+    output_arg = getopt.getopt(sys.argv[1:], 'o:', ['rst', 'help', 'nopdf'])[0]
+    options.update(dict([x, y or True] for x, y in output_arg))
     if options['--help']:
-        print 'Usage: %s [OPTIONS]' % sys.argv[0]
-        print '  -o <dir>: output the html files in the specified dir'
-        print '  --rst: only compile the doc (requires sphinx)'
-        print '  --nopdf: do not produce a PDF file from the doc, only HTML'
-        print '  --help: this help'
+        print('Usage: %s [OPTIONS]' % sys.argv[0])
+        print('  -o <dir>: output the html files in the specified dir')
+        print('  --rst: only compile the doc (requires sphinx)')
+        print('  --nopdf: do not produce a PDF file from the doc, only HTML')
+        print('  --help: this help')
         sys.exit(0)
 
     options['--all'] = not bool(options['--rst'])
@@ -49,7 +49,7 @@ if __name__ == '__main__':
             import tempfile
             workdir = tempfile.mkdtemp()
             sphinx.main(['', '-E', '-b', 'latex',
-                os.path.join(throot, 'doc'), workdir])
+                         os.path.join(throot, 'doc'), workdir])
             # Compile to PDF
             os.chdir(workdir)
             os.system('make')
@@ -57,10 +57,7 @@ if __name__ == '__main__':
                 shutil.copy(os.path.join(workdir, 'deeplearning.pdf'), outdir)
                 os.chdir(outdir)
                 shutil.rmtree(workdir)
-            except OSError, e:
-                print 'OSError:', e
-            except IOError, e:
-                print 'IOError:', e
-
-
-
+            except OSError as e:
+                print('OSError:', e)
+            except IOError as e:
+                print('IOError:', e)
