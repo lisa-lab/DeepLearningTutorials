@@ -191,8 +191,9 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     )
 
     # the HiddenLayer being fully-connected, it operates on 2D matrices of
-    # shape (batch_size,num_pixels) (i.e matrix of rasterized images).
-    # This will generate a matrix of shape (20,32*4*4) = (20,512)
+    # shape (batch_size, num_pixels) (i.e matrix of rasterized images).
+    # This will generate a matrix of shape (batch_size, nkerns[1] * 4 * 4),
+    # or (500, 50 * 4 * 4) = (500, 800) with the default values.
     layer2_input = layer1.output.flatten(2)
 
     # construct a fully-connected sigmoidal layer
