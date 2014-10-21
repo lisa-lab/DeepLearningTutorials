@@ -22,9 +22,8 @@ the vector whose i'th element is P(Y=i|x).
   y_{pred} = argmax_i P(Y=i|x,W,b)
 
 
-This tutorial presents a stochastic gradient descent optimization method
-suitable for large datasets, and a conjugate gradient optimization method
-that is suitable for smaller datasets.
+This tutorial presents a conjugate gradient optimization method that is
+suitable for smaller datasets.
 
 
 References:
@@ -37,8 +36,6 @@ References:
 __docformat__ = 'restructedtext en'
 
 
-import cPickle
-import gzip
 import os
 import sys
 import time
@@ -107,8 +104,9 @@ class LogisticRegression(object):
         .. math::
 
             \frac{1}{|\mathcal{D}|}\mathcal{L} (\theta=\{W,b\}, \mathcal{D}) =
-            \frac{1}{|\mathcal{D}|}\sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
-                \ell (\theta=\{W,b\}, \mathcal{D})
+            \frac{1}{|\mathcal{D}|}\sum_{i=0}^{|\mathcal{D}|}
+                \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+            \ell (\theta=\{W,b\}, \mathcal{D})
 
         :type y: theano.tensor.TensorType
         :param y: corresponds to a vector that gives for each example the
@@ -129,7 +127,7 @@ class LogisticRegression(object):
         if y.ndim != self.y_pred.ndim:
             raise TypeError(
                 'y should have the same shape as self.y_pred',
-                ('y', target.type, 'y_pred', self.y_pred.type)
+                ('y', y.type, 'y_pred', self.y_pred.type)
             )
         # check if y is of the correct datatype
         if y.dtype.startswith('int'):
@@ -168,7 +166,6 @@ def cg_optimization_mnist(n_epochs=50, mnist_pkl_gz='mnist.pkl.gz'):
     n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] / batch_size
     n_test_batches = test_set_x.get_value(borrow=True).shape[0] / batch_size
 
-    ishape = (28, 28)  # this is the size of MNIST images
     n_in = 28 * 28  # number of input units
     n_out = 10  # number of output units
 

@@ -23,8 +23,7 @@ the vector whose i'th element is P(Y=i|x).
 
 
 This tutorial presents a stochastic gradient descent optimization method
-suitable for large datasets, and a conjugate gradient optimization method
-that is suitable for smaller datasets.
+suitable for large datasets.
 
 
 References:
@@ -106,7 +105,7 @@ class LogisticRegression(object):
         # probability is maximal
         self.y_pred = T.argmax(self.p_y_given_x, axis=1)
         # end-snippet-1
-    
+
         # parameters of the model
         self.params = [self.W, self.b]
 
@@ -117,8 +116,9 @@ class LogisticRegression(object):
         .. math::
 
             \frac{1}{|\mathcal{D}|} \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) =
-            \frac{1}{|\mathcal{D}|} \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
-                \ell (\theta=\{W,b\}, \mathcal{D})
+            \frac{1}{|\mathcal{D}|} \sum_{i=0}^{|\mathcal{D}|}
+                \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
+            \ell (\theta=\{W,b\}, \mathcal{D})
 
         :type y: theano.tensor.TensorType
         :param y: corresponds to a vector that gives for each example the
@@ -155,7 +155,7 @@ class LogisticRegression(object):
         if y.ndim != self.y_pred.ndim:
             raise TypeError(
                 'y should have the same shape as self.y_pred',
-                ('y', target.type, 'y_pred', self.y_pred.type)
+                ('y', y.type, 'y_pred', self.y_pred.type)
             )
         # check if y is of the correct datatype
         if y.dtype.startswith('int'):
@@ -358,7 +358,6 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
                                   # on the validation set; in this case we
                                   # check every epoch
 
-    best_params = None
     best_validation_loss = numpy.inf
     test_score = 0.
     start_time = time.clock()
@@ -405,8 +404,8 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
 
                     print(
                         (
-                            '     epoch %i, minibatch %i/%i, test error of best'
-                            ' model %f %%'
+                            '     epoch %i, minibatch %i/%i, test error of'
+                            ' best model %f %%'
                         ) %
                         (
                             epoch,

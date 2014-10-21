@@ -29,8 +29,6 @@
    Systems 19, 2007
 
 """
-import cPickle
-import gzip
 import os
 import sys
 import time
@@ -202,8 +200,6 @@ class SdA(object):
         index = T.lscalar('index')  # index to a minibatch
         corruption_level = T.scalar('corruption')  # % of corruption to use
         learning_rate = T.scalar('lr')  # learning rate to use
-        # number of batches
-        n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
         # begining of a batch, given `index`
         batch_begin = index * batch_size
         # ending of a batch given `index`
@@ -429,7 +425,6 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
                                   # on the validation set; in this case we
                                   # check every epoch
 
-    best_params = None
     best_validation_loss = numpy.inf
     test_score = 0.
     start_time = time.clock()
@@ -479,10 +474,11 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
     end_time = time.clock()
     print(
         (
-            'Optimization complete with best validation score of %f %%,'
+            'Optimization complete with best validation score of %f %%, '
+            'on iteration %i, '
             'with test performance %f %%'
         )
-        % (best_validation_loss * 100., test_score * 100.)
+        % (best_validation_loss * 100., best_iter + 1, test_score * 100.)
     )
     print >> sys.stderr, ('The training code for file ' +
                           os.path.split(__file__)[1] +

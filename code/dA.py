@@ -30,8 +30,6 @@
 
 """
 
-import cPickle
-import gzip
 import os
 import sys
 import time
@@ -185,7 +183,7 @@ class dA(object):
         self.W_prime = self.W.T
         self.theano_rng = theano_rng
         # if no input is given, generate a variable representing the input
-        if input == None:
+        if input is None:
             # we use a matrix because we expect a minibatch of several
             # examples, each example being a row
             self.x = T.dmatrix(name='input')

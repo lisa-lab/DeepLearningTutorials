@@ -1,7 +1,6 @@
 import sys
 
 import numpy
-import theano
 
 import convolutional_mlp
 import dA
@@ -101,7 +100,7 @@ def speed():
 
     expected_times_gpu = numpy.asarray([3.0, 7.55523491, 18.99226785,
                                         5.8, 21.5,
-                                        11.8,  47.9, 290.1, 315.4])
+                                        11.8, 47.9, 290.1, 315.4])
 
     expected_times_64 = [s for idx, s in enumerate(expected_times_64)
                          if to_exec[idx]]
@@ -169,7 +168,8 @@ def speed():
             print >> sys.stderr, 'float64/float32', (
                 float64_times / float32_times)
             print >> sys.stderr
-            print >> sys.stderr, 'Duplicate the timing to have everything in one place'
+            print >> sys.stderr, ('Duplicate the timing to have everything '
+                                  'in one place')
             print >> sys.stderr, algo_executed
             print >> sys.stderr, 'float64 times', float64_times
             print >> sys.stderr, 'float64 expected', expected_times_64
@@ -201,7 +201,8 @@ def speed():
 
         if (do_float64 + do_float32 + do_gpu) > 1:
             print >> sys.stderr
-            print >> sys.stderr, 'Duplicate the timing to have everything in one place'
+            print >> sys.stderr, ('Duplicate the timing to have everything '
+                                  'in one place')
             print >> sys.stderr, algo_executed
             if do_float64:
                 print >> sys.stderr, 'float64 times', float64_times

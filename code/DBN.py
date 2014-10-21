@@ -1,7 +1,5 @@
 """
 """
-import cPickle
-import gzip
 import os
 import sys
 import time
@@ -372,7 +370,6 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
                                   # on the validation set; in this case we
                                   # check every epoch
 
-    best_params = None
     best_validation_loss = numpy.inf
     test_score = 0.
     start_time = time.clock()
@@ -430,9 +427,10 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
     end_time = time.clock()
     print(
         (
-            'Optimization complete with best validation score of %f %%,'
+            'Optimization complete with best validation score of %f %%, '
+            'obtained at iteration %i, '
             'with test performance %f %%'
-        ) % (best_validation_loss * 100., test_score * 100.)
+        ) % (best_validation_loss * 100., best_iter + 1, test_score * 100.)
     )
     print >> sys.stderr, ('The fine tuning code for file ' +
                           os.path.split(__file__)[1] +
