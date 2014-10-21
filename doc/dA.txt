@@ -57,7 +57,7 @@ representation :math:`\mathbf{y}`, or **code** is then mapped back (with a
 
   \mathbf{z} = s(\mathbf{W'}\mathbf{y} + \mathbf{b'})
 
-(Here, the prime symbol does *not necessarily* indicate matrix transposition.)
+(Here, the prime symbol does not indicate matrix transposition.)
 :math:`\mathbf{z}` should be seen as a prediction of :math:`\mathbf{x}`, given
 the code :math:`\mathbf{y}`. Optionally, the weight matrix :math:`\mathbf{W'}`
 of the reverse mapping may be constrained to be the transpose of the forward
@@ -192,9 +192,9 @@ Intuitively, a denoising auto-encoder does two things: try to encode the input
 corruption process stochastically applied to the input of the auto-encoder. The
 latter can only be done by capturing the statistical dependencies between the
 inputs. The denoising auto-encoder can be understood from different
-perspectives ( the manifold learning perspective, stochastic operator
+perspectives (the manifold learning perspective, stochastic operator
 perspective, bottom-up -- information theoretic perspective, top-down --
-generative model perspective ), all of which are explained in [Vincent08]_. See
+generative model perspective), all of which are explained in [Vincent08]_. See
 also section 7.2 of [Bengio09]_ for an overview of auto-encoders.
 
 In [Vincent08]_, the stochastic corruption process randomly sets some of the
