@@ -207,11 +207,11 @@ class RnnRbm:
         self.r = r
         self.dt = dt
         (v, v_sample, cost, monitor, params, updates_train, v_t,
-         updates_generate) = build_rnnrbm(
-             r[1] - r[0],
-             n_hidden,
-             n_hidden_recurrent
-        )
+            updates_generate) = build_rnnrbm(
+                r[1] - r[0],
+                n_hidden,
+                n_hidden_recurrent
+            )
 
         gradient = T.grad(cost, params, consider_constant=[v_sample])
         updates_train.update(

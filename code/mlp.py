@@ -21,8 +21,6 @@ References:
 __docformat__ = 'restructedtext en'
 
 
-import cPickle
-import gzip
 import os
 import sys
 import time
@@ -335,7 +333,6 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
                                   # on the validation set; in this case we
                                   # check every epoch
 
-    best_params = None
     best_validation_loss = numpy.inf
     best_iter = 0
     test_score = 0.

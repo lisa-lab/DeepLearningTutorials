@@ -4,8 +4,6 @@ Boltzmann Machines (BMs) are a particular form of energy-based model which
 contain hidden variables. Restricted Boltzmann Machines further restrict BMs
 to those without visible-visible and hidden-hidden connections.
 """
-import cPickle
-import gzip
 import time
 
 try:

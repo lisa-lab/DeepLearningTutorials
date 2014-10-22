@@ -8,8 +8,8 @@ from theano import function, shared
 from theano import tensor as TT
 import theano
 
-sharedX = lambda X, name: \
-        shared(numpy.asarray(X, dtype=theano.config.floatX), name=name)
+sharedX = (lambda X, name:
+           shared(numpy.asarray(X, dtype=theano.config.floatX), name=name))
 
 
 def kinetic_energy(vel):
@@ -145,13 +145,14 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
 
     # perform leapfrog updates: the scan op is used to repeatedly compute
     # vel(t + (m-1/2)*stepsize) and pos(t + m*stepsize) for m in [2,n_steps].
-    (all_pos, all_vel), scan_updates = theano.scan(leapfrog,
-            outputs_info=[
-                dict(initial=pos_full_step),
-                dict(initial=vel_half_step),
-                ],
-            non_sequences=[stepsize],
-            n_steps=n_steps - 1)
+    (all_pos, all_vel), scan_updates = theano.scan(
+        leapfrog,
+        outputs_info=[
+            dict(initial=pos_full_step),
+            dict(initial=vel_half_step),
+        ],
+        non_sequences=[stepsize],
+        n_steps=n_steps - 1)
     final_pos = all_pos[-1]
     final_vel = all_vel[-1]
     # NOTE: Scan always returns an updates dictionary, in case the
@@ -170,6 +171,7 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
 
     # return new proposal state
     return final_pos, final_vel
+
 
 # start-snippet-1
 def hmc_move(s_rng, positions, energy_fn, stepsize, n_steps):
@@ -224,10 +226,11 @@ def hmc_move(s_rng, positions, energy_fn, stepsize, n_steps):
     # end-snippet-4
     return accept, final_pos
 
+
 # start-snippet-5
 def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
-                 target_acceptance_rate, stepsize_inc, stepsize_dec,
-                 stepsize_min, stepsize_max, avg_acceptance_slowness):
+                target_acceptance_rate, stepsize_inc, stepsize_dec,
+                stepsize_min, stepsize_max, avg_acceptance_slowness):
     """This function is executed after `n_steps` of HMC sampling
     (`hmc_move` function). It creates the updates dictionary used by
     the `simulate` function. It takes care of updating: the position
@@ -293,13 +296,14 @@ def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
     # perform exponential moving average
     mean_dtype = theano.scalar.upcast(accept.dtype, avg_acceptance_rate.dtype)
     new_acceptance_rate = TT.add(
-            avg_acceptance_slowness * avg_acceptance_rate,
-            (1.0 - avg_acceptance_slowness) * accept.mean(dtype=mean_dtype))
+        avg_acceptance_slowness * avg_acceptance_rate,
+        (1.0 - avg_acceptance_slowness) * accept.mean(dtype=mean_dtype))
     # end-snippet-6 start-snippet-8
     return [(positions, new_positions),
             (stepsize, new_stepsize),
             (avg_acceptance_rate, new_acceptance_rate)]
     # end-snippet-8
+
 
 class HMC_sampler(object):
     """
@@ -322,11 +326,11 @@ class HMC_sampler(object):
 
     @classmethod
     def new_from_shared_positions(
-        cls, 
-        shared_positions, 
+        cls,
+        shared_positions,
         energy_fn,
-        initial_stepsize=0.01, 
-        target_acceptance_rate=.9, 
+        initial_stepsize=0.01,
+        target_acceptance_rate=.9,
         n_steps=20,
         stepsize_dec=0.98,
         stepsize_min=0.001,
@@ -350,8 +354,6 @@ class HMC_sampler(object):
             sampling to work.
 
         """
-        batchsize = shared_positions.shape[0]
-
         # allocate shared variables
         stepsize = sharedX(initial_stepsize, 'hmc_stepsize')
         avg_acceptance_rate = sharedX(target_acceptance_rate,
@@ -360,40 +362,40 @@ class HMC_sampler(object):
 
         # define graph for an `n_steps` HMC simulation
         accept, final_pos = hmc_move(
-                s_rng,
-                shared_positions,
-                energy_fn,
-                stepsize,
-                n_steps)
+            s_rng,
+            shared_positions,
+            energy_fn,
+            stepsize,
+            n_steps)
 
         # define the dictionary of updates, to apply on every `simulate` call
         simulate_updates = hmc_updates(
-                shared_positions,
-                stepsize,
-                avg_acceptance_rate,
-                final_pos=final_pos,
-                accept=accept,
-                stepsize_min=stepsize_min,
-                stepsize_max=stepsize_max,
-                stepsize_inc=stepsize_inc,
-                stepsize_dec=stepsize_dec,
-                target_acceptance_rate=target_acceptance_rate,
-                avg_acceptance_slowness=avg_acceptance_slowness)
+            shared_positions,
+            stepsize,
+            avg_acceptance_rate,
+            final_pos=final_pos,
+            accept=accept,
+            stepsize_min=stepsize_min,
+            stepsize_max=stepsize_max,
+            stepsize_inc=stepsize_inc,
+            stepsize_dec=stepsize_dec,
+            target_acceptance_rate=target_acceptance_rate,
+            avg_acceptance_slowness=avg_acceptance_slowness)
 
         # compile theano function
         simulate = function([], [], updates=simulate_updates)
 
         # create HMC_sampler object with the following attributes ...
         return cls(
-                positions=shared_positions,
-                stepsize=stepsize,
-                stepsize_min=stepsize_min,
-                stepsize_max=stepsize_max,
-                avg_acceptance_rate=avg_acceptance_rate,
-                target_acceptance_rate=target_acceptance_rate,
-                s_rng=s_rng,
-                _updates=simulate_updates,
-                simulate=simulate)
+            positions=shared_positions,
+            stepsize=stepsize,
+            stepsize_min=stepsize_min,
+            stepsize_max=stepsize_max,
+            avg_acceptance_rate=avg_acceptance_rate,
+            target_acceptance_rate=target_acceptance_rate,
+            s_rng=s_rng,
+            _updates=simulate_updates,
+            simulate=simulate)
 
     def draw(self, **kwargs):
         """

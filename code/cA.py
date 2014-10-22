@@ -12,7 +12,8 @@
  squared Frobenius norm of the Jacobian of the hidden mapping h with
  respect to the visible units yields the contractive auto-encoder:
 
-      - \sum_{k=1}^d[ x_k \log z_k + (1-x_k) \log( 1-z_k)] + \| \frac{\partial h(x)}{\partial x} \|^2
+      - \sum_{k=1}^d[ x_k \log z_k + (1-x_k) \log( 1-z_k)]
+      + \| \frac{\partial h(x)}{\partial x} \|^2
 
  References :
    - S. Rifai, P. Vincent, X. Muller, X. Glorot, Y. Bengio: Contractive
@@ -27,8 +28,6 @@
    Systems 19, 2007
 
 """
-import cPickle
-import gzip
 import os
 import sys
 import time
@@ -79,11 +78,11 @@ class cA(object):
 
     def __init__(self, numpy_rng, input=None, n_visible=784, n_hidden=100,
                  n_batchsize=1, W=None, bhid=None, bvis=None):
-        """Initialize the cA class by specifying the number of visible units (the
-        dimension d of the input ), the number of hidden units ( the dimension
-        d' of the latent or hidden space ) and the contraction level. The
-        constructor also receives symbolic variables for the input, weights and
-        bias.
+        """Initialize the cA class by specifying the number of visible units
+        (the dimension d of the input), the number of hidden units (the
+        dimension d' of the latent or hidden space) and the contraction level.
+        The constructor also receives symbolic variables for the input, weights
+        and bias.
 
         :type numpy_rng: numpy.random.RandomState
         :param numpy_rng: number random generator used to generate weights
@@ -161,7 +160,7 @@ class cA(object):
         self.W_prime = self.W.T
 
         # if no input is given, generate a variable representing the input
-        if input == None:
+        if input is None:
             # we use a matrix because we expect a minibatch of several
             # examples, each example being a row
             self.x = T.dmatrix(name='input')
