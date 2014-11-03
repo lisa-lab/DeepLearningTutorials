@@ -4,7 +4,7 @@ Stacked Denoising Autoencoders (SdA)
 ====================================
 
 .. note::
-  This section assumes the reader has already read through :doc:`logreg`
+  This section assumes you have already read through :doc:`logreg`
   and :doc:`mlp`. Additionally it uses the following Theano functions
   and concepts : `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, `Random numbers`_, `floatX`_. If you intend to run the code on GPU also read `GPU`_.
 
@@ -32,8 +32,8 @@ Stacked Denoising Autoencoders (SdA)
 The Stacked Denoising Autoencoder (SdA) is an extension of the stacked 
 autoencoder [Bengio07]_ and it was introduced in [Vincent08]_. 
 
-This tutorial builds on the previous tutorial :ref:`dA` and we recommend,
-especially if you do not have experience with autoencoders, to read it
+This tutorial builds on the previous tutorial :ref:`dA`.
+Especially if you do not have experience with autoencoders, we recommend reading it
 before going any further.
 
 .. _stacked_autoencoders:
@@ -41,37 +41,40 @@ before going any further.
 Stacked Autoencoders
 ++++++++++++++++++++
 
-The denoising autoencoders can be stacked to form a deep network by
+Denoising autoencoders can be stacked to form a deep network by
 feeding the latent representation (output code)
-of the denoising auto-encoder found on the layer 
+of the denoising autoencoder found on the layer 
 below as input to the current layer. The **unsupervised pre-training** of such an 
 architecture is done one layer at a time. Each layer is trained as 
-a denoising auto-encoder by minimizing the reconstruction of its input
+a denoising autoencoder by minimizing the error in reconstructing its input
 (which is the output code of the previous layer).
 Once the first :math:`k` layers 
 are trained, we can train the :math:`k+1`-th layer because we can now 
 compute the code or latent representation from the layer below. 
+
 Once all layers are pre-trained, the network goes through a second stage
-of training called **fine-tuning**. Here we consider **supervised fine-tuning**
+of training called **fine-tuning**,
 where we want to minimize prediction error on a supervised task.
-For this we first add a logistic regression 
+For this, we first add a logistic regression 
 layer on top of the network (more precisely on the output code of the
 output layer). We then
 train the entire network as we would train a multilayer 
 perceptron. At this point, we only consider the encoding parts of
 each auto-encoder.
 This stage is supervised, since now we use the target class during
-training (see the :ref:`mlp` for details on the multilayer perceptron).
+training. (See the :ref:`mlp` for details on the multilayer perceptron.)
 
 This can be easily implemented in Theano, using the class defined
-before for a denoising autoencoder. We can see the stacked denoising
-autoencoder as having two facades, one is a list of
-autoencoders, the other is an MLP. During pre-training we use the first facade, i.e we treat our model
+previously for a denoising autoencoder. We can see the stacked denoising
+autoencoder as having two facades: One is a list of
+autoencoders. The other is an MLP. During pre-training we use the first facade, i.e., we treat our model
 as a list of autoencoders, and train each autoencoder seperately. In the 
 second stage of training, we use the second facade. These two
-facedes are linked by the fact that the autoencoders and the sigmoid layers of 
-the MLP share parameters, and the fact that autoencoders get as input latent
-representations of intermediate layers of the MLP. 
+facades are linked 
+
+* by the parameters shared by the autoencoders and the sigmoid layers of the MLP, and 
+
+* by feeding the latent representations of intermediate layers of the MLP as input to the autoencoders.
 
 .. literalinclude:: ../code/SdA.py
   :start-after: start-snippet-1
@@ -80,20 +83,20 @@ representations of intermediate layers of the MLP.
 ``self.sigmoid_layers`` will store the sigmoid layers of the MLP facade, while
 ``self.dA_layers`` will store  the denoising autoencoder associated with the layers of the MLP. 
 
-Next step, we construct ``n_layers`` sigmoid layers (we use the
-``HiddenLayer`` class introduced in :ref:`mlp`, with the only
-modification that we replaced the non-linearity from ``tanh`` to the
-logistic function :math:`s(x) = \frac{1}{1+e^{-x}}`) and ``n_layers``
-denoising autoencoders, where ``n_layers`` is the depth of our model.
-We link the sigmoid layers such that they form an MLP, and construct
-each denoising autoencoder such that they share the weight matrix and the 
-bias of the encoding part with its corresponding sigmoid layer.
+Next, we construct ``n_layers`` denoising autoencoders and ``n_layers`` sigmoid
+layers, where ``n_layers`` is the depth of our model. We use the
+``HiddenLayer`` class introduced in :ref:`mlp`, with one
+modification: we replace the ``tanh`` non-linearity with the
+logistic function :math:`s(x) = \frac{1}{1+e^{-x}}`).
+We link the sigmoid layers to form an MLP, and construct
+the denoising autoencoders such that each shares the weight matrix and the 
+bias of its encoding part with its corresponding sigmoid layer.
 
 .. literalinclude:: ../code/SdA.py
   :start-after: start-snippet-2
   :end-before: end-snippet-2
 
-All we need now is to add the logistic layer on top of the sigmoid
+All we need now is to add a logistic layer on top of the sigmoid
 layers such that we have an MLP. We will 
 use the ``LogisticRegression`` class introduced in :ref:`logreg`. 
 
@@ -101,57 +104,57 @@ use the ``LogisticRegression`` class introduced in :ref:`logreg`.
   :start-after: end-snippet-2
   :end-before: def pretraining_functions
 
-The class also provides a method that generates training functions for
-each of the denoising autoencoder associated with the different layers. 
+The ``SdA`` class also provides a method that generates training functions for
+the denoising autoencoders in its layers. 
 They are returned as a list, where element :math:`i` is a function that
-implements one step of training the ``dA`` correspoinding to layer 
+implements one step of training the ``dA`` corresponding to layer 
 :math:`i`.
 
 .. literalinclude:: ../code/SdA.py
   :start-after: self.errors = self.logLayer.errors(self.y)
   :end-before: corruption_level = T.scalar('corruption')
 
-In order to be able to change the corruption level or the learning rate
-during training we associate a Theano variable to them.
+To be able to change the corruption level or the learning rate
+during training, we associate Theano variables with them.
 
 .. literalinclude:: ../code/SdA.py
   :start-after: index = T.lscalar('index')
   :end-before: def build_finetune_functions
  
 Now any function ``pretrain_fns[i]`` takes as arguments ``index`` and 
-optionally ``corruption`` -- the corruption level or ``lr`` -- the
-learning rate. Note that the name of the parameters are the name given 
-to the Theano variables when they are constructed, not the name of the 
-python variables (``learning_rate`` or ``corruption_level``). Keep this 
+optionally ``corruption``---the corruption level or ``lr``---the
+learning rate. Note that the names of the parameters are the names given 
+to the Theano variables when they are constructed, not the names of the 
+Python variables (``learning_rate`` or ``corruption_level``). Keep this 
 in mind when working with Theano. 
 
-In the same fashion we build a method for constructing function required 
-during finetuning ( a ``train_model``, a ``validate_model`` and a
-``test_model`` function). 
+In the same fashion we build a method for constructing the functions required 
+during finetuning (``train_fn``, ``valid_score`` and
+``test_score``).
 
 .. literalinclude:: ../code/SdA.py
   :pyobject: SdA.build_finetune_functions
 
-Note that the returned ``valid_score`` and ``test_score`` are not Theano
-functions, but rather python functions that also loop over the entire 
-validation set and the entire test set producing a list of the losses
+Note that ``valid_score`` and ``test_score`` are not Theano
+functions, but rather Python functions that loop over the entire 
+validation set and the entire test set, respectively, producing a list of the losses
 over these sets.
 
 Putting it all together
 +++++++++++++++++++++++
 
-The few lines of code below constructs the stacked denoising
-autoencoder : 
+The few lines of code below construct the stacked denoising
+autoencoder: 
 
 .. literalinclude:: ../code/SdA.py
   :start-after: start-snippet-3
   :end-before: end-snippet-3
 
-There are two stages in training this network, a layer-wise pre-training and 
-fine-tuning afterwards. 
+There are two stages of training for this network: layer-wise pre-training 
+followed by fine-tuning. 
 
 For the pre-training stage, we will loop over all the layers of the
-network. For each layer we will use the compiled theano function that
+network. For each layer we will use the compiled Theano function that
 implements a SGD step towards optimizing the weights for reducing 
 the reconstruction cost of that layer. This function will be applied 
 to the training set for a fixed number of epochs given by
@@ -161,9 +164,9 @@ to the training set for a fixed number of epochs given by
   :start-after: start-snippet-4
   :end-before: end-snippet-4
 
-The fine-tuning loop is very similar with the one in the :ref:`mlp`, the
-only difference is that we will use now the functions given by
-``build_finetune_functions``  .
+The fine-tuning loop is very similar to the one in the :ref:`mlp`. The
+only difference is that it uses the functions given by
+``build_finetune_functions``.
 
 Running the Code
 ++++++++++++++++
@@ -175,8 +178,8 @@ The user can run the code by calling:
   python code/SdA.py
 
 By default the code runs 15 pre-training epochs for each layer, with a batch
-size of 1. The  corruption level for the first layer is 0.1, for the second
-0.2 and 0.3 for the third. The pretraining learning rate is was 0.001 and 
+size of 1. The corruption levels are 0.1 for the first layer, 0.2 for the second,
+and 0.3 for the third. The pretraining learning rate is 0.001 and 
 the finetuning learning rate is 0.1. Pre-training takes 585.01 minutes, with 
 an average of 13 minutes per epoch. Fine-tuning is completed after 36 epochs
 in 444.2 minutes, with an average of 12.34 minutes per epoch. The final 
@@ -188,13 +191,13 @@ Xeon E5430 @ 2.66GHz CPU, with a single-threaded GotoBLAS.
 Tips and Tricks
 +++++++++++++++
 
-One way to improve the running time of your code (given that you have
+One way to improve the running time of your code (assuming you have
 sufficient memory available), is to compute how the network, up to layer
 :math:`k-1`, transforms your data. Namely, you start by training your first
 layer dA. Once it is trained, you can compute the hidden units values for
 every datapoint in your dataset and store this as a new dataset that you will
-use to train the dA corresponding to layer 2. Once you trained the dA for
+use to train the dA corresponding to layer 2. Once you have trained the dA for
 layer 2, you compute, in a similar fashion, the dataset for layer 3 and so on.
 You can see now, that at this point, the dAs are trained individually, and
 they just provide (one to the other) a non-linear transformation of the input.
-Once all dAs are trained, you can start fine-tunning the model.
+Once all dAs are trained, you can start fine-tuning the model.
