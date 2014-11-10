@@ -254,7 +254,7 @@ The **hyperparameters** define the whole architecture:
 
 It gives the following code::
 
-    class ERNN(object):
+    class RNNSLU(object):
         
         def __init__(self, nh, nc, ne, de, cs):
             '''
