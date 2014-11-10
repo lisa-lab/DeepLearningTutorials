@@ -30,11 +30,14 @@ def shuffle(lol, seed):
         random.seed(seed)
         random.shuffle(l)
 
-
+# start-snippet-1
 def contextwin(l, win):
     '''
     win :: int corresponding to the size of the window
     given a list of indexes composing a sentence
+
+    l :: array containing the word indexes
+
     it will return a list of list of indexes corresponding
     to context windows surrounding each word in the sentence
     '''
@@ -47,7 +50,7 @@ def contextwin(l, win):
 
     assert len(out) == len(l)
     return out
-
+# end-snippet-1
 
 # data loading functions
 def atisfold(fold):
@@ -122,7 +125,7 @@ def get_perf(filename):
 
     return {'p': precision, 'r': recall, 'f1': f1score}
 
-
+# start-snippet-2
 class RNNSLU(object):
     ''' elman neural net model '''
     def __init__(self, nh, nc, ne, de, cs):
@@ -164,11 +167,14 @@ class RNNSLU(object):
         # bundle
         self.params = [self.emb, self.wx, self.wh, self.w,
                        self.bh, self.b, self.h0]
+        # end-snippet-2
         # as many columns as context window size
         # as many lines as words in the sentence
+        # start-snippet-3
         idxs = T.imatrix()
         x = self.emb[idxs].reshape((idxs.shape[0], de*cs))
         y_sentence = T.ivector('y_sentence')  # labels
+        # end-snippet-3 start-snippet-4
 
         def recurrence(x_t, h_tm1):
             h_t = T.nnet.sigmoid(T.dot(x_t, self.wx)
@@ -183,28 +189,34 @@ class RNNSLU(object):
 
         p_y_given_x_sentence = s[:, 0, :]
         y_pred = T.argmax(p_y_given_x_sentence, axis=1)
+        # end-snippet-4
 
         # cost and gradients and learning rate
+        # start-snippet-5
         lr = T.scalar('lr')
 
         sentence_nll = -T.mean(T.log(p_y_given_x_sentence)
                                [T.arange(x.shape[0]), y_sentence])
         sentence_gradients = T.grad(sentence_nll, self.params)
         sentence_updates = OrderedDict((p, p - lr*g)
+        # end-snippet-5
                                        for p, g in
                                        zip(self.params, sentence_gradients))
 
         # theano functions to compile
+        # start-snippet-6
         self.classify = theano.function(inputs=[idxs], outputs=y_pred)
         self.sentence_train = theano.function(inputs=[idxs, y_sentence, lr],
                                               outputs=sentence_nll,
                                               updates=sentence_updates)
+        # end-snippet-6 start-snippet-7
         self.normalize = theano.function(inputs=[],
                                          updates={self.emb:
                                                   self.emb /
                                                   T.sqrt((self.emb**2)
                                                   .sum(axis=1))
                                                   .dimshuffle(0, 'x')})
+        # end-snippet-7
 
     def train(self, x, y, window_size, learning_rate):
 
