@@ -198,16 +198,16 @@ sentences, dimension of the embedding space X context window size).
 
 Let's compile a theano function to do so
     
-    >>> x
+    >>> sample
     array([0, 1, 2, 3, 4], dtype=int32)
-    >>> cx = contextwin(x, 7)
+    >>> csample = contextwin(sample, 7)
     [[-1, -1, -1, 0, 1, 2, 3],
      [-1, -1,  0, 1, 2, 3, 4],
      [-1,  0,  1, 2, 3, 4,-1],
      [ 0,  1,  2, 3, 4,-1,-1],
      [ 1,  2,  3, 4,-1,-1,-1]]
     >>> f = theano.function(inputs=[idxs], outputs=x)
-    >>> f(cx)
+    >>> f(csample)
     array([[-0.08088442,  0.08458307,  0.05064092, ...,  0.06876887,
             -0.06648078, -0.15192257],
            [-0.08088442,  0.08458307,  0.05064092, ...,  0.11192625,
@@ -218,7 +218,7 @@ Let's compile a theano function to do so
              0.10804889,  0.1247109 ],
            [ 0.18738101,  0.14727569, -0.069544  , ..., -0.00937143,
              0.10804889,  0.1247109 ]], dtype=float32)
-    >>> f(cx).shape                                                                                                                                                                
+    >>> f(csample).shape                                                                                                                                                                
     (5, 350)
 
 
