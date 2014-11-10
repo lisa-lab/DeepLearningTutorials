@@ -15,26 +15,7 @@ import rnnslu
 
 
 def test_rnnslu():
-    # best model
-    s = {'fold': 3,
-         # 5 folds 0,1,2,3,4
-         'data': 'atis',
-         'lr': 0.0970806646812754,
-         'verbose': 1,
-         'decay': True,
-         # decay on the learning rate if improvement stops
-         'win': 7,
-         # number of words in the context window
-         'nhidden': 200,
-         # number of hidden units
-         'seed': 345,
-         'emb_dimension': 50,
-         # dimension of word embedding
-         'nepochs': 1,
-         # 60 is recommended
-         'savemodel': False}
-
-    rnnslu.main(s)
+    rnnslu.main()
 
 
 def test_logistic_sgd():
