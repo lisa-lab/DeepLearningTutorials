@@ -233,7 +233,7 @@ The followin (Elman) recurrent neural network (E-RNN) takes as input the current
 (time ``t``) and the previous hiddent state (time ``t-1``). Then it iterates.
 
 In the previous section, we processed the input to fit this
-sequential/temporal.  It consists in a matrix where the row ``0`` corresponds to
+sequential/temporal structure.  It consists in a matrix where the row ``0`` corresponds to
 the time step ``t=0``, the row ``1`` corresponds to the time step  ``t=1``, etc.
 
 The **parameters** of the E-RNN to be learned are:
