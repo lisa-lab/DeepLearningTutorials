@@ -1,3 +1,5 @@
+.. _rnnslu:
+
 Recurrent Neural Networks with Word Embeddings
 **********************************************
 
@@ -15,11 +17,13 @@ in order to perform Semantic Parsing / Slot-Filling (Spoken Language Understandi
 Code - Citations - Contact
 ++++++++++++++++++++++++++
 
-**Code**
+Code
+====
 
 Directly running experiments is also possible using this `github repository <https://github.com/mesnilgr/is13>`_.
 
-**Papers**
+Papers
+======
 
 If you use this tutorial, cite the following papers:
 
@@ -35,7 +39,8 @@ If you use this tutorial, cite the following papers:
 
 Thank you!
 
-**Contact**
+Contact
+=======
 
 Please email to `Grégoire Mesnil <http://www-etud.iro.umontreal.ca/~mesnilgr/>`_ for any
 problem report or feedback. We will be glad to hear from you.
@@ -91,7 +96,8 @@ measure the performance of our models.
 Recurrent Neural Network Model
 ++++++++++++++++++++++++++++++
 
-**Raw input encoding**
+Raw input encoding
+==================
 
 A token corresponds to a word. Each token in the ATIS vocabulary is associated to an index. Each sentence is a
 array of indexes (``int32``). Then, each set (train, valid, test) is a list of arrays of indexes. A python
@@ -115,7 +121,8 @@ Same thing for labels corresponding to this particular sentence.
             'O', 'B-arrive_time.time_relative', 'B-arrive_time.time',
             'I-arrive_time.time', 'I-arrive_time.time']
 
-**Context window**
+Context window
+==============
 
 Given a sentence i.e. an array of indexes, and a window size i.e. 1,3,5,..., we
 need to convert each word in the sentence to a context window surrounding this
@@ -165,7 +172,8 @@ Here is a sample:
 To summarize, we started with an array of indexes and ended with a matrix of
 indexes. Each line corresponds to the context window surrounding this word.
 
-**Word embeddings**
+Word embeddings
+=================
 
 Once we have the sentence converted to context windows i.e. a matrix of indexes, we have to associate
 these indexes to the embeddings (real-valued vector associated to each word).
@@ -218,7 +226,8 @@ We now have a sequence (of length 5 which is corresponds to the length of the
 sentence) of **context window word embeddings** which is easy to feed to a simple
 recurrent neural network to iterate with.
  
-**Elman recurrent neural network**
+Elman recurrent neural network
+==============================
 
 The followin (Elman) recurrent neural network (E-RNN) takes as input the current input
 (time ``t``) and the previous hiddent state (time ``t-1``). Then it iterates.
@@ -329,7 +338,8 @@ Note that the extension is `txt` and you will have to cahnge it to `pl`.
 Training
 ++++++++
 
-**Updates**
+Updates
+=======
 
 For stochastic gradient descent (SGD) update, we consider the whole sentence as a mini-batch
 and perform one update per sentence. It is possible to perform a pure SGD (contrary to mini-batch)
@@ -337,14 +347,16 @@ where the update is done on only one single word at a time.
 
 After each iteration/update, we normalize the word embeddings to keep them on a unit sphere.
 
-**Stopping Criterion**
+Stopping Criterion
+==================
 
 Early-stopping on a validation set is our regularization technique:
 the training is run for a given number of epochs (a single pass through the
 whole dataset) and keep the best model along with respect to the F1 score
 computed on the validation set after each epoch.
 
-**Hyper-Parameter Selection**
+Hyper-Parameter Selection
+=========================
 
 Although there is interesting research/`code
 <https://github.com/JasperSnoek/spearmint>`_ on the topic of automatic
@@ -373,7 +385,8 @@ The user can then run the code by calling:
     ...
     ('BEST RESULT: epoch', 57, 'valid F1', 97.23, 'best test F1', 94.2, 'with the model', 'rnnslu')
 
-**Timing**
+Timing
+======
 
 Running experiments on ATIS using this `repository <https://github.com/mesnilgr/is13>`_ 
 will run one epoch in less than 40 seconds on i7 CPU 950 @ 3.07GHz using less than 200 Mo of RAM::
@@ -394,7 +407,8 @@ After a few epochs, you obtain decent performance **94.48 % of F1 score**.::
     [learning] epoch 44 >> 100.00% completed in 35.31 (sec) <<
     [...]
 
-**Word Embedding Nearest Neighbors**
+Word Embedding Nearest Neighbors
+================================
 
 We can check the k-nearest neighbors of the learned embeddings. L2 and
 cosine distance gave the same results so we plot them for the cosine distance.
