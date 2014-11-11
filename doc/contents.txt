@@ -19,6 +19,7 @@ Contents
    rbm
    DBN
    hmc
+   rnnslu
    rnnrbm
    utilities
    references
