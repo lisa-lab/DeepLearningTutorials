@@ -126,7 +126,7 @@ Context window
 
 Given a sentence i.e. an array of indexes, and a window size i.e. 1,3,5,..., we
 need to convert each word in the sentence to a context window surrounding this
-particular word. In details, we have:: 
+particular word. In details, we have:
 
 .. literalinclude:: ../code/rnnslu.py
   :start-after: start-snippet-1
@@ -235,37 +235,37 @@ The **hyperparameters** define the whole architecture:
 * number of classes
 * random seed + way to initialize the model
 
-It gives the following code::
+It gives the following code:
 
 .. literalinclude:: ../code/rnnslu.py
   :start-after: start-snippet-2
   :end-before: end-snippet-2
 
-Then we integrate the way to build the input from the embedding matrix::
+Then we integrate the way to build the input from the embedding matrix:
 
 .. literalinclude:: ../code/rnnslu.py
   :start-after: start-snippet-3
   :end-before: end-snippet-3
 
-We use the scan operator to construct the recursion, works like a charm::
+We use the scan operator to construct the recursion, works like a charm:
 
 .. literalinclude:: ../code/rnnslu.py
   :start-after: start-snippet-4
   :end-before: end-snippet-4
 
-Theano will then compute all the gradients automatically to maximize the log-likelihood::
+Theano will then compute all the gradients automatically to maximize the log-likelihood:
 
 .. literalinclude:: ../code/rnnslu.py
   :start-after: start-snippet-5
   :end-before: end-snippet-5
 
-Next compile those functions::
+Next compile those functions:
 
 .. literalinclude:: ../code/rnnslu.py
   :start-after: start-snippet-6
   :end-before: end-snippet-6
 
-We keep the word embeddings on the unit sphere by normalizing them after each update::
+We keep the word embeddings on the unit sphere by normalizing them after each update:
 
 .. literalinclude:: ../code/rnnslu.py
   :start-after: start-snippet-7
