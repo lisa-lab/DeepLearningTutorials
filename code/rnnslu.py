@@ -269,7 +269,8 @@ def main(param=None):
             'savemodel': False}
     print param
 
-    folder = os.path.basename(__file__).split('.')[0]
+    folder_name = os.path.basename(__file__).split('.')[0]
+    folder = os.path.join(os.path.dirname(__file__), folder_name)
     if not os.path.exists(folder):
         os.mkdir(folder)
 
