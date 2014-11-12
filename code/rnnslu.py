@@ -67,7 +67,7 @@ def atisfold(fold):
 
 
 # metrics function using conlleval.pl
-def conlleval(p, g, w, filename):
+def conlleval(p, g, w, filename, script_path):
     '''
     INPUT:
     p :: predictions
@@ -79,6 +79,10 @@ def conlleval(p, g, w, filename):
     are written. it will be the input of conlleval.pl script
     for computing the performance in terms of precision
     recall and f1 score
+
+    OTHER:
+    script_path :: path to the directory containing the
+    conlleval.pl script
     '''
     out = ''
     for sl, sp, sw in zip(g, p, w):
@@ -91,27 +95,26 @@ def conlleval(p, g, w, filename):
     f.writelines(out)
     f.close()
 
-    return get_perf(filename)
+    return get_perf(filename, script_path)
 
 
-def download(origin):
+def download(origin, destination):
     '''
     download the corresponding atis file
     from http://www-etud.iro.umontreal.ca/~mesnilgr/atis/
     '''
     print 'Downloading data from %s' % origin
-    name = origin.split('/')[-1]
-    urllib.urlretrieve(origin, name)
+    urllib.urlretrieve(origin, destination)
 
 
-def get_perf(filename):
+def get_perf(filename, folder):
     ''' run conlleval.pl perl script to obtain
     precision/recall and F1 score '''
-    _conlleval = 'conlleval.pl'
+    _conlleval = os.path.join(folder, 'conlleval.pl')
     if not os.path.isfile(_conlleval):
         url = 'http://www-etud.iro.umontreal.ca/~mesnilgr/atis/conlleval.pl'
-        download(url)
-        os.chmod('conlleval.pl', stat.S_IRWXU)  # give the execute permissions
+        download(url, _conlleval)
+        os.chmod(_conlleval, stat.S_IRWXU)  # give the execute permissions
 
     proc = subprocess.Popen(["perl",
                             _conlleval],
@@ -333,11 +336,13 @@ def main(param=None):
         res_test = conlleval(predictions_test,
                              groundtruth_test,
                              words_test,
-                             folder + '/current.test.txt')
+                             folder + '/current.test.txt',
+                             folder)
         res_valid = conlleval(predictions_valid,
                               groundtruth_valid,
                               words_valid,
-                              folder + '/current.valid.txt')
+                              folder + '/current.valid.txt',
+                              folder)
 
         if res_valid['f1'] > best_f1:
 
