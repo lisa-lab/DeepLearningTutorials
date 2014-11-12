@@ -30,6 +30,7 @@ def shuffle(lol, seed):
         random.seed(seed)
         random.shuffle(l)
 
+
 # start-snippet-1
 def contextwin(l, win):
     '''
@@ -45,12 +46,13 @@ def contextwin(l, win):
     assert win >= 1
     l = list(l)
 
-    lpadded = win//2 * [-1] + l + win//2 * [-1]
-    out = [lpadded[i:i+win] for i in range(len(l))]
+    lpadded = win // 2 * [-1] + l + win // 2 * [-1]
+    out = [lpadded[i:(i + win)] for i in range(len(l))]
 
     assert len(out) == len(l)
     return out
 # end-snippet-1
+
 
 # data loading functions
 def atisfold(fold):
@@ -124,6 +126,7 @@ def get_perf(filename):
     f1score = float(out[10])
 
     return {'p': precision, 'r': recall, 'f1': f1score}
+
 
 # start-snippet-2
 class RNNSLU(object):
@@ -199,9 +202,9 @@ class RNNSLU(object):
                                [T.arange(x.shape[0]), y_sentence])
         sentence_gradients = T.grad(sentence_nll, self.params)
         sentence_updates = OrderedDict((p, p - lr*g)
-        # end-snippet-5
                                        for p, g in
                                        zip(self.params, sentence_gradients))
+        # end-snippet-5
 
         # theano functions to compile
         # start-snippet-6
@@ -238,28 +241,28 @@ class RNNSLU(object):
                             param.name + '.npy')))
 
 
-
 def main(param=None):
     if not param:
-        param = {'fold': 3,
-         # 5 folds 0,1,2,3,4
-         'data': 'atis',
-         'lr': 0.0970806646812754,
-         'verbose': 1,
-         'decay': True,
-         # decay on the learning rate if improvement stops
-         'win': 7,
-         # number of words in the context window
-         'nhidden': 200,
-         # number of hidden units
-         'seed': 345,
-         'emb_dimension': 50,
-         # dimension of word embedding
-         'nepochs': 60,
-         # 60 is recommended
-         'savemodel': False}
+        param = {
+            'fold': 3,
+            # 5 folds 0,1,2,3,4
+            'data': 'atis',
+            'lr': 0.0970806646812754,
+            'verbose': 1,
+            'decay': True,
+            # decay on the learning rate if improvement stops
+            'win': 7,
+            # number of words in the context window
+            'nhidden': 200,
+            # number of hidden units
+            'seed': 345,
+            'emb_dimension': 50,
+            # dimension of word embedding
+            'nepochs': 60,
+            # 60 is recommended
+            'savemodel': False}
     print param
- 
+
     folder = os.path.basename(__file__).split('.')[0]
     if not os.path.exists(folder):
         os.mkdir(folder)
@@ -308,9 +311,11 @@ def main(param=None):
 
         for i, (x, y) in enumerate(zip(train_lex, train_y)):
             rnn.train(x, y, param['win'], param['clr'])
-            print '[learning] epoch %i >> %2.2f%%'%(e,(i+1)*100./nsentences),'completed in %.2f (sec) <<\r'%(time.time()-tic),
+            print '[learning] epoch %i >> %2.2f%%' % (
+                e, (i + 1) * 100. / nsentences),
+            print 'completed in %.2f (sec) <<\r' % (time.time() - tic),
             sys.stdout.flush()
-        
+
         # evaluation // back into the real world : idx -> words
         predictions_test = [map(lambda x: idx2label[x],
                             rnn.classify(numpy.asarray(
@@ -330,7 +335,7 @@ def main(param=None):
                               groundtruth_valid,
                               words_valid,
                               folder + '/current.valid.txt')
-        
+
         if res_valid['f1'] > best_f1:
 
             if param['savemodel']:
