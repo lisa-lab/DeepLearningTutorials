@@ -15,7 +15,10 @@ import numpy
 import theano
 from theano import tensor as T
 
-PREFIX = os.getenv('ATISDATA', 'data')
+PREFIX = os.getenv(
+    'ATISDATA',
+    os.path.join(os.path.split(os.path.abspath(os.path.dirname(__file__)))[0],
+                 'data'))
 
 
 # utils functions
