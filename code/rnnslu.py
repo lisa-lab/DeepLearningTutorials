@@ -15,7 +15,10 @@ import numpy
 import theano
 from theano import tensor as T
 
-PREFIX = os.getenv('ATISDATA', 'data')
+PREFIX = os.getenv(
+    'ATISDATA',
+    os.path.join(os.path.split(os.path.abspath(os.path.dirname(__file__)))[0],
+                 'data'))
 
 
 # utils functions
@@ -29,6 +32,7 @@ def shuffle(lol, seed):
     for l in lol:
         random.seed(seed)
         random.shuffle(l)
+
 
 # start-snippet-1
 def contextwin(l, win):
@@ -45,12 +49,13 @@ def contextwin(l, win):
     assert win >= 1
     l = list(l)
 
-    lpadded = win//2 * [-1] + l + win//2 * [-1]
-    out = [lpadded[i:i+win] for i in range(len(l))]
+    lpadded = win // 2 * [-1] + l + win // 2 * [-1]
+    out = [lpadded[i:(i + win)] for i in range(len(l))]
 
     assert len(out) == len(l)
     return out
 # end-snippet-1
+
 
 # data loading functions
 def atisfold(fold):
@@ -62,7 +67,7 @@ def atisfold(fold):
 
 
 # metrics function using conlleval.pl
-def conlleval(p, g, w, filename):
+def conlleval(p, g, w, filename, script_path):
     '''
     INPUT:
     p :: predictions
@@ -74,6 +79,10 @@ def conlleval(p, g, w, filename):
     are written. it will be the input of conlleval.pl script
     for computing the performance in terms of precision
     recall and f1 score
+
+    OTHER:
+    script_path :: path to the directory containing the
+    conlleval.pl script
     '''
     out = ''
     for sl, sp, sw in zip(g, p, w):
@@ -86,27 +95,26 @@ def conlleval(p, g, w, filename):
     f.writelines(out)
     f.close()
 
-    return get_perf(filename)
+    return get_perf(filename, script_path)
 
 
-def download(origin):
+def download(origin, destination):
     '''
     download the corresponding atis file
     from http://www-etud.iro.umontreal.ca/~mesnilgr/atis/
     '''
     print 'Downloading data from %s' % origin
-    name = origin.split('/')[-1]
-    urllib.urlretrieve(origin, name)
+    urllib.urlretrieve(origin, destination)
 
 
-def get_perf(filename):
+def get_perf(filename, folder):
     ''' run conlleval.pl perl script to obtain
     precision/recall and F1 score '''
-    _conlleval = 'conlleval.pl'
+    _conlleval = os.path.join(folder, 'conlleval.pl')
     if not os.path.isfile(_conlleval):
         url = 'http://www-etud.iro.umontreal.ca/~mesnilgr/atis/conlleval.pl'
-        download(url)
-        os.chmod('conlleval.pl', stat.S_IRWXU)  # give the execute permissions
+        download(url, _conlleval)
+        os.chmod(_conlleval, stat.S_IRWXU)  # give the execute permissions
 
     proc = subprocess.Popen(["perl",
                             _conlleval],
@@ -124,6 +132,7 @@ def get_perf(filename):
     f1score = float(out[10])
 
     return {'p': precision, 'r': recall, 'f1': f1score}
+
 
 # start-snippet-2
 class RNNSLU(object):
@@ -199,9 +208,9 @@ class RNNSLU(object):
                                [T.arange(x.shape[0]), y_sentence])
         sentence_gradients = T.grad(sentence_nll, self.params)
         sentence_updates = OrderedDict((p, p - lr*g)
-        # end-snippet-5
                                        for p, g in
                                        zip(self.params, sentence_gradients))
+        # end-snippet-5
 
         # theano functions to compile
         # start-snippet-6
@@ -238,29 +247,30 @@ class RNNSLU(object):
                             param.name + '.npy')))
 
 
-
 def main(param=None):
     if not param:
-        param = {'fold': 3,
-         # 5 folds 0,1,2,3,4
-         'data': 'atis',
-         'lr': 0.0970806646812754,
-         'verbose': 1,
-         'decay': True,
-         # decay on the learning rate if improvement stops
-         'win': 7,
-         # number of words in the context window
-         'nhidden': 200,
-         # number of hidden units
-         'seed': 345,
-         'emb_dimension': 50,
-         # dimension of word embedding
-         'nepochs': 60,
-         # 60 is recommended
-         'savemodel': False}
+        param = {
+            'fold': 3,
+            # 5 folds 0,1,2,3,4
+            'data': 'atis',
+            'lr': 0.0970806646812754,
+            'verbose': 1,
+            'decay': True,
+            # decay on the learning rate if improvement stops
+            'win': 7,
+            # number of words in the context window
+            'nhidden': 200,
+            # number of hidden units
+            'seed': 345,
+            'emb_dimension': 50,
+            # dimension of word embedding
+            'nepochs': 60,
+            # 60 is recommended
+            'savemodel': False}
     print param
- 
-    folder = os.path.basename(__file__).split('.')[0]
+
+    folder_name = os.path.basename(__file__).split('.')[0]
+    folder = os.path.join(os.path.dirname(__file__), folder_name)
     if not os.path.exists(folder):
         os.mkdir(folder)
 
@@ -308,9 +318,11 @@ def main(param=None):
 
         for i, (x, y) in enumerate(zip(train_lex, train_y)):
             rnn.train(x, y, param['win'], param['clr'])
-            print '[learning] epoch %i >> %2.2f%%'%(e,(i+1)*100./nsentences),'completed in %.2f (sec) <<\r'%(time.time()-tic),
+            print '[learning] epoch %i >> %2.2f%%' % (
+                e, (i + 1) * 100. / nsentences),
+            print 'completed in %.2f (sec) <<\r' % (time.time() - tic),
             sys.stdout.flush()
-        
+
         # evaluation // back into the real world : idx -> words
         predictions_test = [map(lambda x: idx2label[x],
                             rnn.classify(numpy.asarray(
@@ -325,12 +337,14 @@ def main(param=None):
         res_test = conlleval(predictions_test,
                              groundtruth_test,
                              words_test,
-                             folder + '/current.test.txt')
+                             folder + '/current.test.txt',
+                             folder)
         res_valid = conlleval(predictions_valid,
                               groundtruth_valid,
                               words_valid,
-                              folder + '/current.valid.txt')
-        
+                              folder + '/current.valid.txt',
+                              folder)
+
         if res_valid['f1'] > best_f1:
 
             if param['savemodel']:
