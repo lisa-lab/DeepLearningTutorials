@@ -86,13 +86,13 @@ graphically as follows:
 
 Imagine that layer **m-1** is the input retina. In the above figure, units in
 layer **m** have receptive fields of width 3 in the input retina and are thus
-only connected to 3 adjacent neurons in the retina layer. Units in layer **m**
-have a similar connectivity with the layer below. We say that their receptive
-field with respect to the layer below is also 3, but their receptive field with
-respect to the input is larger (5). Each unit is unresponsive to variations
-outside of its receptive field with respect to the retina. The architecture
-thus ensures that the learnt "filters" produce the strongest response to a
-spatially local input pattern.
+only connected to 3 adjacent neurons in the retina layer. Units in layer
+**m+1** have a similar connectivity with the layer below. We say that their
+receptive field with respect to the layer below is also 3, but their receptive
+field with respect to the input is larger (5). Each unit is unresponsive to
+variations outside of its receptive field with respect to the retina. The
+architecture thus ensures that the learnt "filters" produce the strongest
+response to a spatially local input pattern.
 
 However, as shown above, stacking many such layers leads to (non-linear)
 "filters" that become increasingly "global" (i.e. responsive to a larger region
