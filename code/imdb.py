@@ -9,11 +9,12 @@ import numpy
 import theano
 import theano.tensor as T
 
+
 def prepare_data(seqs, labels, maxlen=None):
     # x: a list of sentences
     lengths = [len(s) for s in seqs]
 
-    if maxlen != None:
+    if maxlen is not None:
         new_seqs = []
         new_labels = []
         new_lengths = []
@@ -35,10 +36,11 @@ def prepare_data(seqs, labels, maxlen=None):
     x = numpy.zeros((maxlen, n_samples)).astype('int64')
     x_mask = numpy.zeros((maxlen, n_samples)).astype('float32')
     for idx, s in enumerate(seqs):
-        x[:lengths[idx],idx] = s
-        x_mask[:lengths[idx],idx] = 1.
+        x[:lengths[idx], idx] = s
+        x_mask[:lengths[idx], idx] = 1.
 
     return x, x_mask, labels
+
 
 def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1):
     ''' Loads the dataset
@@ -88,5 +90,3 @@ def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1):
     test = (test_set_x, test_set_y)
 
     return train, valid, test
-
-
