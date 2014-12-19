@@ -40,7 +40,7 @@ def prepare_data(seqs, labels, maxlen=None):
 
     return x, x_mask, labels
 
-def load_data(path="/data/lisatmp3/chokyun/tweets_sa/imdb/aclImdb/imdb.pkl", n_words=100000, valid_portion=0.1):
+def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1):
     ''' Loads the dataset
 
     :type dataset: string

@@ -1,0 +1,65 @@
+.. _lstm:
+
+Recurrent Neural Networks with Word Embeddings
+**********************************************
+
+Summary
++++++++
+
+This tutorial aims to provide an example of how a Recurrent Neural Network (RNN) using the Long Short Term Memory (LSTM) architecture can be implemented using Theano. In this tutorial, this model is used to perform sentiment analysis on movie reviews from the `Large Movie Review Dataset <http://ai.stanford.edu/~amaas/data/sentiment/>`_, sometimes known as the IMDB dataset. 
+
+In this task, given a movie review, the model attempts to predict whether it is positive or negative. This is a binary classification task.
+
+Code - Citations - Contact
+++++++++++++++++++++++++++
+
+Code
+====
+
+The LSTM implementation can be found in the two following files :
+
+* `lstm.py <http://deeplearning.net/tutorial/code/lstm.py>`_ : Main script. Defines and train the model.
+
+* `imdb.py <http://deeplearning.net/tutorial/code/imdb.py>`_ : Secondary script. Handles the loading and preprocessing of the IMDB dataset.
+
+Data
+====
+
+As previously mentionned, the provided scripts are used to train a LSTM
+recurrent neural on the Large Movie Review Dataset dataset.
+
+While the dataset is public, in this tutorial we provide a copy of the dataset
+that has previously been preprocessed according to the needs of this LSTM
+implementation. You can download this preprocessed version of the dataset
+using the script `download.sh` and uncompress it. 
+
+Papers
+======
+
+If you use this tutorial, please cite the following papers:
+
+* `[pdf] <http://deeplearning.cs.cmu.edu/pdfs/Hochreiter97_lstm.pdf>`_ HOCHREITER, Sepp et SCHMIDHUBER, Jürgen. Long short-term memory. Neural computation, 1997, vol. 9, no 8, p. 1735-1780. 1997.
+
+* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/nips2012_deep_workshop_theano_final.pdf>`_ Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Bergstra, James, Goodfellow, Ian, Bergeron, Arnaud, Bouchard, Nicolas, and Bengio, Yoshua. Theano: new features and speed improvements. NIPS Workshop on Deep Learning and Unsupervised Feature Learning, 2012.
+
+* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/theano_scipy2010.pdf>`_ Bergstra, James, Breuleux, Olivier, Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Desjardins, Guillaume, Turian, Joseph, Warde-Farley, David, and Bengio, Yoshua. Theano: a CPU and GPU math expression compiler. In Proceedings of the Python for Scientific Computing Conference (SciPy), June 2010.
+
+Thank you!
+
+Contact
+=======
+
+Please email `Kyunghyun Cho <http://www.kyunghyuncho.me/>`_ for any
+problem report or feedback. We will be glad to hear from you.
+
+Running the Code
+++++++++++++++++
+
+After downloading both the scripts, downloading and uncompressing the data and
+putting all those files in the same folder, the user can run the code by
+calling:
+
+.. code-block:: bash
+
+    THEANO_FLAGS="floatX=float32" python train_lstm.py
+
