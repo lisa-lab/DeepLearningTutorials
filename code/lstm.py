@@ -242,7 +242,6 @@ def rconv_layer(tparams, state_below, options, prefix='rconv', mask=None):
                 sequences = [seqlens, roots.dimshuffle(1,0,2)],
                 outputs_info = [tensor.alloc(0., options['dim_proj'])],
                 name='grab_root_%s'%prefix)
-        #roots = roots.dimshuffle('x', 0, 1)
     else:
         roots = roots[seqlens] # there should be only one, so it's fine.
 
@@ -309,8 +308,6 @@ def build_model(tparams, options):
     emb = tparams['Wemb'][x.flatten()].reshape([n_timesteps, n_samples, options['dim_proj']])
     proj = get_layer(options['encoder'])[1](tparams, emb, options, prefix=options['encoder'], mask=mask)
     if options['encoder'] == 'lstm':
-        #proj = proj[-1]
-        #proj = proj.mean(axis=0)
         proj = (proj * mask[:,:,None]).sum(axis=0)
         proj = proj / mask.sum(axis=0)[:,None]
     if options['use_dropout']:
@@ -344,17 +341,11 @@ def pred_probs(f_pred_prob, prepare_data, data, iterator, verbose=False):
 
 def pred_error(f_pred, prepare_data, data, iterator, verbose=False):
     valid_err = 0
-    #valid_class_counts = numpy.zeros(3)
-    #valid_class_corrects = numpy.zeros(3)
     for _, valid_index in iterator:
         x, mask, y = prepare_data([data[0][t] for t in valid_index], numpy.array(data[1])[valid_index], maxlen=None)
         preds = f_pred(x,mask)
         targets = numpy.array(data[1])[valid_index]
-        #for cc in xrange(3):
-        #    valid_class_counts[cc] += numpy.sum(targets == cc)
-        #    valid_class_corrects[cc] += (preds[numpy.where(targets == cc)] == targets[numpy.where(targets == cc)]).sum()
         valid_err += (preds == targets).sum()
-    #valid_err = 1. - (valid_class_corrects.astype('float32') / valid_class_counts.astype('float32')).mean()
     valid_err = 1. - numpy.float32(valid_err) / len(data[0])
 
     return valid_err
@@ -464,8 +455,6 @@ def train(dim_proj=100,
             if numpy.mod(uidx, saveFreq) == 0:
                 print 'Saving...',
 
-                #import ipdb; ipdb.set_trace()
-
                 if best_p != None:
                     params = best_p
                 else:
@@ -476,13 +465,7 @@ def train(dim_proj=100,
 
             if numpy.mod(uidx, validFreq) == 0:
                 use_noise.set_value(0.)
-                train_err = 0
-                #for _, tindex in kf:
-                #    x, mask = prepare_data(train[0][train_index])
-                #    train_err += (f_pred(x, mask) == train[1][tindex]).sum()
-                #train_err = 1. - numpy.float32(train_err) / train[0].shape[0]
-
-                #train_err = pred_error(f_pred, prepare_data, train, kf)
+                train_err = pred_error(f_pred, prepare_data, train, kf)
                 valid_err = pred_error(f_pred, prepare_data, valid, kf_valid)
                 test_err = pred_error(f_pred, prepare_data, test, kf_test)
 
@@ -500,8 +483,6 @@ def train(dim_proj=100,
 
                 print 'Train ', train_err, 'Valid ', valid_err, 'Test ', test_err
 
-        #print 'Epoch ', eidx, 'Update ', uidx, 'Train ', train_err, 'Valid ', valid_err, 'Test ', test_err
-
         print 'Seen %d samples'%n_samples
 
         if estop:
@@ -513,8 +494,7 @@ def train(dim_proj=100,
         zipp(best_p, tparams)
 
     use_noise.set_value(0.)
-    train_err = 0
-    #train_err = pred_error(f_pred, prepare_data, train, kf)
+    train_err = pred_error(f_pred, prepare_data, train, kf)
     valid_err = pred_error(f_pred, prepare_data, valid, kf_valid)
     test_err = pred_error(f_pred, prepare_data, test, kf_test)
 
@@ -557,7 +537,6 @@ if __name__ == '__main__':
         'dim-proj': [128],
         'n-words': [10000], 
         'optimizer': ['adadelta'],
-        #'activ': ['lambda x: tensor.maximum(0.,x)'],
         'activ': ['lambda x: tensor.tanh(x)'],
         'decay-c': [0.], 
         'use-dropout': [1],
