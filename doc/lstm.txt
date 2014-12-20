@@ -31,7 +31,7 @@ recurrent neural on the Large Movie Review Dataset dataset.
 While the dataset is public, in this tutorial we provide a copy of the dataset
 that has previously been preprocessed according to the needs of this LSTM
 implementation. You can download this preprocessed version of the dataset
-using the script `download.sh` and uncompress it. 
+using the script `download.sh <https://raw.githubusercontent.com/lisa-lab/DeepLearningTutorials/master/data/download.sh>`_ and uncompress it. 
 
 Papers
 ======
