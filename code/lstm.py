@@ -558,7 +558,7 @@ def train(dim_proj=100,
 
                     best_p = unzip(tparams)
                     bad_counter = 0
-                if (eidx > patience and
+                if (len(history_errs) > patience and
                     valid_err >= numpy.array(history_errs)[:-patience,
                                                            0].min()):
                     bad_counter += 1
