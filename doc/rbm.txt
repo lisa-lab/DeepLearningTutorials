@@ -484,8 +484,8 @@ Notice that we modify the updates dictionary to increment the
 index of bit :math:`i`. This will result in bit :math:`i` cycling over all possible
 values :math:`\{0,1,...,N\}`, from one update to another.
 
-Note that for CD training the cost-entropy cost between the input and the
-reconstruction( the same as the one used for the de-noising autoencoder) is more reliable then the pseudo-loglikelihood. Here is the code we use to
+Note that for CD training the cross-entropy cost between the input and the
+reconstruction (the same as the one used for the de-noising autoencoder) is more reliable then the pseudo-loglikelihood. Here is the code we use to
 compute the pseudo-likelihood:
 
 .. literalinclude:: ../code/rbm.py
