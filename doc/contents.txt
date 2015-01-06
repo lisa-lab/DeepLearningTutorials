@@ -9,7 +9,7 @@ Contents
    :maxdepth: 2
 
    LICENSE
-   intro
+   index
    gettingstarted
    logreg
    mlp
