@@ -44,11 +44,17 @@ def get_dataset(name):
 
 
 def zipp(params, tparams):
+    """
+    When we reload the model. Needed for the GPU stuff.
+    """
     for kk, vv in params.iteritems():
         tparams[kk].set_value(vv)
 
 
 def unzip(zipped):
+    """
+    When we pickle the model. Needed for the GPU stuff.
+    """
     new_params = OrderedDict()
     for kk, vv in zipped.iteritems():
         new_params[kk] = vv.get_value()
@@ -79,7 +85,6 @@ def init_params(options):
     randn = numpy.random.rand(options['n_words'],
                               options['dim_proj'])
     params['Wemb'] = (0.01 * randn).astype('float32')
-    # rconv
     params = get_layer(options['encoder'])[0](options,
                                               params,
                                               prefix=options['encoder'])
@@ -122,7 +127,7 @@ def param_init_fflayer(options, params, prefix='ff'):
     return params
 
 
-def fflayer(tparams, state_below, options, prefix='rconv', **kwargs):
+def fflayer(tparams, state_below, options, prefix='ff', **kwargs):
     pre_act = (tensor.dot(state_below,
                           tparams[_p(prefix, 'W')]) + tparams[_p(prefix, 'b')])
     return options['activ'](pre_act)
@@ -396,6 +401,9 @@ def build_model(tparams, options):
 
 
 def pred_probs(f_pred_prob, prepare_data, data, iterator, verbose=False):
+    """ If you want to use a trained model, this is useful to compute
+    the probabilities of new examples.
+    """
     n_samples = len(data[0])
     probs = numpy.zeros((n_samples, 2)).astype('float32')
 
@@ -416,6 +424,11 @@ def pred_probs(f_pred_prob, prepare_data, data, iterator, verbose=False):
 
 
 def pred_error(f_pred, prepare_data, data, iterator, verbose=False):
+    """
+    Just compute the error
+    f_pred: Theano fct computing the prediction
+    prepare_data: usual prepare_data for that dataset.
+    """
     valid_err = 0
     for _, valid_index in iterator:
         x, mask, y = prepare_data([data[0][t] for t in valid_index],
@@ -430,19 +443,18 @@ def pred_error(f_pred, prepare_data, data, iterator, verbose=False):
 
 
 def train(dim_proj=100,
-          patience=10,
+          patience=10,  # number of epoch to wait before early stop if no progress
           max_epochs=5000,
-          dispFreq=100,
+          dispFreq=100,  # display to stdout the training progress every N updates
           activ=tensor.tanh,
-          decay_c=0.,
-          lrate=0.01,
-          n_words=100000,
-          data_sym=False,
-          optimizer=rmsprop,
-          encoder='lstm',
+          decay_c=0.,  # weight decay for the classifier
+          lrate=0.01,  # learning rate for sgd (not used for adadelta and rmsprop)
+          n_words=100000,  # wocabulary size
+          optimizer=adadelta,
+          encoder='lstm',# can be removed must be lstm.
           saveto='lstm_model.npz',
           noise_std=0.,
-          validFreq=1000,
+          validFreq=1000, # after 1000
           saveFreq=1000,  # save the parameters after every saveFreq updates
           maxlen=50,
           batch_size=16,
@@ -478,7 +490,7 @@ def train(dim_proj=100,
 
     f_cost = theano.function([x, mask, y], cost)
 
-    grads = tensor.grad(cost, wrt=itemlist(tparams))
+    grads = tensor.grad(cost, wrt=tparams.values())
     f_grad = theano.function([x, mask, y], grads)
 
     lr = tensor.scalar(name='lr')
@@ -627,8 +639,8 @@ if __name__ == '__main__':
         'encoder': ['lstm'],
         'dim-proj': [128],
         'n-words': [10000],
-        'optimizer': [adadelta],  # adadelta and rmsprop avail
+        'optimizer': [adadelta],  # sgd, adadelta and rmsprop available
         'activ': [tensor.tanh],  # The activation function from Theano.
-        'decay-c': [0.],
-        'use-dropout': [1],
+        'decay-c': [0.], #
+        'use-dropout': [1],  # if disable slightly faster, but worst test error.
         'learning-rate': [0.0001]})
