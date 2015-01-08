@@ -618,6 +618,10 @@ def main(job_id, params):
     return validerr
 
 if __name__ == '__main__':
+
+    # We must have floatX=float32 for this tutorial to work correctly.
+    theano.config.floatX = "float32"
+
     main(0, {
         'model': ['lstm_model.npz'],
         'encoder': ['lstm'],
