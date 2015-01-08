@@ -42,7 +42,33 @@ def prepare_data(seqs, labels, maxlen=None):
     return x, x_mask, labels
 
 
-def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1):
+def get_dataset_file(dataset, default_dataset, origin):
+    '''Look for it as if it was a full path, if not, try local file,
+    if not try in the data directory.
+
+    Download dataset if it is not present
+
+    '''
+    data_dir, data_file = os.path.split(dataset)
+    if data_dir == "" and not os.path.isfile(dataset):
+        # Check if dataset is in the data directory.
+        new_path = os.path.join(
+            os.path.split(__file__)[0],
+            "..",
+            "data",
+            dataset
+        )
+        if os.path.isfile(new_path) or data_file == default_dataset:
+            dataset = new_path
+
+    if (not os.path.isfile(dataset)) and data_file == default_dataset:
+        import urllib
+        print 'Downloading data from %s' % origin
+        urllib.urlretrieve(origin, dataset)
+    return dataset
+
+
+def load_data(path="imdb.pkl.gz", n_words=100000, valid_portion=0.1):
     ''' Loads the dataset
 
     :type dataset: string
@@ -53,10 +79,12 @@ def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1):
     # LOAD DATA #
     #############
 
-    print '... loading data'
-
     # Load the dataset
-    f = open(path, 'rb')
+    path = get_dataset_file(
+        path, "imdb.pkl.gz",
+        "http://www.iro.umontreal.ca/~lisa/deep/data/imdb.pkl.gz")
+
+    f = gzip.open(path, 'rb')
     train_set = cPickle.load(f)
     test_set = cPickle.load(f)
     f.close()
