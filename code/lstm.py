@@ -61,10 +61,6 @@ def unzip(zipped):
     return new_params
 
 
-def itemlist(tparams):
-    return [vv for kk, vv in tparams.iteritems()]
-
-
 def dropout_layer(state_before, use_noise, trng):
     proj = tensor.switch(use_noise,
                          (state_before *
@@ -232,7 +228,7 @@ def adadelta(lr, tparams, grads, x, mask, y, cost):
                                      running_grads2)]
     ru2up = [(ru2, 0.95 * ru2 + 0.05 * (ud ** 2))
              for ru2, ud in zip(running_up2, updir)]
-    param_up = [(p, p + ud) for p, ud in zip(itemlist(tparams), updir)]
+    param_up = [(p, p + ud) for p, ud in zip(tparams.values(), updir)]
 
     f_update = theano.function([lr], [], updates=ru2up+param_up,
                                on_unused_input='ignore')
@@ -266,7 +262,7 @@ def rmsprop(lr, tparams, grads, x, mask, y, cost):
                  for ud, zg, rg, rg2 in zip(updir, zipped_grads, running_grads,
                                             running_grads2)]
     param_up = [(p, p + udn[1])
-                for p, udn in zip(itemlist(tparams), updir_new)]
+                for p, udn in zip(tparams.values(), updir_new)]
     f_update = theano.function([lr], [], updates=updir_new+param_up,
                                on_unused_input='ignore')
 
@@ -280,7 +276,7 @@ def sgd(lr, tparams, grads, x, mask, y, cost):
 
     f_grad_shared = theano.function([x, mask, y], cost, updates=gsup)
 
-    pup = [(p, p - lr * g) for p, g in zip(itemlist(tparams), gshared)]
+    pup = [(p, p - lr * g) for p, g in zip(tparams.values(), gshared)]
     f_update = theano.function([lr], [], updates=pup)
 
     return f_grad_shared, f_update
