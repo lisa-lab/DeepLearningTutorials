@@ -203,90 +203,9 @@ def lstm_layer(tparams, state_below, options, prefix='lstm', mask=None):
     return rval[0]
 
 
-def param_init_rconv(options, params, prefix='rconv'):
-    params[_p(prefix, 'W')] = ortho_weight(options['dim_proj'])
-    params[_p(prefix, 'U')] = ortho_weight(options['dim_proj'])
-    b = numpy.zeros((options['dim_proj'],)).astype('float32')
-    params[_p(prefix, 'b')] = b
-    gw = 0.01 * numpy.random.randn(options['dim_proj'], 3).astype('float32')
-    params[_p(prefix, 'GW')] = gw
-    gu = 0.01 * numpy.random.randn(options['dim_proj'], 3).astype('float32')
-    params[_p(prefix, 'GU')] = gu
-    params[_p(prefix, 'Gb')] = numpy.zeros((3,)).astype('float32')
-
-    return params
-
-
-def rconv_layer(tparams, state_below, options, prefix='rconv', mask=None):
-    nsteps = state_below.shape[0]
-
-    assert mask is not None
-
-    def _step(m_, p_):
-        l_ = p_
-        # new activation
-        ps_ = tensor.zeros_like(p_)
-        ps_ = tensor.set_subtensor(ps_[1:], p_[:-1])
-        ls_ = ps_
-        ps_ = tensor.dot(ps_, tparams[_p(prefix, 'U')])
-        pl_ = tensor.dot(p_, tparams[_p(prefix, 'W')])
-        newact = options['activ'](ps_+pl_+tparams[_p(prefix, 'b')])
-
-        # gater
-        gt_ = (tensor.dot(ls_, tparams[_p(prefix, 'GU')]) +
-               tensor.dot(l_, tparams[_p(prefix, 'GW')]) +
-               tparams[_p(prefix, 'Gb')])
-        if l_.ndim == 3:
-            gt_shp = gt_.shape
-            gt_ = gt_.reshape((gt_shp[0] * gt_shp[1], gt_shp[2]))
-        gt_ = tensor.nnet.softmax(gt_)
-        if l_.ndim == 3:
-            gt_ = gt_.reshape((gt_shp[0], gt_shp[1], gt_shp[2]))
-
-        if p_.ndim == 3:
-            gn = gt_[:, :, 0].dimshuffle(0, 1, 'x')
-            gl = gt_[:, :, 1].dimshuffle(0, 1, 'x')
-            gr = gt_[:, :, 2].dimshuffle(0, 1, 'x')
-        else:
-            gn = gt_[:, 0].dimshuffle(0, 'x')
-            gl = gt_[:, 1].dimshuffle(0, 'x')
-            gr = gt_[:, 2].dimshuffle(0, 'x')
-
-        act = newact * gn + ls_ * gl + l_ * gr
-
-        if p_.ndim == 3:
-            m_ = m_.dimshuffle('x', 0, 'x')
-        else:
-            m_ = m_.dimshuffle('x', 0)
-        return tensor.switch(m_, act, l_)
-
-    rval, updates = theano.scan(_step,
-                                sequences=[mask[1:]],
-                                outputs_info=[state_below],
-                                name='layer_%s' % prefix,
-                                n_steps=nsteps-1)
-
-    seqlens = tensor.cast(mask.sum(axis=0), 'int64')-1
-    roots = rval[-1]
-
-    if state_below.ndim == 3:
-        def _grab_root(seqlen, one_sample, prev_sample):
-            return one_sample[seqlen]
-
-        dim_proj = options['dim_proj']
-        roots, updates = theano.scan(_grab_root,
-                                     sequences=[seqlens,
-                                                roots.dimshuffle(1, 0, 2)],
-                                     outputs_info=[tensor.alloc(0., dim_proj)],
-                                     name='grab_root_%s' % prefix)
-    else:
-        roots = roots[seqlens]  # there should be only one, so it's fine.
-
-    return roots
-
-
+# ff: Feed Forward (normal neural net), only useful to put after lstm
+#     before the classifier.
 layers = {'ff': (param_init_fflayer, fflayer),
-          'rconv': (param_init_rconv, rconv_layer),
           'lstm': (param_init_lstm, lstm_layer)}
 
 
