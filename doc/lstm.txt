@@ -1,6 +1,6 @@
 .. _lstm:
 
-Recurrent Neural Networks with Word Embeddings
+LSTM Network for Sentiment Analysis
 **********************************************
 
 Summary
