@@ -107,14 +107,10 @@ def init_tparams(params):
         tparams[kk] = theano.shared(params[kk], name=kk)
     return tparams
 
-layers = {'ff': ('param_init_fflayer', 'fflayer'),
-          'rconv': ('param_init_rconv', 'rconv_layer'),
-          'lstm': ('param_init_lstm', 'lstm_layer')}
-
 
 def get_layer(name):
     fns = layers[name]
-    return (eval(fns[0]), eval(fns[1]))
+    return fns
 
 
 def param_init_fflayer(options, params, prefix='ff'):
@@ -129,7 +125,7 @@ def param_init_fflayer(options, params, prefix='ff'):
 def fflayer(tparams, state_below, options, prefix='rconv', **kwargs):
     pre_act = (tensor.dot(state_below,
                           tparams[_p(prefix, 'W')]) + tparams[_p(prefix, 'b')])
-    return eval(options['activ'])(pre_act)
+    return options['activ'](pre_act)
 
 
 def ortho_weight(ndim):
@@ -229,7 +225,7 @@ def rconv_layer(tparams, state_below, options, prefix='rconv', mask=None):
         ls_ = ps_
         ps_ = tensor.dot(ps_, tparams[_p(prefix, 'U')])
         pl_ = tensor.dot(p_, tparams[_p(prefix, 'W')])
-        newact = eval(options['activ'])(ps_+pl_+tparams[_p(prefix, 'b')])
+        newact = options['activ'](ps_+pl_+tparams[_p(prefix, 'b')])
 
         # gater
         gt_ = (tensor.dot(ls_, tparams[_p(prefix, 'GU')]) +
@@ -282,6 +278,11 @@ def rconv_layer(tparams, state_below, options, prefix='rconv', mask=None):
         roots = roots[seqlens]  # there should be only one, so it's fine.
 
     return roots
+
+
+layers = {'ff': (param_init_fflayer, fflayer),
+          'rconv': (param_init_rconv, rconv_layer),
+          'lstm': (param_init_lstm, lstm_layer)}
 
 
 def adadelta(lr, tparams, grads, x, mask, y, cost):
@@ -432,21 +433,21 @@ def train(dim_proj=100,
           patience=10,
           max_epochs=5000,
           dispFreq=100,
-          activ='lambda x: tensor.tanh(x)',
+          activ=tensor.tanh,
           decay_c=0.,
           lrate=0.01,
           n_words=100000,
           data_sym=False,
-          optimizer='rmsprop',
-          encoder='rconv',
-          saveto='model.npz',
+          optimizer=rmsprop,
+          encoder='lstm',
+          saveto='lstm_model.npz',
           noise_std=0.,
           validFreq=1000,
           saveFreq=1000,  # save the parameters after every saveFreq updates
           maxlen=50,
           batch_size=16,
           valid_batch_size=16,
-          dataset='sentiment140',
+          dataset='imdb',
           use_dropout=False):
 
     # Model options
@@ -481,8 +482,8 @@ def train(dim_proj=100,
     f_grad = theano.function([x, mask, y], grads)
 
     lr = tensor.scalar(name='lr')
-    f_grad_shared, f_update = eval(optimizer)(lr, tparams, grads,
-                                              x, mask, y, cost)
+    f_grad_shared, f_update = optimizer(lr, tparams, grads,
+                                        x, mask, y, cost)
 
     print 'Optimization'
 
@@ -618,12 +619,12 @@ def main(job_id, params):
 
 if __name__ == '__main__':
     main(0, {
-        'model': ['model_lstm.npz'],
+        'model': ['lstm_model.npz'],
         'encoder': ['lstm'],
         'dim-proj': [128],
         'n-words': [10000],
-        'optimizer': ['adadelta'],
-        'activ': ['lambda x: tensor.tanh(x)'],
+        'optimizer': [adadelta],  # adadelta and rmsprop avail
+        'activ': [tensor.tanh],  # The activation function from Theano.
         'decay-c': [0.],
         'use-dropout': [1],
         'learning-rate': [0.0001]})
