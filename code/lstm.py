@@ -372,11 +372,11 @@ def train(dim_proj=100,
           decay_c=0.,  # weight decay for the classifier
           lrate=0.01,  # learning rate for sgd (not used for adadelta and rmsprop)
           n_words=100000,  # vocabulary size
-          optimizer=adadelta,    # sgd, adadelta and rmsprop available
-          encoder='lstm',# can be removed must be lstm.
+          optimizer=adadelta,  # sgd, adadelta and rmsprop available
+          encoder='lstm',  # can be removed must be lstm.
           saveto='lstm_model.npz',
           noise_std=0.,
-          validFreq=1000, # after 1000
+          validFreq=1000,  # after 1000
           saveFreq=1000,  # save the parameters after every saveFreq updates
           maxlen=50,
           batch_size=16,
@@ -529,11 +529,10 @@ def train(dim_proj=100,
                 valid_err=valid_err, test_err=test_err,
                 history_errs=history_errs, **params)
 
-    print 'The code run for %d epochs, with %f epochs/sec' % (
-        uidx, 1. * uidx / (end_time - start_time))
-    print >> sys.stderr, ('The code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.1fs' % ((end_time - start_time)))
+    print 'The code run for %d epochs, with %f sec/epochs' % (
+        (eidx + 1), 1. * (eidx + 1) / (end_time - start_time))
+    print >> sys.stderr, ('Training took %.1fs minutes' %
+                          (end_time - start_time))
     return train_err, valid_err, test_err
 
 
