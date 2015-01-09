@@ -1,13 +1,10 @@
 import cPickle
 import gzip
 import os
-import sys
-import time
 
 import numpy
 
 import theano
-import theano.tensor as T
 
 
 def prepare_data(seqs, labels, maxlen=None):
