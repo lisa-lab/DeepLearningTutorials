@@ -368,11 +368,11 @@ def train(dim_proj=100,
           patience=10,  # number of epoch to wait before early stop if no progress
           max_epochs=5000,
           dispFreq=100,  # display to stdout the training progress every N updates
-          activ=tensor.tanh,
+          activ=tensor.tanh,  # The activation function from Theano.
           decay_c=0.,  # weight decay for the classifier
           lrate=0.01,  # learning rate for sgd (not used for adadelta and rmsprop)
           n_words=100000,  # vocabulary size
-          optimizer=adadelta,
+          optimizer=adadelta,    # sgd, adadelta and rmsprop available
           encoder='lstm',# can be removed must be lstm.
           saveto='lstm_model.npz',
           noise_std=0.,
@@ -382,7 +382,8 @@ def train(dim_proj=100,
           batch_size=16,
           valid_batch_size=16,
           dataset='imdb',
-          use_dropout=False):
+          use_dropout=False,  # if False slightly faster, but worst test error
+      ):
 
     # Model options
     model_options = locals().copy()
