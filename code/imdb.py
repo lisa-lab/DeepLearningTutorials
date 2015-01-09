@@ -77,7 +77,7 @@ def get_dataset_file(dataset, default_dataset, origin):
     return dataset
 
 
-def load_data(path="imdb.pkl.gz", n_words=100000, valid_portion=0.1):
+def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1):
     ''' Loads the dataset
 
     :type dataset: string
@@ -91,9 +91,13 @@ def load_data(path="imdb.pkl.gz", n_words=100000, valid_portion=0.1):
     # Load the dataset
     path = get_dataset_file(
         path, "imdb.pkl.gz",
-        "http://www.iro.umontreal.ca/~lisa/deep/data/imdb.pkl.gz")
+        "http://www.iro.umontreal.ca/~lisa/deep/data/imdb.pkl")
 
-    f = gzip.open(path, 'rb')
+    if path.endswith(".gz"):
+        f = gzip.open(path, 'rb')
+    else:
+        f = open(path, 'rb')
+
     train_set = cPickle.load(f)
     test_set = cPickle.load(f)
     f.close()

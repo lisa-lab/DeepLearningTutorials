@@ -471,7 +471,7 @@ def train(dim_proj=100,
                 else:
                     params = unzip(tparams)
                 numpy.savez(saveto, history_errs=history_errs, **params)
-                pkl.dump(model_options, open('%s.pkl' % saveto, 'wb'))
+                pkl.dump(model_options, open('%s.pkl' % saveto, 'wb'), -1)
                 print 'Done'
 
             if numpy.mod(uidx, validFreq) == 0:
