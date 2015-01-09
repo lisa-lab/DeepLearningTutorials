@@ -221,7 +221,8 @@ def adadelta(lr, tparams, grads, x, mask, y, cost):
     rg2up = [(rg2, 0.95 * rg2 + 0.05 * (g ** 2))
              for rg2, g in zip(running_grads2, grads)]
 
-    f_grad_shared = theano.function([x, mask, y], cost, updates=zgup+rg2up)
+    f_grad_shared = theano.function([x, mask, y], cost, updates=zgup+rg2up,
+                                    name='adadelta_f_grad_shared')
 
     updir = [-tensor.sqrt(ru2 + 1e-6) / tensor.sqrt(rg2 + 1e-6) * zg
              for zg, ru2, rg2 in zip(zipped_grads,
@@ -232,7 +233,8 @@ def adadelta(lr, tparams, grads, x, mask, y, cost):
     param_up = [(p, p + ud) for p, ud in zip(tparams.values(), updir)]
 
     f_update = theano.function([lr], [], updates=ru2up+param_up,
-                               on_unused_input='ignore')
+                               on_unused_input='ignore',
+                               name='adadelta_f_update')
 
     return f_grad_shared, f_update
 
@@ -254,7 +256,8 @@ def rmsprop(lr, tparams, grads, x, mask, y, cost):
              for rg2, g in zip(running_grads2, grads)]
 
     f_grad_shared = theano.function([x, mask, y], cost,
-                                    updates=zgup + rgup + rg2up)
+                                    updates=zgup + rgup + rg2up,
+                                    name='rmsprop_f_grad_shared')
 
     updir = [theano.shared(p.get_value() * numpy.float32(0.),
                            name='%s_updir' % k)
@@ -265,7 +268,8 @@ def rmsprop(lr, tparams, grads, x, mask, y, cost):
     param_up = [(p, p + udn[1])
                 for p, udn in zip(tparams.values(), updir_new)]
     f_update = theano.function([lr], [], updates=updir_new+param_up,
-                               on_unused_input='ignore')
+                               on_unused_input='ignore',
+                               name='rmsprop_f_update')
 
     return f_grad_shared, f_update
 
@@ -275,10 +279,12 @@ def sgd(lr, tparams, grads, x, mask, y, cost):
                for k, p in tparams.iteritems()]
     gsup = [(gs, g) for gs, g in zip(gshared, grads)]
 
-    f_grad_shared = theano.function([x, mask, y], cost, updates=gsup)
+    f_grad_shared = theano.function([x, mask, y], cost, updates=gsup,
+                                    name='sgd_f_grad_shared')
 
     pup = [(p, p - lr * g) for p, g in zip(tparams.values(), gshared)]
-    f_update = theano.function([lr], [], updates=pup)
+    f_update = theano.function([lr], [], updates=pup,
+                               name='sgd_f_update')
 
     return f_grad_shared, f_update
 
@@ -308,8 +314,8 @@ def build_model(tparams, options):
 
     pred = tensor.nnet.softmax(tensor.dot(proj, tparams['U'])+tparams['b'])
 
-    f_pred_prob = theano.function([x, mask], pred)
-    f_pred = theano.function([x, mask], pred.argmax(axis=1))
+    f_pred_prob = theano.function([x, mask], pred, name='f_pred_prob')
+    f_pred = theano.function([x, mask], pred.argmax(axis=1), name='f_pred')
 
     cost = -tensor.log(pred[tensor.arange(n_samples), y] + 1e-8).mean()
 
@@ -404,10 +410,10 @@ def train(dim_proj=100,
         weight_decay *= decay_c
         cost += weight_decay
 
-    f_cost = theano.function([x, mask, y], cost)
+    f_cost = theano.function([x, mask, y], cost, name='f_cost')
 
     grads = tensor.grad(cost, wrt=tparams.values())
-    f_grad = theano.function([x, mask, y], grads)
+    f_grad = theano.function([x, mask, y], grads, name='f_grad')
 
     lr = tensor.scalar(name='lr')
     f_grad_shared, f_update = optimizer(lr, tparams, grads,
