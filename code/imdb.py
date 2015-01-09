@@ -11,6 +11,15 @@ import theano.tensor as T
 
 
 def prepare_data(seqs, labels, maxlen=None):
+    """Create the matrices from the datasets.
+
+    This pad each sequence to the same lenght: the lenght of the
+    longuest sequence or maxlen.
+
+    if maxlen is set, we will cut all sequence to this maximum
+    lenght.
+
+    """
     # x: a list of sentences
     lengths = [len(s) for s in seqs]
 

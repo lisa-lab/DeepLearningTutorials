@@ -1,16 +1,17 @@
 '''
 Build a tweet sentiment analyzer
 '''
+from collections import OrderedDict
+import copy
+import cPickle as pkl
+import random
+import sys
+import time
+
+import numpy
 import theano
 import theano.tensor as tensor
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
-
-import cPickle as pkl
-import numpy
-import copy
-import random
-
-from collections import OrderedDict
 
 import imdb
 
@@ -364,7 +365,7 @@ def train(dim_proj=100,
           activ=tensor.tanh,
           decay_c=0.,  # weight decay for the classifier
           lrate=0.01,  # learning rate for sgd (not used for adadelta and rmsprop)
-          n_words=100000,  # wocabulary size
+          n_words=100000,  # vocabulary size
           optimizer=adadelta,
           encoder='lstm',# can be removed must be lstm.
           saveto='lstm_model.npz',
@@ -432,6 +433,7 @@ def train(dim_proj=100,
 
     uidx = 0
     estop = False
+    start_time = time.clock()
     for eidx in xrange(max_epochs):
         n_samples = 0
 
@@ -502,9 +504,11 @@ def train(dim_proj=100,
 
         if estop:
             break
-
+    end_time = time.clock()
     if best_p is not None:
         zipp(best_p, tparams)
+    else:
+        best_p = unzip(tparams)
 
     use_noise.set_value(0.)
     train_err = pred_error(f_pred, prepare_data, train, kf)
@@ -518,12 +522,15 @@ def train(dim_proj=100,
                 valid_err=valid_err, test_err=test_err,
                 history_errs=history_errs, **params)
 
+    print 'The code run for %d epochs, with %f epochs/sec' % (
+        uidx, 1. * uidx / (end_time - start_time))
+    print >> sys.stderr, ('The code for file ' +
+                          os.path.split(__file__)[1] +
+                          ' ran for %.1fs' % ((end_time - start_time)))
     return train_err, valid_err, test_err
 
 
 def main(job_id, params):
-    print ('Anything printed here will end up in the output directory'
-           'for job #%d' % job_id)
     print params
     use_dropout = True if params['use-dropout'][0] else False
     trainerr, validerr, testerr = train(saveto=params['model'][0],
