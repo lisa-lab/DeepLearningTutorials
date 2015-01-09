@@ -374,16 +374,16 @@ def train(dim_proj=100,
           n_words=100000,  # vocabulary size
           optimizer=adadelta,  # sgd, adadelta and rmsprop available
           encoder='lstm',  # can be removed must be lstm.
-          saveto='lstm_model.npz',
+          saveto='lstm_model.npz',  # The best model will be saved there
           noise_std=0.,
           validFreq=1000,  # after 1000
           saveFreq=1000,  # save the parameters after every saveFreq updates
-          maxlen=50,
+          maxlen=50,  # longer sequence get ignored
           batch_size=16,
           valid_batch_size=16,
           dataset='imdb',
           use_dropout=False,  # if False slightly faster, but worst test error
-      ):
+):
 
     # Model options
     model_options = locals().copy()
@@ -536,39 +536,31 @@ def train(dim_proj=100,
     return train_err, valid_err, test_err
 
 
-def main(job_id, params):
-    print params
-    use_dropout = True if params['use-dropout'][0] else False
-    trainerr, validerr, testerr = train(saveto=params['model'][0],
-                                        dim_proj=params['dim-proj'][0],
-                                        n_words=params['n-words'][0],
-                                        decay_c=params['decay-c'][0],
-                                        lrate=params['learning-rate'][0],
-                                        optimizer=params['optimizer'][0],
-                                        activ=params['activ'][0],
-                                        encoder=params['encoder'][0],
-                                        maxlen=600,
-                                        batch_size=16,
-                                        valid_batch_size=16,
-                                        validFreq=10000,
-                                        dispFreq=10,
-                                        saveFreq=100000,
-                                        dataset='imdb',
-                                        use_dropout=use_dropout)
-    return validerr
-
 if __name__ == '__main__':
 
     # We must have floatX=float32 for this tutorial to work correctly.
     theano.config.floatX = "float32"
+    theano.config.scan.allow_gc = False
 
-    main(0, {
-        'model': ['lstm_model.npz'],
-        'encoder': ['lstm'],
-        'dim-proj': [128],
-        'n-words': [10000],
-        'optimizer': [adadelta],  # sgd, adadelta and rmsprop available
-        'activ': [tensor.tanh],  # The activation function from Theano.
-        'decay-c': [0.], #
-        'use-dropout': [1],  # if disable slightly faster, but worst test error.
-        'learning-rate': [0.0001]})
+    # See function train for all possible parameter and there definition.
+    trainerr, validerr, testerr = train(
+        saveto='lstm_model.npz',  # The best model will be saved there
+        dim_proj=128,
+        n_words=10000,
+        decay_c=0,
+        lrate=0.0001,
+        optimizer=sgd,
+        activ=tensor.tanh,
+        encoder='lstm',
+        maxlen=100,  # longer get ignored
+        batch_size=64,
+        valid_batch_size=64,
+        validFreq=10000,
+        dispFreq=10,
+        saveFreq=100000,
+        dataset='imdb',
+        use_dropout=True,
+
+        max_epochs=2,
+    )
+
