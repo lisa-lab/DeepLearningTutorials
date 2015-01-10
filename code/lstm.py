@@ -206,6 +206,34 @@ layers = {'ff': (param_init_fflayer, fflayer),
           'lstm': (param_init_lstm, lstm_layer)}
 
 
+def sgd(lr, tparams, grads, x, mask, y, cost):
+    """ Stochastic Gradient Descent
+
+    :note: A more complicated version of sgd then needed.  This is
+        done like that for adadelta and rmsprop.
+
+    """
+    # New set of shared variable that will contain the gradient
+    # for a mini-batch.
+    gshared = [theano.shared(p.get_value() * 0., name='%s_grad' % k)
+               for k, p in tparams.iteritems()]
+    gsup = [(gs, g) for gs, g in zip(gshared, grads)]
+
+    # Function that computes gradients for a mini-batch, but do not
+    # updates the weights.
+    f_grad_shared = theano.function([x, mask, y], cost, updates=gsup,
+                                    name='sgd_f_grad_shared')
+
+    pup = [(p, p - lr * g) for p, g in zip(tparams.values(), gshared)]
+
+    # Function that updates the weights from the previously computed
+    # gradient.
+    f_update = theano.function([lr], [], updates=pup,
+                               name='sgd_f_update')
+
+    return f_grad_shared, f_update
+
+
 def adadelta(lr, tparams, grads, x, mask, y, cost):
     zipped_grads = [theano.shared(p.get_value() * numpy.float32(0.),
                                   name='%s_grad' % k)
@@ -274,21 +302,6 @@ def rmsprop(lr, tparams, grads, x, mask, y, cost):
     return f_grad_shared, f_update
 
 
-def sgd(lr, tparams, grads, x, mask, y, cost):
-    gshared = [theano.shared(p.get_value() * 0., name='%s_grad' % k)
-               for k, p in tparams.iteritems()]
-    gsup = [(gs, g) for gs, g in zip(gshared, grads)]
-
-    f_grad_shared = theano.function([x, mask, y], cost, updates=gsup,
-                                    name='sgd_f_grad_shared')
-
-    pup = [(p, p - lr * g) for p, g in zip(tparams.values(), gshared)]
-    f_update = theano.function([lr], [], updates=pup,
-                               name='sgd_f_update')
-
-    return f_grad_shared, f_update
-
-
 def build_model(tparams, options):
     trng = RandomStreams(1234)
     use_noise = theano.shared(numpy.float32(0.))
@@ -319,7 +332,7 @@ def build_model(tparams, options):
 
     cost = -tensor.log(pred[tensor.arange(n_samples), y] + 1e-8).mean()
 
-    return trng, use_noise, x, mask, y, f_pred_prob, f_pred, cost
+    return use_noise, x, mask, y, f_pred_prob, f_pred, cost
 
 
 def pred_probs(f_pred_prob, prepare_data, data, iterator, verbose=False):
@@ -364,25 +377,29 @@ def pred_error(f_pred, prepare_data, data, iterator, verbose=False):
     return valid_err
 
 
-def train(dim_proj=100,
-          patience=10,  # number of epoch to wait before early stop if no progress
-          max_epochs=5000,
-          dispFreq=100,  # display to stdout the training progress every N updates
-          activ=tensor.tanh,  # The activation function from Theano.
-          decay_c=0.,  # weight decay for the classifier
-          lrate=0.01,  # learning rate for sgd (not used for adadelta and rmsprop)
-          n_words=100000,  # vocabulary size
-          optimizer=adadelta,  # sgd, adadelta and rmsprop available
-          encoder='lstm',  # can be removed must be lstm.
-          saveto='lstm_model.npz',  # The best model will be saved there
-          noise_std=0.,
-          validFreq=1000,  # after 1000
-          saveFreq=1000,  # save the parameters after every saveFreq updates
-          maxlen=50,  # longer sequence get ignored
-          batch_size=16,
-          valid_batch_size=16,
-          dataset='imdb',
-          use_dropout=False,  # if False slightly faster, but worst test error
+def test_lstm(
+    dim_proj=128,  # TODO: What is this
+    patience=10,  # number of epoch to wait before early stop if no progress
+    max_epochs=5000,  # The maximum number of epoch to run
+    dispFreq=10,  # display to stdout the training progress every N updates
+    activ=tensor.tanh,  # The activation function from Theano.
+    decay_c=0.,  # weight decay for the classifier applied to the U weights.
+    lrate=0.0001,  # learning rate for sgd (not used for adadelta and rmsprop)
+    n_words=10000,  # vocabulary size
+    optimizer=sgd,  # sgd, adadelta and rmsprop available
+    encoder='lstm',  # TODO: can be removed must be lstm.
+    saveto='lstm_model.npz',  # The best model will be saved there
+    validFreq=10000,  # after 1000
+    saveFreq=100000,  # save the parameters after every saveFreq updates
+    maxlen=100,  # longer sequence get ignored
+    batch_size=64,
+    valid_batch_size=64,
+    dataset='imdb',
+
+    # Parameter for extra option
+    noise_std=0.,
+    use_dropout=False,  # if False slightly faster, but worst test error
+                        # TODO: This frequently need a bigger model.
 ):
 
     # Model options
@@ -398,10 +415,17 @@ def train(dim_proj=100,
     model_options['ydim'] = ydim
 
     print 'Building model'
+    # This create the initial parameters as numpy ndarrays.
+    # Dict name (string) -> numpy ndarray
     params = init_params(model_options)
+
+    # This create Theano Shared Variable from the parameters.
+    # Dict name (string) -> Theano Tensor Shared Variable
+    # params and tparams have different copy of the weights.
     tparams = init_tparams(params)
 
-    (trng, use_noise, x, mask,
+    # use_noise is for dropout
+    (use_noise, x, mask,
      y, f_pred_prob, f_pred, cost) = build_model(tparams, model_options)
 
     if decay_c > 0.:
@@ -543,24 +567,4 @@ if __name__ == '__main__':
     theano.config.scan.allow_gc = False
 
     # See function train for all possible parameter and there definition.
-    trainerr, validerr, testerr = train(
-        saveto='lstm_model.npz',  # The best model will be saved there
-        dim_proj=128,
-        n_words=10000,
-        decay_c=0,
-        lrate=0.0001,
-        optimizer=sgd,
-        activ=tensor.tanh,
-        encoder='lstm',
-        maxlen=100,  # longer get ignored
-        batch_size=64,
-        valid_batch_size=64,
-        validFreq=10000,
-        dispFreq=10,
-        saveFreq=100000,
-        dataset='imdb',
-        use_dropout=True,
-
-        max_epochs=2,
-    )
-
+    test_lstm(max_epochs=10)
