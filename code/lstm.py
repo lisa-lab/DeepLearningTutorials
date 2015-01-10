@@ -115,21 +115,6 @@ def get_layer(name):
     return fns
 
 
-def param_init_fflayer(options, params, prefix='ff'):
-    weights = numpy.random.randn(options['dim_proj'], options['dim_proj'])
-    biases = numpy.zeros((options['dim_proj'], ))
-    params[_p(prefix, 'W')] = 0.01 * weights.astype('float32')
-    params[_p(prefix, 'b')] = biases.astype('float32')
-
-    return params
-
-
-def fflayer(tparams, state_below, options, prefix='ff', **kwargs):
-    pre_act = (tensor.dot(state_below,
-                          tparams[_p(prefix, 'W')]) + tparams[_p(prefix, 'b')])
-    return options['activ'](pre_act)
-
-
 def ortho_weight(ndim):
     W = numpy.random.randn(ndim, ndim)
     u, s, v = numpy.linalg.svd(W)
@@ -202,8 +187,7 @@ def lstm_layer(tparams, state_below, options, prefix='lstm', mask=None):
 
 # ff: Feed Forward (normal neural net), only useful to put after lstm
 #     before the classifier.
-layers = {'ff': (param_init_fflayer, fflayer),
-          'lstm': (param_init_lstm, lstm_layer)}
+layers = {'lstm': (param_init_lstm, lstm_layer)}
 
 
 def sgd(lr, tparams, grads, x, mask, y, cost):
@@ -382,7 +366,6 @@ def test_lstm(
     patience=10,  # number of epoch to wait before early stop if no progress
     max_epochs=5000,  # The maximum number of epoch to run
     dispFreq=10,  # display to stdout the training progress every N updates
-    activ=tensor.tanh,  # The activation function from Theano.
     decay_c=0.,  # weight decay for the classifier applied to the U weights.
     lrate=0.0001,  # learning rate for sgd (not used for adadelta and rmsprop)
     n_words=10000,  # vocabulary size
