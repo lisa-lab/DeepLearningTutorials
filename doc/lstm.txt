@@ -1,6 +1,6 @@
 .. _lstm:
 
-LSTM Network for Sentiment Analysis
+LSTM Networks for Sentiment Analysis
 **********************************************
 
 Summary
