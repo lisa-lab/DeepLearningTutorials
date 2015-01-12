@@ -19,6 +19,9 @@ datasets = {'imdb': (imdb.load_data, imdb.prepare_data)}
 
 
 def get_minibatches_idx(n, nb_batches, shuffle=False):
+    """
+    Used to shuffle the dataset at each iteration.
+    """
 
     idx_list = numpy.arange(n, dtype="int32")
 
@@ -381,8 +384,8 @@ def test_lstm(
 
     # Parameter for extra option
     noise_std=0.,
-    use_dropout=False,  # if False slightly faster, but worst test error
-                        # TODO: This frequently need a bigger model.
+    use_dropout=True,  # if False slightly faster, but worst test error
+                       # This frequently need a bigger model.
 ):
 
     # Model options
@@ -502,6 +505,10 @@ def test_lstm(
 
                     best_p = unzip(tparams)
                     bad_counter = 0
+
+                print ('Train ', train_err, 'Valid ', valid_err,
+                       'Test ', test_err)
+
                 if (len(history_errs) > patience and
                     valid_err >= numpy.array(history_errs)[:-patience,
                                                            0].min()):
@@ -510,9 +517,6 @@ def test_lstm(
                         print 'Early Stop!'
                         estop = True
                         break
-
-                print ('Train ', train_err, 'Valid ', valid_err,
-                       'Test ', test_err)
 
         print 'Seen %d samples' % n_samples
 
@@ -537,8 +541,8 @@ def test_lstm(
                 history_errs=history_errs, **params)
 
     print 'The code run for %d epochs, with %f sec/epochs' % (
-        (eidx + 1), 1. * (eidx + 1) / (end_time - start_time))
-    print >> sys.stderr, ('Training took %.1fs minutes' %
+        (eidx + 1), (end_time - start_time) / (1. * (eidx + 1)))
+    print >> sys.stderr, ('Training took %.1fs' %
                           (end_time - start_time))
     return train_err, valid_err, test_err
 
@@ -547,6 +551,7 @@ if __name__ == '__main__':
 
     # We must have floatX=float32 for this tutorial to work correctly.
     theano.config.floatX = "float32"
+    # The next line is the new Theano default. This is a speed up.
     theano.config.scan.allow_gc = False
 
     # See function train for all possible parameter and there definition.
