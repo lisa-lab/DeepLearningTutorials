@@ -53,7 +53,7 @@ Recurrent neural networks with word embeddings and context window:
   * :ref:`Semantic Parsing of Speech using Recurrent Net <rnnslu>`
 
 LSTM network for sentiment analysis:
-  * :ref:`LSTM network <lstm>` - Only the code for now
+  * :ref:`LSTM network <lstm>`
 
 Energy-based recurrent neural network (RNN-RBM):
   * :ref:`Modeling and generating sequences of polyphonic music <rnnrbm>`
