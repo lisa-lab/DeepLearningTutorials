@@ -200,6 +200,8 @@ If you use this tutorial, please cite the following papers:
 
 * `[pdf] <http://deeplearning.cs.cmu.edu/pdfs/Hochreiter97_lstm.pdf>`_ Hochreiter, S., & Schmidhuber, J. (1997). Long short-term memory. Neural computation, 9(8), 1735-1780.
 
+* `[pdf] <http://www.mitpressjournals.org/doi/pdf/10.1162/089976600300015015>`_ Gers, F. A., Schmidhuber, J., & Cummins, F. (2000). Learning to forget: Continual prediction with LSTM. Neural computation, 12(10), 2451-2471.
+
 * `[pdf] <http://www.cs.toronto.edu/~graves/preprint.pdf>`_ Graves, Alex. Supervised sequence labelling with recurrent neural networks. Vol. 385. Springer, 2012.
 
 * `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/nips2012_deep_workshop_theano_final.pdf>`_ Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Bergstra, James, Goodfellow, Ian, Bergeron, Arnaud, Bouchard, Nicolas, and Bengio, Yoshua. Theano: new features and speed improvements. NIPS Workshop on Deep Learning and Unsupervised Feature Learning, 2012.
@@ -218,6 +220,8 @@ References
 ++++++++++
 
 * Hochreiter, S., & Schmidhuber, J. (1997). Long short-term memory. Neural computation, 9(8), 1735-1780.
+
+* Gers, F. A., Schmidhuber, J., & Cummins, F. (2000). Learning to forget: Continual prediction with LSTM. Neural computation, 12(10), 2451-2471.
 
 * Graves, A. (2012). Supervised sequence labelling with recurrent neural networks (Vol. 385). Springer.
 
