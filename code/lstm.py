@@ -461,7 +461,6 @@ def test_lstm(
                                  shuffle=True)
 
         for _, train_index in kf:
-            n_samples += train_index.shape[0]
             uidx += 1
             use_noise.set_value(1.)
 
@@ -475,6 +474,7 @@ def test_lstm(
             if x is None:
                 print 'Minibatch with zero sample under length ', maxlen
                 continue
+            n_samples += x.shape[1]
 
             cost = f_grad_shared(x, mask, y)
             f_update(lrate)
