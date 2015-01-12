@@ -24,9 +24,8 @@ recurrent neural on the Large Movie Review Dataset dataset.
 
 While the dataset is public, in this tutorial we provide a copy of the dataset
 that has previously been preprocessed according to the needs of this LSTM
-implementation. You can download this preprocessed version of the dataset
-using the script `download.sh
-<https://raw.githubusercontent.com/lisa-lab/DeepLearningTutorials/master/data/download.sh>`_.
+implementation. Running the code provided in this tutorial will automatically
+download the data to the local directory.
 
 Model
 +++++
@@ -184,14 +183,14 @@ The LSTM implementation can be found in the two following files :
 
 * `imdb.py <http://deeplearning.net/tutorial/code/imdb.py>`_ : Secondary script. Handles the loading and preprocessing of the IMDB dataset.
 
-After downloading both the scripts, downloading the data and
-putting all those files in the same folder, the user can run the code by
-calling:
+After downloading both scripts and putting both in the same folder, the user
+can run the code by calling:
 
 .. code-block:: bash
 
     THEANO_FLAGS="floatX=float32" python train_lstm.py
 
+The script will automatically download the data and decompress it.
 
 Papers
 ======
