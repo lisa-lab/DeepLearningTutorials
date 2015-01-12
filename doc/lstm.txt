@@ -196,7 +196,7 @@ calling:
 Papers
 ======
 
-If you use this tutorial, please cite the following paper.
+If you use this tutorial, please cite the following papers.
 
 Introduction of the LSTM model:
 
