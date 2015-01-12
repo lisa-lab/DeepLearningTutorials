@@ -15,6 +15,10 @@ import numpy
 import theano
 from theano import tensor as T
 
+# Otherwise the deepcopy fails
+import sys
+sys.setrecursionlimit(1500)
+
 PREFIX = os.getenv(
     'ATISDATA',
     os.path.join(os.path.split(os.path.abspath(os.path.dirname(__file__)))[0],
