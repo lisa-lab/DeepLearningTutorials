@@ -291,6 +291,8 @@ def rmsprop(lr, tparams, grads, x, mask, y, cost):
 
 def build_model(tparams, options):
     trng = RandomStreams(1234)
+
+    # Used for dropout.
     use_noise = theano.shared(numpy.float32(0.))
 
     x = tensor.matrix('x', dtype='int64')
@@ -378,8 +380,8 @@ def test_lstm(
     validFreq=10000,  # after 1000
     saveFreq=100000,  # save the parameters after every saveFreq updates
     maxlen=100,  # longer sequence get ignored
-    batch_size=64,
-    valid_batch_size=64,
+    batch_size=64,  # the batch size during training.
+    valid_batch_size=64,  # The batch size during validation
     dataset='imdb',
 
     # Parameter for extra option
@@ -448,12 +450,13 @@ def test_lstm(
     if saveFreq == -1:
         saveFreq = len(train[0])/batch_size
 
-    uidx = 0
-    estop = False
+    uidx = 0  # the number of update done
+    estop = False  # early stop
     start_time = time.clock()
     for eidx in xrange(max_epochs):
         n_samples = 0
 
+        # Get new shuffled index for the training set.
         kf = get_minibatches_idx(len(train[0]), len(train[0])/batch_size,
                                  shuffle=True)
 
@@ -462,10 +465,13 @@ def test_lstm(
             uidx += 1
             use_noise.set_value(1.)
 
+            # Select the random examples for this minibatch
             y = [train[1][t] for t in train_index]
-            x, mask, y = prepare_data([train[0][t]for t in train_index],
-                                      y, maxlen=maxlen)
+            x = [train[0][t]for t in train_index]
 
+            # Get the data in numpy.ndarray formet.
+            # It return something of the shape (minibatch maxlen, n samples)
+            x, mask, y = prepare_data(x, y, maxlen=maxlen)
             if x is None:
                 print 'Minibatch with zero sample under length ', maxlen
                 continue
