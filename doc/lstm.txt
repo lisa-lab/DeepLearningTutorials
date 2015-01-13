@@ -194,6 +194,11 @@ can run the code by calling:
 
 The script will automatically download the data and decompress it.
 
+**Note** : The provided code supports the Stochastic Gradient Descent (SGD),
+AdaDelta and RMSProp optimization methods. You are advised to use AdaDelta or
+RMSProp because SGD appears to performs poorly on this task with this
+particular model.
+
 Papers
 ======
 
