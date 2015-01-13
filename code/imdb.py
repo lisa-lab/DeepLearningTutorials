@@ -74,11 +74,19 @@ def get_dataset_file(dataset, default_dataset, origin):
     return dataset
 
 
-def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1):
+def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1, maxlen=None):
     ''' Loads the dataset
 
-    :type dataset: string
-    :param dataset: the path to the dataset (here IMDB)
+    :type path: String
+    :param path: The path to the dataset (here IMDB)
+    :type n_words: int
+    :param n_words: The number of word to keep in the vocabulary.
+        All extra words are set to unknow (1).
+    :type valid_portion: float
+    :param valid_portion: The proportion of the full train set used for
+        the validation set.
+    :type maxlen: None or positive int
+    :param maxlen: the max sequence length we use in the train/valid set.
     '''
 
     #############
@@ -98,6 +106,15 @@ def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1):
     train_set = cPickle.load(f)
     test_set = cPickle.load(f)
     f.close()
+    if maxlen:
+        new_train_set_x = []
+        new_train_set_y = []
+        for x, y in zip(train_set[0], train_set[1]):
+            if len(x) < maxlen:
+                new_train_set_x.append(x)
+                new_train_set_y.append(y)
+        train_set = (new_train_set_x, new_train_set_y)
+        del new_train_set_x, new_train_set_y
 
     # split training set into validation set
     train_set_x, train_set_y = train_set

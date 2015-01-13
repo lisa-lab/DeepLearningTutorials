@@ -373,22 +373,22 @@ def pred_error(f_pred, prepare_data, data, iterator, verbose=False):
     return valid_err
 
 
-def test_lstm(
+def train_lstm(
     dim_proj=128,  # word embeding dimension and LSTM number of hidden units.
-    patience=10,  # number of epoch to wait before early stop if no progress
+    patience=10,  # Number of epoch to wait before early stop if no progress
     max_epochs=5000,  # The maximum number of epoch to run
-    dispFreq=10,  # display to stdout the training progress every N updates
-    decay_c=0.,  # weight decay for the classifier applied to the U weights.
-    lrate=0.0001,  # learning rate for sgd (not used for adadelta and rmsprop)
-    n_words=10000,  # vocabulary size
-    optimizer=adadelta,  # sgd, adadelta and rmsprop available, sgd very hard to use, not recommanded (probably need momentum and decay learning rate).
+    dispFreq=10,  # Display to stdout the training progress every N updates
+    decay_c=0.,  # Weight decay for the classifier applied to the U weights.
+    lrate=0.0001,  # Learning rate for sgd (not used for adadelta and rmsprop)
+    n_words=10000,  # Vocabulary size
+    optimizer=adadelta,  # sgd, adadelta and rmsprop available, sgd very hard to use, not recommanded (probably need momentum and decaying learning rate).
     encoder='lstm',  # TODO: can be removed must be lstm.
     saveto='lstm_model.npz',  # The best model will be saved there
-    validFreq=10000,  # after 1000
-    saveFreq=100000,  # save the parameters after every saveFreq updates
-    maxlen=100,  # longer sequence get ignored
-    batch_size=64,  # the batch size during training.
-    valid_batch_size=64,  # The batch size during validation
+    validFreq=390,  # Compute the validation error after this number of update.
+    saveFreq=1040,  # Save the parameters after every saveFreq updates
+    maxlen=100,  # Sequence longer then this get ignored
+    batch_size=16,  # The batch size during training.
+    valid_batch_size=64,  # The batch size used for validation/test set.
     dataset='imdb',
 
     # Parameter for extra option
@@ -400,11 +400,13 @@ def test_lstm(
 
     # Model options
     model_options = locals().copy()
+    print "model options", model_options
 
     load_data, prepare_data = get_dataset(dataset)
 
     print 'Loading data'
-    train, valid, test = load_data(n_words=n_words, valid_portion=0.01)
+    train, valid, test = load_data(n_words=n_words, valid_portion=0.01,
+                                   maxlen=maxlen)
 
     ydim = numpy.max(train[1])+1
 
@@ -569,7 +571,7 @@ if __name__ == '__main__':
     theano.config.scan.allow_gc = False
 
     # See function train for all possible parameter and there definition.
-    test_lstm(
+    train_lstm(
         #reload_model="lstm_model.npz",
-        max_epochs=10,
+        max_epochs=100,
     )
