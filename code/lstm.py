@@ -384,8 +384,8 @@ def train_lstm(
     optimizer=adadelta,  # sgd, adadelta and rmsprop available, sgd very hard to use, not recommanded (probably need momentum and decaying learning rate).
     encoder='lstm',  # TODO: can be removed must be lstm.
     saveto='lstm_model.npz',  # The best model will be saved there
-    validFreq=390,  # Compute the validation error after this number of update.
-    saveFreq=1040,  # Save the parameters after every saveFreq updates
+    validFreq=370,  # Compute the validation error after this number of update.
+    saveFreq=1110,  # Save the parameters after every saveFreq updates
     maxlen=100,  # Sequence longer then this get ignored
     batch_size=16,  # The batch size during training.
     valid_batch_size=64,  # The batch size used for validation/test set.
@@ -467,80 +467,85 @@ def train_lstm(
     uidx = 0  # the number of update done
     estop = False  # early stop
     start_time = time.clock()
-    for eidx in xrange(max_epochs):
-        n_samples = 0
+    try:
+        for eidx in xrange(max_epochs):
+            n_samples = 0
 
-        # Get new shuffled index for the training set.
-        kf = get_minibatches_idx(len(train[0]), batch_size, shuffle=True)
+            # Get new shuffled index for the training set.
+            kf = get_minibatches_idx(len(train[0]), batch_size, shuffle=True)
 
-        for _, train_index in kf:
-            uidx += 1
-            use_noise.set_value(1.)
+            for _, train_index in kf:
+                uidx += 1
+                use_noise.set_value(1.)
 
-            # Select the random examples for this minibatch
-            y = [train[1][t] for t in train_index]
-            x = [train[0][t]for t in train_index]
+                # Select the random examples for this minibatch
+                y = [train[1][t] for t in train_index]
+                x = [train[0][t]for t in train_index]
 
-            # Get the data in numpy.ndarray formet.
-            # It return something of the shape (minibatch maxlen, n samples)
-            x, mask, y = prepare_data(x, y, maxlen=maxlen)
-            if x is None:
-                print 'Minibatch with zero sample under length ', maxlen
-                continue
-            n_samples += x.shape[1]
+                # Get the data in numpy.ndarray formet.
+                # It return something of the shape (minibatch maxlen, n samples)
+                x, mask, y = prepare_data(x, y, maxlen=maxlen)
+                if x is None:
+                    print 'Minibatch with zero sample under length ', maxlen
+                    continue
+                n_samples += x.shape[1]
 
-            cost = f_grad_shared(x, mask, y)
-            f_update(lrate)
+                cost = f_grad_shared(x, mask, y)
+                f_update(lrate)
 
-            if numpy.isnan(cost) or numpy.isinf(cost):
-                print 'NaN detected'
-                return 1., 1., 1.
+                if numpy.isnan(cost) or numpy.isinf(cost):
+                    print 'NaN detected'
+                    return 1., 1., 1.
 
-            if numpy.mod(uidx, dispFreq) == 0:
-                print 'Epoch ', eidx, 'Update ', uidx, 'Cost ', cost
+                if numpy.mod(uidx, dispFreq) == 0:
+                    print 'Epoch ', eidx, 'Update ', uidx, 'Cost ', cost
 
-            if numpy.mod(uidx, saveFreq) == 0:
-                print 'Saving...',
+                if numpy.mod(uidx, saveFreq) == 0:
+                    print 'Saving...',
 
-                if best_p is not None:
-                    params = best_p
-                else:
-                    params = unzip(tparams)
-                numpy.savez(saveto, history_errs=history_errs, **params)
-                pkl.dump(model_options, open('%s.pkl' % saveto, 'wb'), -1)
-                print 'Done'
+                    if best_p is not None:
+                        params = best_p
+                    else:
+                        params = unzip(tparams)
+                    numpy.savez(saveto, history_errs=history_errs, **params)
+                    pkl.dump(model_options, open('%s.pkl' % saveto, 'wb'), -1)
+                    print 'Done'
 
-            if numpy.mod(uidx, validFreq) == 0:
-                use_noise.set_value(0.)
-                train_err = pred_error(f_pred, prepare_data, train, kf)
-                valid_err = pred_error(f_pred, prepare_data, valid, kf_valid)
-                test_err = pred_error(f_pred, prepare_data, test, kf_test)
+                if numpy.mod(uidx, validFreq) == 0:
+                    use_noise.set_value(0.)
+                    train_err = pred_error(f_pred, prepare_data, train, kf)
+                    valid_err = pred_error(f_pred, prepare_data, valid, kf_valid)
+                    test_err = pred_error(f_pred, prepare_data, test, kf_test)
 
-                history_errs.append([valid_err, test_err])
+                    history_errs.append([valid_err, test_err])
 
-                if (uidx == 0 or
-                    valid_err <= numpy.array(history_errs)[:,
-                                                           0].min()):
+                    if (uidx == 0 or
+                        valid_err <= numpy.array(history_errs)[:,
+                                                               0].min()):
 
-                    best_p = unzip(tparams)
-                    bad_counter = 0
+                        best_p = unzip(tparams)
+                        bad_counter = 0
 
-                print ('Train ', train_err, 'Valid ', valid_err,
-                       'Test ', test_err)
+                    print ('Train ', train_err, 'Valid ', valid_err,
+                           'Test ', test_err)
 
-                if (len(history_errs) > patience and
-                    valid_err >= numpy.array(history_errs)[:-patience,
-                                                           0].min()):
-                    bad_counter += 1
-                    if bad_counter > patience:
-                        print 'Early Stop!'
-                        estop = True
-                        break
+                    if (len(history_errs) > patience and
+                        valid_err >= numpy.array(history_errs)[:-patience,
+                                                               0].min()):
+                        bad_counter += 1
+                        if bad_counter > patience:
+                            print 'Early Stop!'
+                            estop = True
+                            break
 
-        print 'Seen %d samples' % n_samples
+            print 'Seen %d samples' % n_samples
 
-        if estop:
-            break
+            if estop:
+                break
+
+    except KeyboardInterrupt:
+        print "Training interupted"
+
     end_time = time.clock()
     if best_p is not None:
         zipp(best_p, tparams)
