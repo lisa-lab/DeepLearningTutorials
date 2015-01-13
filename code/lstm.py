@@ -559,11 +559,9 @@ def train_lstm(
 
     print 'Train ', train_err, 'Valid ', valid_err, 'Test ', test_err
 
-    params = copy.copy(best_p)
-    numpy.savez(saveto, zipped_params=best_p, train_err=train_err,
+    numpy.savez(saveto, train_err=train_err,
                 valid_err=valid_err, test_err=test_err,
-                history_errs=history_errs, **params)
-
+                history_errs=history_errs, **best_p)
     print 'The code run for %d epochs, with %f sec/epochs' % (
         (eidx + 1), (end_time - start_time) / (1. * (eidx + 1)))
     print >> sys.stderr, ('Training took %.1fs' %
