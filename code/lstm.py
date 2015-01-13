@@ -405,7 +405,7 @@ def train_lstm(
     load_data, prepare_data = get_dataset(dataset)
 
     print 'Loading data'
-    train, valid, test = load_data(n_words=n_words, valid_portion=0.01,
+    train, valid, test = load_data(n_words=n_words, valid_portion=0.05,
                                    maxlen=maxlen)
 
     ydim = numpy.max(train[1])+1
@@ -452,6 +452,9 @@ def train_lstm(
     kf_test = get_minibatches_idx(len(test[0]), valid_batch_size,
                                   shuffle=True)
 
+    print "%d train examples" % len(train[0])
+    print "%d valid examples" % len(valid[0])
+    print "%d test examples" % len(test[0])
     history_errs = []
     best_p = None
     bad_count = 0
