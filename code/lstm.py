@@ -80,6 +80,9 @@ def _p(pp, name):
 
 
 def init_params(options):
+    """
+    Global (not LSTM) parameter. For the embeding and the classifier.
+    """
     params = OrderedDict()
     # embedding
     randn = numpy.random.rand(options['n_words'],
@@ -125,6 +128,11 @@ def ortho_weight(ndim):
 
 
 def param_init_lstm(options, params, prefix='lstm'):
+    """
+    Init the LSTM parameter:
+
+    :see: init_params
+    """
     W = numpy.concatenate([ortho_weight(options['dim_proj']),
                            ortho_weight(options['dim_proj']),
                            ortho_weight(options['dim_proj']),
@@ -388,6 +396,7 @@ def test_lstm(
     noise_std=0.,
     use_dropout=True,  # if False slightly faster, but worst test error
                        # This frequently need a bigger model.
+    reload_model="",  # Path to a saved model we want to start from.
 ):
 
     # Model options
@@ -406,6 +415,9 @@ def test_lstm(
     # This create the initial parameters as numpy ndarrays.
     # Dict name (string) -> numpy ndarray
     params = init_params(model_options)
+
+    if reload_model:
+        load_params('lstm_model.npz', params)
 
     # This create Theano Shared Variable from the parameters.
     # Dict name (string) -> Theano Tensor Shared Variable
@@ -561,4 +573,7 @@ if __name__ == '__main__':
     theano.config.scan.allow_gc = False
 
     # See function train for all possible parameter and there definition.
-    test_lstm(max_epochs=10)
+    test_lstm(
+        #reload_model="lstm_model.npz",
+        max_epochs=10,
+    )
