@@ -19,8 +19,8 @@ is positive or negative. This is a binary classification task.
 Data
 ++++
 
-As previously mentionned, the provided scripts are used to train a LSTM
-recurrent neural on the Large Movie Review Dataset dataset.
+As previously mentioned, the provided scripts are used to train a LSTM
+recurrent neural network on the Large Movie Review Dataset dataset.
 
 While the dataset is public, in this tutorial we provide a copy of the dataset
 that has previously been preprocessed according to the needs of this LSTM
@@ -40,11 +40,13 @@ matrix associated with the connections between the neurons of the recurrent
 hidden layer. This means that, the magnitude of weights in the transition
 matrix can have a strong impact on the learning process.
 
-If the weights in this matrix are small, it can lead to a situation called
+If the weights in this matrix are small (or, more formally, if the leading
+eigenvalue of the weight matrix is small), it can lead to a situation called
 *vanishing gradients* where the gradient signal gets so small that learning
 either becomes very slow or stops working altogether. It can also make more
 difficult the task of learning long-term dependencies in the data.
-Conversely, if the weights in this matrix are large, it can lead to a
+Conversely, if the weights in this matrix are large (or, again, more formally,
+if the leading eigenvalue of the weight matrix is large), it can lead to a
 situation where the gradient signal is so large that it can cause learning to
 diverge. This is often referred to as *exploding gradients*.
 
@@ -55,7 +57,7 @@ connection (a connection to itself), a forget gate and an output gate. The
 self-recurrent connection has a weight of 1.0 and ensures that, barring any
 outside interference, the state of a memory cell can remain constant from one
 timestep to another. The gates serve to modulate the interactions between the
-memory cell and itself and its environment. The input gate can allow incoming
+memory cell itself and its environment. The input gate can allow incoming
 signal to alter the state of the memory cell or block it. On the other hand,
 the output gate can allow the state of the memory cell to have an effect on
 other neurons or prevent it. Finally, the forget gate can modulate the memory
