@@ -41,14 +41,14 @@ hidden layer. This means that, the magnitude of weights in the transition
 matrix can have a strong impact on the learning process.
 
 If the weights in this matrix are small (or, more formally, if the leading
-eigenvalue of the weight matrix is small), it can lead to a situation called
-*vanishing gradients* where the gradient signal gets so small that learning
-either becomes very slow or stops working altogether. It can also make more
-difficult the task of learning long-term dependencies in the data.
-Conversely, if the weights in this matrix are large (or, again, more formally,
-if the leading eigenvalue of the weight matrix is large), it can lead to a
-situation where the gradient signal is so large that it can cause learning to
-diverge. This is often referred to as *exploding gradients*.
+eigenvalue of the weight matrix is smaller than 1.0), it can lead to a
+situation called *vanishing gradients* where the gradient signal gets so small
+that learning either becomes very slow or stops working altogether. It can
+also make more difficult the task of learning long-term dependencies in the
+data. Conversely, if the weights in this matrix are large (or, again, more
+formally, if the leading eigenvalue of the weight matrix is larger than 1.0),
+it can lead to a situation where the gradient signal is so large that it can
+cause learning to diverge. This is often referred to as *exploding gradients*.
 
 These issues are the main motivation behind the LSTM model which introduces a
 new structure called a *memory cell* (see Figure 1 below). A memory cell is
