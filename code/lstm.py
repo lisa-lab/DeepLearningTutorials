@@ -375,14 +375,14 @@ def pred_error(f_pred, prepare_data, data, iterator, verbose=False):
 
 
 def test_lstm(
-    dim_proj=128,  # TODO: What is this
+    dim_proj=128,  # word embeding dimension and LSTM number of hidden units.
     patience=10,  # number of epoch to wait before early stop if no progress
     max_epochs=5000,  # The maximum number of epoch to run
     dispFreq=10,  # display to stdout the training progress every N updates
     decay_c=0.,  # weight decay for the classifier applied to the U weights.
     lrate=0.0001,  # learning rate for sgd (not used for adadelta and rmsprop)
     n_words=10000,  # vocabulary size
-    optimizer=sgd,  # sgd, adadelta and rmsprop available
+    optimizer=adadelta,  # sgd, adadelta and rmsprop available, sgd very hard to use, not recommanded (probably need momentum and decay learning rate).
     encoder='lstm',  # TODO: can be removed must be lstm.
     saveto='lstm_model.npz',  # The best model will be saved there
     validFreq=10000,  # after 1000
