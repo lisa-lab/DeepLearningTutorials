@@ -18,7 +18,7 @@ import imdb
 datasets = {'imdb': (imdb.load_data, imdb.prepare_data)}
 
 
-def get_minibatches_idx(n, nb_batches, shuffle=False):
+def get_minibatches_idx(n, minibatch_size, shuffle=False):
     """
     Used to shuffle the dataset at each iteration.
     """
@@ -30,17 +30,16 @@ def get_minibatches_idx(n, nb_batches, shuffle=False):
 
     minibatches = []
     minibatch_start = 0
-    for i in range(nb_batches):
-        if i < n % nb_batches:
-            minibatch_size = n // nb_batches + 1
-        else:
-            minibatch_size = n // nb_batches
-
+    for i in range(n // minibatch_size):
         minibatches.append(idx_list[minibatch_start:
                                     minibatch_start + minibatch_size])
         minibatch_start += minibatch_size
 
-    return zip(range(nb_batches), minibatches)
+    if (minibatch_start != n):
+        # Make a minibatch out of what is left
+        minibatches.append(idx_list[minibatch_start:])
+
+    return zip(range(len(minibatches)), minibatches)
 
 
 def get_dataset(name):
@@ -446,11 +445,9 @@ def test_lstm(
 
     print 'Optimization'
 
-    kf_valid = get_minibatches_idx(len(valid[0]),
-                                   len(valid[0]) / valid_batch_size,
+    kf_valid = get_minibatches_idx(len(valid[0]), valid_batch_size,
                                    shuffle=True)
-    kf_test = get_minibatches_idx(len(test[0]),
-                                  len(test[0]) / valid_batch_size,
+    kf_test = get_minibatches_idx(len(test[0]), valid_batch_size,
                                   shuffle=True)
 
     history_errs = []
@@ -469,8 +466,7 @@ def test_lstm(
         n_samples = 0
 
         # Get new shuffled index for the training set.
-        kf = get_minibatches_idx(len(train[0]), len(train[0])/batch_size,
-                                 shuffle=True)
+        kf = get_minibatches_idx(len(train[0]), batch_size, shuffle=True)
 
         for _, train_index in kf:
             uidx += 1
