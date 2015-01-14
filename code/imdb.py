@@ -1,16 +1,22 @@
 import cPickle
 import gzip
 import os
-import sys
-import time
 
 import numpy
 
 import theano
-import theano.tensor as T
 
 
 def prepare_data(seqs, labels, maxlen=None):
+    """Create the matrices from the datasets.
+
+    This pad each sequence to the same lenght: the lenght of the
+    longuest sequence or maxlen.
+
+    if maxlen is set, we will cut all sequence to this maximum
+    lenght.
+
+    """
     # x: a list of sentences
     lengths = [len(s) for s in seqs]
 
@@ -42,24 +48,73 @@ def prepare_data(seqs, labels, maxlen=None):
     return x, x_mask, labels
 
 
-def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1):
+def get_dataset_file(dataset, default_dataset, origin):
+    '''Look for it as if it was a full path, if not, try local file,
+    if not try in the data directory.
+
+    Download dataset if it is not present
+
+    '''
+    data_dir, data_file = os.path.split(dataset)
+    if data_dir == "" and not os.path.isfile(dataset):
+        # Check if dataset is in the data directory.
+        new_path = os.path.join(
+            os.path.split(__file__)[0],
+            "..",
+            "data",
+            dataset
+        )
+        if os.path.isfile(new_path) or data_file == default_dataset:
+            dataset = new_path
+
+    if (not os.path.isfile(dataset)) and data_file == default_dataset:
+        import urllib
+        print 'Downloading data from %s' % origin
+        urllib.urlretrieve(origin, dataset)
+    return dataset
+
+
+def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1, maxlen=None):
     ''' Loads the dataset
 
-    :type dataset: string
-    :param dataset: the path to the dataset (here IMDB)
+    :type path: String
+    :param path: The path to the dataset (here IMDB)
+    :type n_words: int
+    :param n_words: The number of word to keep in the vocabulary.
+        All extra words are set to unknow (1).
+    :type valid_portion: float
+    :param valid_portion: The proportion of the full train set used for
+        the validation set.
+    :type maxlen: None or positive int
+    :param maxlen: the max sequence length we use in the train/valid set.
     '''
 
     #############
     # LOAD DATA #
     #############
 
-    print '... loading data'
-
     # Load the dataset
-    f = open(path, 'rb')
+    path = get_dataset_file(
+        path, "imdb.pkl",
+        "http://www.iro.umontreal.ca/~lisa/deep/data/imdb.pkl")
+
+    if path.endswith(".gz"):
+        f = gzip.open(path, 'rb')
+    else:
+        f = open(path, 'rb')
+
     train_set = cPickle.load(f)
     test_set = cPickle.load(f)
     f.close()
+    if maxlen:
+        new_train_set_x = []
+        new_train_set_y = []
+        for x, y in zip(train_set[0], train_set[1]):
+            if len(x) < maxlen:
+                new_train_set_x.append(x)
+                new_train_set_y.append(y)
+        train_set = (new_train_set_x, new_train_set_y)
+        del new_train_set_x, new_train_set_y
 
     # split training set into validation set
     train_set_x, train_set_y = train_set
