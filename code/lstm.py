@@ -2,7 +2,6 @@
 Build a tweet sentiment analyzer
 '''
 from collections import OrderedDict
-import copy
 import cPickle as pkl
 import random
 import sys
@@ -159,8 +158,8 @@ def lstm_layer(tparams, state_below, options, prefix='lstm', mask=None):
 
     def _slice(_x, n, dim):
         if _x.ndim == 3:
-            return _x[:, :, n*dim:(n+1)*dim]
-        return _x[:, n*dim:(n+1)*dim]
+            return _x[:, :, n * dim:(n + 1) * dim]
+        return _x[:, n * dim:(n + 1) * dim]
 
     def _step(m_, x_, h_, c_):
         preact = tensor.dot(h_, tparams[_p(prefix, 'U')])
@@ -243,7 +242,7 @@ def adadelta(lr, tparams, grads, x, mask, y, cost):
     rg2up = [(rg2, 0.95 * rg2 + 0.05 * (g ** 2))
              for rg2, g in zip(running_grads2, grads)]
 
-    f_grad_shared = theano.function([x, mask, y], cost, updates=zgup+rg2up,
+    f_grad_shared = theano.function([x, mask, y], cost, updates=zgup + rg2up,
                                     name='adadelta_f_grad_shared')
 
     updir = [-tensor.sqrt(ru2 + 1e-6) / tensor.sqrt(rg2 + 1e-6) * zg
@@ -254,7 +253,7 @@ def adadelta(lr, tparams, grads, x, mask, y, cost):
              for ru2, ud in zip(running_up2, updir)]
     param_up = [(p, p + ud) for p, ud in zip(tparams.values(), updir)]
 
-    f_update = theano.function([lr], [], updates=ru2up+param_up,
+    f_update = theano.function([lr], [], updates=ru2up + param_up,
                                on_unused_input='ignore',
                                name='adadelta_f_update')
 
@@ -289,7 +288,7 @@ def rmsprop(lr, tparams, grads, x, mask, y, cost):
                                             running_grads2)]
     param_up = [(p, p + udn[1])
                 for p, udn in zip(tparams.values(), updir_new)]
-    f_update = theano.function([lr], [], updates=updir_new+param_up,
+    f_update = theano.function([lr], [], updates=updir_new + param_up,
                                on_unused_input='ignore',
                                name='rmsprop_f_update')
 
@@ -321,7 +320,7 @@ def build_model(tparams, options):
     if options['use_dropout']:
         proj = dropout_layer(proj, use_noise, trng)
 
-    pred = tensor.nnet.softmax(tensor.dot(proj, tparams['U'])+tparams['b'])
+    pred = tensor.nnet.softmax(tensor.dot(proj, tparams['U']) + tparams['b'])
 
     f_pred_prob = theano.function([x, mask], pred, name='f_pred_prob')
     f_pred = theano.function([x, mask], pred.argmax(axis=1), name='f_pred')
@@ -408,7 +407,7 @@ def train_lstm(
     train, valid, test = load_data(n_words=n_words, valid_portion=0.05,
                                    maxlen=maxlen)
 
-    ydim = numpy.max(train[1])+1
+    ydim = numpy.max(train[1]) + 1
 
     model_options['ydim'] = ydim
 
@@ -432,7 +431,7 @@ def train_lstm(
     if decay_c > 0.:
         decay_c = theano.shared(numpy.float32(decay_c), name='decay_c')
         weight_decay = 0.
-        weight_decay += (tparams['U']**2).sum()
+        weight_decay += (tparams['U'] ** 2).sum()
         weight_decay *= decay_c
         cost += weight_decay
 
@@ -460,9 +459,9 @@ def train_lstm(
     bad_count = 0
 
     if validFreq == -1:
-        validFreq = len(train[0])/batch_size
+        validFreq = len(train[0]) / batch_size
     if saveFreq == -1:
-        saveFreq = len(train[0])/batch_size
+        saveFreq = len(train[0]) / batch_size
 
     uidx = 0  # the number of update done
     estop = False  # early stop
@@ -514,7 +513,8 @@ def train_lstm(
                 if numpy.mod(uidx, validFreq) == 0:
                     use_noise.set_value(0.)
                     train_err = pred_error(f_pred, prepare_data, train, kf)
-                    valid_err = pred_error(f_pred, prepare_data, valid, kf_valid)
+                    valid_err = pred_error(f_pred, prepare_data, valid,
+                                           kf_valid)
                     test_err = pred_error(f_pred, prepare_data, test, kf_test)
 
                     history_errs.append([valid_err, test_err])

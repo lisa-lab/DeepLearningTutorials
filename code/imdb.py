@@ -4,8 +4,6 @@ import os
 
 import numpy
 
-import theano
-
 
 def prepare_data(seqs, labels, maxlen=None):
     """Create the matrices from the datasets.
