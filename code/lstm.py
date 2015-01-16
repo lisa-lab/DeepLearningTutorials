@@ -395,6 +395,7 @@ def train_lstm(
     use_dropout=True,  # if False slightly faster, but worst test error
                        # This frequently need a bigger model.
     reload_model="",  # Path to a saved model we want to start from.
+    test_size=-1,  # If >0, we will trunc the test set to this number of example.
 ):
 
     # Model options
@@ -406,6 +407,8 @@ def train_lstm(
     print 'Loading data'
     train, valid, test = load_data(n_words=n_words, valid_portion=0.05,
                                    maxlen=maxlen)
+    if test_size > 0:
+        test = (test[0][:test_size], test[1][:test_size])
 
     ydim = numpy.max(train[1]) + 1
 
@@ -578,4 +581,5 @@ if __name__ == '__main__':
     train_lstm(
         #reload_model="lstm_model.npz",
         max_epochs=100,
+        test_size=500,
     )
