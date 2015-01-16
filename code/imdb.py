@@ -14,6 +14,7 @@ def prepare_data(seqs, labels, maxlen=None):
     if maxlen is set, we will cut all sequence to this maximum
     lenght.
 
+    This swap the axis!
     """
     # x: a list of sentences
     lengths = [len(s) for s in seqs]

@@ -481,12 +481,10 @@ def train_lstm(
                 y = [train[1][t] for t in train_index]
                 x = [train[0][t]for t in train_index]
 
-                # Get the data in numpy.ndarray formet.
-                # It return something of the shape (minibatch maxlen, n samples)
-                x, mask, y = prepare_data(x, y, maxlen=maxlen)
-                if x is None:
-                    print 'Minibatch with zero sample under length ', maxlen
-                    continue
+                # Get the data in numpy.ndarray format
+                # This swap the axis!
+                # Return something of shape (minibatch maxlen, n samples)
+                x, mask, y = prepare_data(x, y)
                 n_samples += x.shape[1]
 
                 cost = f_grad_shared(x, mask, y)
