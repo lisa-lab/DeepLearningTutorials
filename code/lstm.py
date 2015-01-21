@@ -9,12 +9,17 @@ import time
 
 import numpy
 import theano
+from theano import config
 import theano.tensor as tensor
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 
 import imdb
 
 datasets = {'imdb': (imdb.load_data, imdb.prepare_data)}
+
+
+def numpy_floatX(data):
+    return numpy.asarray(data, dtype=config.floatX)
 
 
 def get_minibatches_idx(n, minibatch_size, shuffle=False):
@@ -85,14 +90,14 @@ def init_params(options):
     # embedding
     randn = numpy.random.rand(options['n_words'],
                               options['dim_proj'])
-    params['Wemb'] = (0.01 * randn).astype('float32')
+    params['Wemb'] = (0.01 * randn).astype(config.floatX)
     params = get_layer(options['encoder'])[0](options,
                                               params,
                                               prefix=options['encoder'])
     # classifier
     params['U'] = 0.01 * numpy.random.randn(options['dim_proj'],
-                                            options['ydim']).astype('float32')
-    params['b'] = numpy.zeros((options['ydim'],)).astype('float32')
+                                            options['ydim']).astype(config.floatX)
+    params['b'] = numpy.zeros((options['ydim'],)).astype(config.floatX)
 
     return params
 
@@ -122,7 +127,7 @@ def get_layer(name):
 def ortho_weight(ndim):
     W = numpy.random.randn(ndim, ndim)
     u, s, v = numpy.linalg.svd(W)
-    return u.astype('float32')
+    return u.astype(config.floatX)
 
 
 def param_init_lstm(options, params, prefix='lstm'):
@@ -142,7 +147,7 @@ def param_init_lstm(options, params, prefix='lstm'):
                            ortho_weight(options['dim_proj'])], axis=1)
     params[_p(prefix, 'U')] = U
     b = numpy.zeros((4 * options['dim_proj'],))
-    params[_p(prefix, 'b')] = b.astype('float32')
+    params[_p(prefix, 'b')] = b.astype(config.floatX)
 
     return params
 
@@ -185,9 +190,11 @@ def lstm_layer(tparams, state_below, options, prefix='lstm', mask=None):
     dim_proj = options['dim_proj']
     rval, updates = theano.scan(_step,
                                 sequences=[mask, state_below],
-                                outputs_info=[tensor.alloc(0., n_samples,
+                                outputs_info=[tensor.alloc(numpy_floatX(0.),
+                                                           n_samples,
                                                            dim_proj),
-                                              tensor.alloc(0., n_samples,
+                                              tensor.alloc(numpy_floatX(0.),
+                                                           n_samples,
                                                            dim_proj)],
                                 name=_p(prefix, '_layers'),
                                 n_steps=nsteps)
@@ -228,13 +235,13 @@ def sgd(lr, tparams, grads, x, mask, y, cost):
 
 
 def adadelta(lr, tparams, grads, x, mask, y, cost):
-    zipped_grads = [theano.shared(p.get_value() * numpy.float32(0.),
+    zipped_grads = [theano.shared(p.get_value() * numpy_floatX(0.),
                                   name='%s_grad' % k)
                     for k, p in tparams.iteritems()]
-    running_up2 = [theano.shared(p.get_value() * numpy.float32(0.),
+    running_up2 = [theano.shared(p.get_value() * numpy_floatX(0.),
                                  name='%s_rup2' % k)
                    for k, p in tparams.iteritems()]
-    running_grads2 = [theano.shared(p.get_value() * numpy.float32(0.),
+    running_grads2 = [theano.shared(p.get_value() * numpy_floatX(0.),
                                     name='%s_rgrad2' % k)
                       for k, p in tparams.iteritems()]
 
@@ -261,13 +268,13 @@ def adadelta(lr, tparams, grads, x, mask, y, cost):
 
 
 def rmsprop(lr, tparams, grads, x, mask, y, cost):
-    zipped_grads = [theano.shared(p.get_value() * numpy.float32(0.),
+    zipped_grads = [theano.shared(p.get_value() * numpy_floatX(0.),
                                   name='%s_grad' % k)
                     for k, p in tparams.iteritems()]
-    running_grads = [theano.shared(p.get_value() * numpy.float32(0.),
+    running_grads = [theano.shared(p.get_value() * numpy_floatX(0.),
                                    name='%s_rgrad' % k)
                      for k, p in tparams.iteritems()]
-    running_grads2 = [theano.shared(p.get_value() * numpy.float32(0.),
+    running_grads2 = [theano.shared(p.get_value() * numpy_floatX(0.),
                                     name='%s_rgrad2' % k)
                       for k, p in tparams.iteritems()]
 
@@ -280,7 +287,7 @@ def rmsprop(lr, tparams, grads, x, mask, y, cost):
                                     updates=zgup + rgup + rg2up,
                                     name='rmsprop_f_grad_shared')
 
-    updir = [theano.shared(p.get_value() * numpy.float32(0.),
+    updir = [theano.shared(p.get_value() * numpy_floatX(0.),
                            name='%s_updir' % k)
              for k, p in tparams.iteritems()]
     updir_new = [(ud, 0.9 * ud - 1e-4 * zg / tensor.sqrt(rg2 - rg ** 2 + 1e-4))
@@ -299,10 +306,10 @@ def build_model(tparams, options):
     trng = RandomStreams(1234)
 
     # Used for dropout.
-    use_noise = theano.shared(numpy.float32(0.))
+    use_noise = theano.shared(numpy_floatX(0.))
 
     x = tensor.matrix('x', dtype='int64')
-    mask = tensor.matrix('mask', dtype='float32')
+    mask = tensor.matrix('mask', dtype=config.floatX)
     y = tensor.vector('y', dtype='int64')
 
     n_timesteps = x.shape[0]
@@ -335,7 +342,7 @@ def pred_probs(f_pred_prob, prepare_data, data, iterator, verbose=False):
     the probabilities of new examples.
     """
     n_samples = len(data[0])
-    probs = numpy.zeros((n_samples, 2)).astype('float32')
+    probs = numpy.zeros((n_samples, 2)).astype(config.floatX)
 
     n_done = 0
 
@@ -367,7 +374,7 @@ def pred_error(f_pred, prepare_data, data, iterator, verbose=False):
         preds = f_pred(x, mask)
         targets = numpy.array(data[1])[valid_index]
         valid_err += (preds == targets).sum()
-    valid_err = 1. - numpy.float32(valid_err) / len(data[0])
+    valid_err = 1. - numpy_floatX(valid_err) / len(data[0])
 
     return valid_err
 
@@ -395,7 +402,7 @@ def train_lstm(
     use_dropout=True,  # if False slightly faster, but worst test error
                        # This frequently need a bigger model.
     reload_model="",  # Path to a saved model we want to start from.
-    test_size=-1,  # If >0, we will trunc the test set to this number of example.
+    test_size=-1,  # If >0, we keep only this number of test example.
 ):
 
     # Model options
@@ -432,7 +439,7 @@ def train_lstm(
      y, f_pred_prob, f_pred, cost) = build_model(tparams, model_options)
 
     if decay_c > 0.:
-        decay_c = theano.shared(numpy.float32(decay_c), name='decay_c')
+        decay_c = theano.shared(numpy_floatX(decay_c), name='decay_c')
         weight_decay = 0.
         weight_decay += (tparams['U'] ** 2).sum()
         weight_decay *= decay_c
@@ -571,12 +578,6 @@ def train_lstm(
 
 
 if __name__ == '__main__':
-
-    # We must have floatX=float32 for this tutorial to work correctly.
-    theano.config.floatX = "float32"
-    # The next line is the new Theano default. This is a speed up.
-    theano.config.scan.allow_gc = False
-
     # See function train for all possible parameter and there definition.
     train_lstm(
         #reload_model="lstm_model.npz",
