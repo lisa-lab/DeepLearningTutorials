@@ -456,10 +456,8 @@ def train_lstm(
 
     print 'Optimization'
 
-    kf_valid = get_minibatches_idx(len(valid[0]), valid_batch_size,
-                                   shuffle=True)
-    kf_test = get_minibatches_idx(len(test[0]), valid_batch_size,
-                                  shuffle=True)
+    kf_valid = get_minibatches_idx(len(valid[0]), valid_batch_size)
+    kf_test = get_minibatches_idx(len(test[0]), valid_batch_size)
 
     print "%d train examples" % len(train[0])
     print "%d valid examples" % len(valid[0])
@@ -561,7 +559,8 @@ def train_lstm(
         best_p = unzip(tparams)
 
     use_noise.set_value(0.)
-    train_err = pred_error(f_pred, prepare_data, train, kf)
+    kf_train_sorted = get_minibatches_idx(len(train[0]), batch_size)
+    train_err = pred_error(f_pred, prepare_data, train, kf_train_sorted)
     valid_err = pred_error(f_pred, prepare_data, valid, kf_valid)
     test_err = pred_error(f_pred, prepare_data, test, kf_test)
 
