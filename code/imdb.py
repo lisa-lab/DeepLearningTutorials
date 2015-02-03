@@ -3,7 +3,6 @@ import gzip
 import os
 
 import numpy
-
 import theano
 
 
@@ -16,6 +15,7 @@ def prepare_data(seqs, labels, maxlen=None):
     if maxlen is set, we will cut all sequence to this maximum
     lenght.
 
+    This swap the axis!
     """
     # x: a list of sentences
     lengths = [len(s) for s in seqs]
@@ -40,7 +40,7 @@ def prepare_data(seqs, labels, maxlen=None):
     maxlen = numpy.max(lengths)
 
     x = numpy.zeros((maxlen, n_samples)).astype('int64')
-    x_mask = numpy.zeros((maxlen, n_samples)).astype('float32')
+    x_mask = numpy.zeros((maxlen, n_samples)).astype(theano.config.floatX)
     for idx, s in enumerate(seqs):
         x[:lengths[idx], idx] = s
         x_mask[:lengths[idx], idx] = 1.
@@ -74,8 +74,9 @@ def get_dataset_file(dataset, default_dataset, origin):
     return dataset
 
 
-def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1, maxlen=None):
-    ''' Loads the dataset
+def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1, maxlen=None,
+              sort_by_len=True):
+    '''Loads the dataset
 
     :type path: String
     :param path: The path to the dataset (here IMDB)
@@ -87,6 +88,12 @@ def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1, maxlen=None):
         the validation set.
     :type maxlen: None or positive int
     :param maxlen: the max sequence length we use in the train/valid set.
+    :type sort_by_len: bool
+    :name sort_by_len: Sort by the sequence lenght for the train,
+        valid and test set. This allow faster execution as it cause
+        less padding per minibatch. Another mechanism must be used to
+        shuffle the train set at each epoch.
+
     '''
 
     #############
@@ -139,6 +146,22 @@ def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1, maxlen=None):
     train_set_x = remove_unk(train_set_x)
     valid_set_x = remove_unk(valid_set_x)
     test_set_x = remove_unk(test_set_x)
+
+    def len_argsort(seq):
+        return sorted(range(len(seq)), key=lambda x: len(seq[x]))
+
+    if sort_by_len:
+        sorted_index = len_argsort(test_set_x)
+        test_set_x = [test_set_x[i] for i in sorted_index]
+        test_set_y = [test_set_y[i] for i in sorted_index]
+
+        sorted_index = len_argsort(valid_set_x)
+        valid_set_x = [valid_set_x[i] for i in sorted_index]
+        valid_set_y = [valid_set_y[i] for i in sorted_index]
+
+        sorted_index = len_argsort(train_set_x)
+        train_set_x = [train_set_x[i] for i in sorted_index]
+        train_set_y = [train_set_y[i] for i in sorted_index]
 
     train = (train_set_x, train_set_y)
     valid = (valid_set_x, valid_set_y)
