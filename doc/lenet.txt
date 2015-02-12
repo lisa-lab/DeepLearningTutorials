@@ -261,10 +261,11 @@ Let's have a little bit of fun with this...
 
         # open random image of dimensions 639x516
         img = Image.open(open('doc/images/3wolfmoon.jpg'))
+        # dimensions are (height, width, channel)
         img = numpy.asarray(img, dtype='float64') / 256.
 
         # put image in 4D tensor of shape (1, 3, height, width)
-        img_ = img.swapaxes(0, 2).swapaxes(1, 2).reshape(1, 3, 639, 516)
+        img_ = img.transpose(2,0,1).reshape(1, 3, 639, 516)
         filtered_img = f(img_)
 
         # plot original image and first and second components of output
