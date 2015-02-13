@@ -270,7 +270,7 @@ Let's have a little bit of fun with this...
         img = numpy.asarray(img, dtype='float64') / 256.
 
         # put image in 4D tensor of shape (1, 3, height, width)
-        img_ = img.transpose(2,0,1).reshape(1, 3, 639, 516)
+        img_ = img.transpose(2, 0, 1).reshape(1, 3, 639, 516)
         filtered_img = f(img_)
 
         # plot original image and first and second components of output
