@@ -12,6 +12,7 @@ import rbm
 import rnnrbm
 import SdA
 import rnnslu
+import lstm
 
 
 def test_rnnslu():
@@ -59,6 +60,10 @@ def test_rbm():
 
 def test_rnnrbm():
     rnnrbm.test_rnnrbm(num_epochs=1)
+
+
+def test_lstm():
+    lstm.train_lstm(max_epochs=1, test_size=1000, saveto='')
 
 
 def speed():
