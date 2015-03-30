@@ -511,7 +511,7 @@ def train_lstm(
                 if numpy.mod(uidx, dispFreq) == 0:
                     print 'Epoch ', eidx, 'Update ', uidx, 'Cost ', cost
 
-                if numpy.mod(uidx, saveFreq) == 0:
+                if saveto and numpy.mod(uidx, saveFreq) == 0:
                     print 'Saving...',
 
                     if best_p is not None:
@@ -571,10 +571,10 @@ def train_lstm(
     test_err = pred_error(f_pred, prepare_data, test, kf_test)
 
     print 'Train ', train_err, 'Valid ', valid_err, 'Test ', test_err
-
-    numpy.savez(saveto, train_err=train_err,
-                valid_err=valid_err, test_err=test_err,
-                history_errs=history_errs, **best_p)
+    if saveto:
+        numpy.savez(saveto, train_err=train_err,
+                    valid_err=valid_err, test_err=test_err,
+                    history_errs=history_errs, **best_p)
     print 'The code run for %d epochs, with %f sec/epochs' % (
         (eidx + 1), (end_time - start_time) / (1. * (eidx + 1)))
     print >> sys.stderr, ('Training took %.1fs' %
