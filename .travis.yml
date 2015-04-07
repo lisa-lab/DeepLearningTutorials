@@ -12,6 +12,7 @@ language: c
 # command to install dependencies
 before_install:
 #zlib1g-dev is needed to allow PIL to uncompress the dataset.
+  - sudo apt-get update
   - sudo apt-get install -qq libatlas3gf-base libatlas-dev zlib1g-dev zip unzip zlibc libzip-dev libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev python-numpy python-scipy python-pip python-nose python-yaml pyflakes python-imaging
 
 install:

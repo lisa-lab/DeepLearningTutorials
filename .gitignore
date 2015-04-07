@@ -1,6 +1,9 @@
 code/*.pyc
+code/*_plots
 code/tmp*
 code/midi
+code/rnnslu
+data/atis.*
 data/mnist.pkl.gz
 data/mnist_py3k.pkl.gz
 data/Nottingham.zip

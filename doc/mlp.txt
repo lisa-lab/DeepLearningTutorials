@@ -239,8 +239,8 @@ are to conserve variance of the activation as well as variance of back-propagate
 This allows information to flow well upward and downward in the network and
 reduces discrepancies between layers.
 Under some assumptions, a compromise between these two constraints leads to the following
-initialization: :math:`uniform[-\frac{6}{\sqrt{fan_{in}+fan_{out}}},\frac{6}{\sqrt{fan_{in}+fan_{out}}}]`
-for tanh and :math:`uniform[-4*\frac{6}{\sqrt{fan_{in}+fan_{out}}},4*\frac{6}{\sqrt{fan_{in}+fan_{out}}}]`
+initialization: :math:`uniform[-\frac{\sqrt{6}}{\sqrt{fan_{in}+fan_{out}}},\frac{\sqrt{6}}{\sqrt{fan_{in}+fan_{out}}}]`
+for tanh and :math:`uniform[-4*\frac{\sqrt{6}}{\sqrt{fan_{in}+fan_{out}}},4*\frac{\sqrt{6}}{\sqrt{fan_{in}+fan_{out}}}]`
 for sigmoid. Where :math:`fan_{in}` is the number of inputs and :math:`fan_{out}` the number of hidden units.
 For mathematical considerations please refer to [Xavier10]_.
 

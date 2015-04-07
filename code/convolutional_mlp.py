@@ -179,7 +179,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     # Construct the second convolutional pooling layer
     # filtering reduces the image size to (12-5+1, 12-5+1) = (8, 8)
     # maxpooling reduces this further to (8/2, 8/2) = (4, 4)
-    # 4D output tensor is thus of shape (nkerns[0], nkerns[1], 4, 4)
+    # 4D output tensor is thus of shape (batch_size, nkerns[1], 4, 4)
     layer1 = LeNetConvPoolLayer(
         rng,
         input=layer0.output,

@@ -16,7 +16,7 @@ For more about deep learning algorithms, see for example:
  - The monograph or review paper `Learning Deep Architectures for AI <http://www.iro.umontreal.ca/~lisa/publications2/index.php/publications/show/239>`_ (Foundations & Trends in Machine Learning, 2009).
  - The ICML 2009 Workshop on Learning Feature Hierarchies `webpage <http://www.cs.toronto.edu/~rsalakhu/deeplearning/index.html>`_ has a `list of references <http://www.cs.toronto.edu/~rsalakhu/deeplearning/references.html>`_.
  - The LISA `public wiki <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/WebHome>`_ has a `reading list <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/ReadingOnDeepNetworks>`_ and a `bibliography <http://www.iro.umontreal.ca/~lisa/twiki/bin/view.cgi/Public/DeepNetworksBibliography>`_.
- - Geoff Hinton has `readings <http://www.cs.toronto.edu/~hinton/deeprefs.html>`_ from last year's `NIPS tutorial <http://videolectures.net/jul09_hinton_deeplearn/>`_.
+ - Geoff Hinton has `readings <http://www.cs.toronto.edu/~hinton/deeprefs.html>`_ from 2009's `NIPS tutorial <http://videolectures.net/jul09_hinton_deeplearn/>`_.
 
 The tutorials presented here will introduce you to some of the most important deep learning
 algorithms and will also show you how to run them using Theano_. Theano is a python library that makes writing deep learning models easy, and gives the option of
@@ -48,6 +48,12 @@ from energy models:
 
 Building towards including the Contractive auto-encoders tutorial, we have the code for now:
   * `Contractive auto-encoders`_ code - There is some basic doc in the code.
+
+Recurrent neural networks with word embeddings and context window:
+  * :ref:`Semantic Parsing of Speech using Recurrent Net <rnnslu>`
+
+LSTM network for sentiment analysis:
+  * :ref:`LSTM network <lstm>`
 
 Energy-based recurrent neural network (RNN-RBM):
   * :ref:`Modeling and generating sequences of polyphonic music <rnnrbm>`
