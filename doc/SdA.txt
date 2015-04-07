@@ -53,7 +53,7 @@ are trained, we can train the :math:`k+1`-th layer because we can now
 compute the code or latent representation from the layer below. 
 
 Once all layers are pre-trained, the network goes through a second stage
-of training called **fine-tuning**,
+of training called **fine-tuning**. Here we consider **supervised fine-tuning**
 where we want to minimize prediction error on a supervised task.
 For this, we first add a logistic regression 
 layer on top of the network (more precisely on the output code of the
@@ -66,15 +66,14 @@ training. (See the :ref:`mlp` for details on the multilayer perceptron.)
 
 This can be easily implemented in Theano, using the class defined
 previously for a denoising autoencoder. We can see the stacked denoising
-autoencoder as having two facades: One is a list of
-autoencoders. The other is an MLP. During pre-training we use the first facade, i.e., we treat our model
+autoencoder as having two facades: a list of
+autoencoders, and an MLP. During pre-training we use the first facade, i.e., we treat our model
 as a list of autoencoders, and train each autoencoder seperately. In the 
-second stage of training, we use the second facade. These two
-facades are linked 
+second stage of training, we use the second facade. These two facades are linked because:
 
-* by the parameters shared by the autoencoders and the sigmoid layers of the MLP, and 
+* the autoencoders and the sigmoid layers of the MLP share parameters, and
 
-* by feeding the latent representations of intermediate layers of the MLP as input to the autoencoders.
+* the latent representations computed by intermediate layers of the MLP are fed as input to the autoencoders.
 
 .. literalinclude:: ../code/SdA.py
   :start-after: start-snippet-1
@@ -83,8 +82,8 @@ facades are linked
 ``self.sigmoid_layers`` will store the sigmoid layers of the MLP facade, while
 ``self.dA_layers`` will store  the denoising autoencoder associated with the layers of the MLP. 
 
-Next, we construct ``n_layers`` denoising autoencoders and ``n_layers`` sigmoid
-layers, where ``n_layers`` is the depth of our model. We use the
+Next, we construct ``n_layers`` sigmoid layers and ``n_layers`` denoising 
+autoencoders, where ``n_layers`` is the depth of our model. We use the
 ``HiddenLayer`` class introduced in :ref:`mlp`, with one
 modification: we replace the ``tanh`` non-linearity with the
 logistic function :math:`s(x) = \frac{1}{1+e^{-x}}`).
