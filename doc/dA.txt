@@ -126,7 +126,7 @@ signal:
 .. literalinclude:: ../code/dA.py
   :pyobject: dA.get_reconstructed_input
 
-And using these function we can compute the cost and the updates of
+And using these functions we can compute the cost and the updates of
 one stochastic gradient descent step :
 
 .. literalinclude:: ../code/dA.py
@@ -466,7 +466,7 @@ since we neglect the biases and plot the weights up to a multiplicative
 constant (weights are converted to values between 0 and 1).
 
 To plot our filters we will need the help of ``tile_raster_images`` (see
-:ref:`how-to-plot`) so we urge the reader to familiarize himself with it. Also
+:ref:`how-to-plot`) so we urge the reader to study it. Also
 using the help of the Python Image Library, the following lines of code will
 save the filters as an image :
 
