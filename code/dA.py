@@ -49,7 +49,6 @@ except ImportError:
     import Image
 
 
-# start-snippet-1
 class dA(object):
     """Denoising Auto-Encoder class (dA)
 
@@ -191,7 +190,6 @@ class dA(object):
             self.x = input
 
         self.params = [self.W, self.b, self.b_prime]
-    # end-snippet-1
 
     def get_corrupted_input(self, input, corruption_level):
         """This function keeps ``1-corruption_level`` entries of the inputs the
@@ -284,13 +282,16 @@ def test_dA(learning_rate=0.1, training_epochs=15,
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
 
+    # start-snippet-2
     # allocate symbolic variables for the data
     index = T.lscalar()    # index to a [mini]batch
     x = T.matrix('x')  # the data is presented as rasterized images
+    # end-snippet-2
 
     if not os.path.isdir(output_folder):
         os.makedirs(output_folder)
     os.chdir(output_folder)
+
     ####################################
     # BUILDING THE MODEL NO CORRUPTION #
     ####################################
@@ -348,6 +349,7 @@ def test_dA(learning_rate=0.1, training_epochs=15,
                            tile_spacing=(1, 1)))
     image.save('filters_corruption_0.png')
 
+    # start-snippet-3
     #####################################
     # BUILDING THE MODEL CORRUPTION 30% #
     #####################################
@@ -399,12 +401,15 @@ def test_dA(learning_rate=0.1, training_epochs=15,
     print >> sys.stderr, ('The 30% corruption code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % (training_time / 60.))
+    # end-snippet-3
 
+    # start-snippet-4
     image = Image.fromarray(tile_raster_images(
         X=da.W.get_value(borrow=True).T,
         img_shape=(28, 28), tile_shape=(10, 10),
         tile_spacing=(1, 1)))
     image.save('filters_corruption_30.png')
+    # end-snippet-4
 
     os.chdir('../')
 
