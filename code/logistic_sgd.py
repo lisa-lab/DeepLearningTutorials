@@ -103,11 +103,20 @@ class LogisticRegression(object):
 
         # symbolic description of how to compute prediction as class whose
         # probability is maximal
-        self.y_pred = T.argmax(self.p_y_given_x, axis=1)
+        self.y_pred = self.prediction(self.p_y_given_x)
         # end-snippet-1
 
         # parameters of the model
         self.params = [self.W, self.b]
+
+    def prediction(self, y_hat):
+        """Return the predicted label of this model for each given example.
+
+        :type y_hat: theano.tensor.TensorType
+        :param y_hat: corresponds to a matrix that each row denotes the
+                      probability of each possible label for each example.
+        """
+        return T.argmax(y_hat, axis=1)
 
     def negative_log_likelihood(self, y):
         """Return the mean of the negative log-likelihood of the prediction
