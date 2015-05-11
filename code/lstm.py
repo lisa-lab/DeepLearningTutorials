@@ -17,6 +17,10 @@ import imdb
 
 datasets = {'imdb': (imdb.load_data, imdb.prepare_data)}
 
+# Set the random number generators' seeds for consistency
+SEED = 123
+random.seed(SEED)
+numpy.random.seed(SEED)
 
 def numpy_floatX(data):
     return numpy.asarray(data, dtype=config.floatX)
@@ -303,7 +307,7 @@ def rmsprop(lr, tparams, grads, x, mask, y, cost):
 
 
 def build_model(tparams, options):
-    trng = RandomStreams(1234)
+    trng = RandomStreams(SEED)
 
     # Used for dropout.
     use_noise = theano.shared(numpy_floatX(0.))
@@ -401,7 +405,7 @@ def train_lstm(
     noise_std=0.,
     use_dropout=True,  # if False slightly faster, but worst test error
                        # This frequently need a bigger model.
-    reload_model="",  # Path to a saved model we want to start from.
+    reload_model=None,  # Path to a saved model we want to start from.
     test_size=-1,  # If >0, we keep only this number of test example.
 ):
 
