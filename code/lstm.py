@@ -3,7 +3,6 @@ Build a tweet sentiment analyzer
 '''
 from collections import OrderedDict
 import cPickle as pkl
-import random
 import sys
 import time
 
@@ -17,6 +16,9 @@ import imdb
 
 datasets = {'imdb': (imdb.load_data, imdb.prepare_data)}
 
+# Set the random number generators' seeds for consistency
+SEED = 123
+numpy.random.seed(SEED)
 
 def numpy_floatX(data):
     return numpy.asarray(data, dtype=config.floatX)
@@ -30,7 +32,7 @@ def get_minibatches_idx(n, minibatch_size, shuffle=False):
     idx_list = numpy.arange(n, dtype="int32")
 
     if shuffle:
-        random.shuffle(idx_list)
+        numpy.random.shuffle(idx_list)
 
     minibatches = []
     minibatch_start = 0
@@ -303,7 +305,7 @@ def rmsprop(lr, tparams, grads, x, mask, y, cost):
 
 
 def build_model(tparams, options):
-    trng = RandomStreams(1234)
+    trng = RandomStreams(SEED)
 
     # Used for dropout.
     use_noise = theano.shared(numpy_floatX(0.))
@@ -401,7 +403,7 @@ def train_lstm(
     noise_std=0.,
     use_dropout=True,  # if False slightly faster, but worst test error
                        # This frequently need a bigger model.
-    reload_model="",  # Path to a saved model we want to start from.
+    reload_model=None,  # Path to a saved model we want to start from.
     test_size=-1,  # If >0, we keep only this number of test example.
 ):
 
@@ -419,7 +421,7 @@ def train_lstm(
         # size example.  So we must select a random selection of the
         # examples.
         idx = numpy.arange(len(test[0]))
-        random.shuffle(idx)
+        numpy.random.shuffle(idx)
         idx = idx[:test_size]
         test = ([test[0][n] for n in idx], [test[1][n] for n in idx])
 
@@ -468,6 +470,7 @@ def train_lstm(
     print "%d train examples" % len(train[0])
     print "%d valid examples" % len(valid[0])
     print "%d test examples" % len(test[0])
+
     history_errs = []
     best_p = None
     bad_count = 0
@@ -585,7 +588,6 @@ def train_lstm(
 if __name__ == '__main__':
     # See function train for all possible parameter and there definition.
     train_lstm(
-        #reload_model="lstm_model.npz",
         max_epochs=100,
         test_size=500,
     )
