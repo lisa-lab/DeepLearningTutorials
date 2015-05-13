@@ -171,7 +171,6 @@ def lstm_layer(tparams, state_below, options, prefix='lstm', mask=None):
     def _step(m_, x_, h_, c_):
         preact = tensor.dot(h_, tparams[_p(prefix, 'U')])
         preact += x_
-        preact += tparams[_p(prefix, 'b')]
 
         i = tensor.nnet.sigmoid(_slice(preact, 0, options['dim_proj']))
         f = tensor.nnet.sigmoid(_slice(preact, 1, options['dim_proj']))
