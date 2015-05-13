@@ -116,7 +116,7 @@ class MLP(object):
     that has one layer or more of hidden units and nonlinear activations.
     Intermediate layers usually have as activation function tanh or the
     sigmoid function (defined here by a ``HiddenLayer`` class)  while the
-    top layer is a softamx layer (defined here by a ``LogisticRegression``
+    top layer is a softmax layer (defined here by a ``LogisticRegression``
     class).
     """
 
