@@ -83,5 +83,5 @@ script:
   - ls
   - export THEANO_FLAGS=warn.ignore_bug_before=all,on_opt_error=raise,on_shape_error=raise
   - python --version
-  - nosetests $PART
+  - nosetests -v $PART
 
