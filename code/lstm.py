@@ -333,7 +333,11 @@ def build_model(tparams, options):
     f_pred_prob = theano.function([x, mask], pred, name='f_pred_prob')
     f_pred = theano.function([x, mask], pred.argmax(axis=1), name='f_pred')
 
-    cost = -tensor.log(pred[tensor.arange(n_samples), y] + 1e-8).mean()
+    off = 1e-8
+    if pred.dtype == 'float16':
+        off = 1e-6
+
+    cost = -tensor.log(pred[tensor.arange(n_samples), y] + off).mean()
 
     return use_noise, x, mask, y, f_pred_prob, f_pred, cost
 
