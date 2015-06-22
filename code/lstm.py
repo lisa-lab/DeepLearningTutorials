@@ -236,6 +236,34 @@ def sgd(lr, tparams, grads, x, mask, y, cost):
 
 
 def adadelta(lr, tparams, grads, x, mask, y, cost):
+    """
+    An adaptive learning rate optimizer
+
+    Parameters
+    ----------
+    lr : float
+        Initial learning rate
+    tpramas: Theano SharedVariable
+        Model parameters
+    grads: Theano variable
+        Gradients of cost w.r.t to parameres
+    x: Theano variable
+        Model inputs
+    mask: Theano variable
+        Sequence mask
+    y: Theano variable
+        Targets
+    cost: Theano variable
+        Objective fucntion to minimize
+
+    Notes
+    -----
+    For more information, see [ADADELTA]_.
+
+    .. [ADADELTA] Matthew D. Zeiler, *ADADELTA: An Adaptive Learning
+       Rate Method*, arXiv:1212.5701.
+    """
+
     zipped_grads = [theano.shared(p.get_value() * numpy_floatX(0.),
                                   name='%s_grad' % k)
                     for k, p in tparams.iteritems()]
@@ -269,6 +297,36 @@ def adadelta(lr, tparams, grads, x, mask, y, cost):
 
 
 def rmsprop(lr, tparams, grads, x, mask, y, cost):
+    """
+    A variant of  SGD that scales the step size by running average of the
+    recent step norms.
+
+    Parameters
+    ----------
+    lr : float
+        Initial learning rate
+    tpramas: Theano SharedVariable
+        Model parameters
+    grads: Theano variable
+        Gradients of cost w.r.t to parameres
+    x: Theano variable
+        Model inputs
+    mask: Theano variable
+        Sequence mask
+    y: Theano variable
+        Targets
+    cost: Theano variable
+        Objective fucntion to minimize
+
+    Notes
+    -----
+    For more information, see [Hint2014]_.
+
+    .. [Hint2014] Geoff Hinton, *Neural Networks for Machine Learning*,
+       lecture 6a,
+       http://cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf
+    """
+
     zipped_grads = [theano.shared(p.get_value() * numpy_floatX(0.),
                                   name='%s_grad' % k)
                     for k, p in tparams.iteritems()]
