@@ -8,7 +8,7 @@ import numpy
 
 import theano
 import theano.tensor as T
-from theano.tensor.shared_randomstreams import RandomStreams
+from theano.sandbox.rng_mrg import MRG_RandomStreams
 
 from logistic_sgd import LogisticRegression, load_data
 from mlp import HiddenLayer
@@ -58,7 +58,7 @@ class DBN(object):
         assert self.n_layers > 0
 
         if not theano_rng:
-            theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
+            theano_rng = MRG_RandomStreams(numpy_rng.randint(2 ** 30))
 
         # allocate symbolic variables for the data
         self.x = T.matrix('x')  # the data is presented as rasterized images
