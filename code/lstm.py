@@ -241,7 +241,7 @@ def adadelta(lr, tparams, grads, x, mask, y, cost):
 
     Parameters
     ----------
-    lr : float
+    lr : Theano SharedVariable
         Initial learning rate
     tpramas: Theano SharedVariable
         Model parameters
@@ -303,7 +303,7 @@ def rmsprop(lr, tparams, grads, x, mask, y, cost):
 
     Parameters
     ----------
-    lr : float
+    lr : Theano SharedVariable
         Initial learning rate
     tpramas: Theano SharedVariable
         Model parameters
