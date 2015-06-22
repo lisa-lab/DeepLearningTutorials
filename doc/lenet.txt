@@ -400,6 +400,14 @@ tensors. These are then flattened to a 2D matrix of rasterized feature maps,
 to be compatible with our previous MLP implementation.
 
 
+.. note::
+    Please note that the convolution operation in majority of of the recent
+    models and almost all the library codes available is slightly different
+    than the original LeNet model. In modern conv2d, for each feature map
+    The result sums all the convolved input feature maps with the corresponding
+    kernel. As opposed to some of the earlier works that used to select only
+    some of the input feature maps.
+
 Putting it All Together
 +++++++++++++++++++++++
 
