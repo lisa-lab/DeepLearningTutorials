@@ -21,6 +21,7 @@ install:
 #  - "pip install -q Pillow --use-mirrors"
 #If we don't install numpy before SciPy 0.10.1, the SciPy installations fails.
 #  - "pip install -q scipy --use-mirrors"
+  - "sudo pip install six"
   - "sudo pip install --no-deps git+git://github.com/Theano/Theano.git"
 
 env:
