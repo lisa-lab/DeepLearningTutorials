@@ -401,12 +401,12 @@ to be compatible with our previous MLP implementation.
 
 
 .. note::
-    Please note that the convolution operation in majority of of the recent
-    models and almost all the library codes available is slightly different
-    than the original LeNet model. In modern conv2d, for each feature map
-    The result sums all the convolved input feature maps with the corresponding
-    kernel. As opposed to some of the earlier works that used to select only
-    some of the input feature maps.
+    Note that the term convolution could corresponds to different mathematical operations.
+    1. theano.tensor.nnet.conv2d which is the most common one in almost all of the recent published convolutional models. In this op for each output feature map, all the input feature maps are summed together after being convolved with the filter.
+    2. Original LeNet model: In this work for each output feature map, only subset of input feature maps were selected.
+    3. The convolution used in signal processing: theano.tensor.signal.conv.conv2d
+
+
 
 Putting it All Together
 +++++++++++++++++++++++
