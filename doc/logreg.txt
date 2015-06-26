@@ -274,8 +274,7 @@ labels of new data. ``predict`` function shows an example of how
 this could be done.
 
 .. literalinclude:: ../code/logistic_sgd.py
-  :start-after:  ' ran for %.1fs' % ((end_time - start_time)))
-  :end-before: if __name__ == '__main__':
+    :pyobject: predict
 
 
 .. rubric:: Footnotes

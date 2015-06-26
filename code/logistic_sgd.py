@@ -44,7 +44,6 @@ import numpy
 
 import theano
 import theano.tensor as T
-from theano.gof import graph
 
 
 class LogisticRegression(object):
@@ -109,6 +108,9 @@ class LogisticRegression(object):
 
         # parameters of the model
         self.params = [self.W, self.b]
+
+        # keep track of model input
+        self.input = input
 
     def negative_log_likelihood(self, y):
         """Return the mean of the negative log-likelihood of the prediction
@@ -447,17 +449,11 @@ def predict():
 
     # load the saved model
     classifier = cPickle.load(open('best_model.pkl'))
-    y_pred = classifier.y_pred
-
-    # find the input to theano graph
-    inputs = graph.inputs([y_pred])
-    # select only x
-    inputs = [item for item in inputs if item.name == 'x']
 
     # compile a predictor function
     predict_model = theano.function(
-        inputs=inputs,
-        outputs=y_pred)
+        inputs=[classifier.input],
+        outputs=classifier.y_pred)
 
     # We can test it on some examples from test test
     dataset='mnist.pkl.gz'
