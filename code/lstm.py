@@ -543,7 +543,7 @@ def train_lstm(
 
     uidx = 0  # the number of update done
     estop = False  # early stop
-    start_time = time.clock()
+    start_time = time.time()
     try:
         for eidx in xrange(max_epochs):
             n_samples = 0
@@ -622,7 +622,7 @@ def train_lstm(
     except KeyboardInterrupt:
         print "Training interupted"
 
-    end_time = time.clock()
+    end_time = time.time()
     if best_p is not None:
         zipp(best_p, tparams)
     else:
