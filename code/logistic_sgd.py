@@ -360,7 +360,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
 
     best_validation_loss = numpy.inf
     test_score = 0.
-    start_time = time.clock()
+    start_time = time.time()
 
     done_looping = False
     epoch = 0
@@ -419,7 +419,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
                 done_looping = True
                 break
 
-    end_time = time.clock()
+    end_time = time.time()
     print(
         (
             'Optimization complete with best validation score of %f %%,'
