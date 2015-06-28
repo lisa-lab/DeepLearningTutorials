@@ -276,7 +276,7 @@ def test_cA(learning_rate=0.01, training_epochs=20,
         }
     )
 
-    start_time = time.clock()
+    start_time = time.time()
 
     ############
     # TRAINING #
@@ -293,7 +293,7 @@ def test_cA(learning_rate=0.01, training_epochs=20,
         print 'Training epoch %d, reconstruction cost ' % epoch, numpy.mean(
             c_array[0]), ' jacobian norm ', numpy.mean(numpy.sqrt(c_array[1]))
 
-    end_time = time.clock()
+    end_time = time.time()
 
     training_time = (end_time - start_time)
 

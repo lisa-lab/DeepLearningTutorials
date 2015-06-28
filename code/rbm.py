@@ -428,7 +428,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     )
 
     plotting_time = 0.
-    start_time = time.clock()
+    start_time = time.time()
 
     # go through training epochs
     for epoch in xrange(training_epochs):
@@ -441,7 +441,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
         print 'Training epoch %d, cost is ' % epoch, numpy.mean(mean_cost)
 
         # Plot filters after each training epoch
-        plotting_start = time.clock()
+        plotting_start = time.time()
         # Construct image from the weight matrix
         image = Image.fromarray(
             tile_raster_images(
@@ -452,10 +452,10 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
             )
         )
         image.save('filters_at_epoch_%i.png' % epoch)
-        plotting_stop = time.clock()
+        plotting_stop = time.time()
         plotting_time += (plotting_stop - plotting_start)
 
-    end_time = time.clock()
+    end_time = time.time()
 
     pretraining_time = (end_time - start_time) - plotting_time
 

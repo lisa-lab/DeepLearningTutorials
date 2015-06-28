@@ -327,7 +327,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
                                                 k=k)
 
     print '... pre-training the model'
-    start_time = time.clock()
+    start_time = time.time()
     ## Pre-train layer-wise
     for i in xrange(dbn.n_layers):
         # go through pretraining epochs
@@ -340,7 +340,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c)
 
-    end_time = time.clock()
+    end_time = time.time()
     # end-snippet-2
     print >> sys.stderr, ('The pretraining code for file ' +
                           os.path.split(__file__)[1] +
@@ -372,7 +372,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
 
     best_validation_loss = numpy.inf
     test_score = 0.
-    start_time = time.clock()
+    start_time = time.time()
 
     done_looping = False
     epoch = 0
@@ -424,7 +424,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
                 done_looping = True
                 break
 
-    end_time = time.clock()
+    end_time = time.time()
     print(
         (
             'Optimization complete with best validation score of %f %%, '
