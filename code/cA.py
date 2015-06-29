@@ -30,7 +30,7 @@
 """
 import os
 import sys
-import time
+import timeit
 
 import numpy
 
@@ -276,7 +276,7 @@ def test_cA(learning_rate=0.01, training_epochs=20,
         }
     )
 
-    start_time = time.time()
+    start_time = timeit.default_timer()
 
     ############
     # TRAINING #
@@ -293,7 +293,7 @@ def test_cA(learning_rate=0.01, training_epochs=20,
         print 'Training epoch %d, reconstruction cost ' % epoch, numpy.mean(
             c_array[0]), ' jacobian norm ', numpy.mean(numpy.sqrt(c_array[1]))
 
-    end_time = time.time()
+    end_time = timeit.default_timer()
 
     training_time = (end_time - start_time)
 

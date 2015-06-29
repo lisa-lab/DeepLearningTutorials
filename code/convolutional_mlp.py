@@ -23,7 +23,7 @@ References:
 """
 import os
 import sys
-import time
+import timeit
 
 import numpy
 
@@ -274,7 +274,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     best_validation_loss = numpy.inf
     best_iter = 0
     test_score = 0.
-    start_time = time.time()
+    start_time = timeit.default_timer()
 
     epoch = 0
     done_looping = False
@@ -326,7 +326,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
                 done_looping = True
                 break
 
-    end_time = time.time()
+    end_time = timeit.default_timer()
     print('Optimization complete.')
     print('Best validation score of %f %% obtained at iteration %i, '
           'with test performance %f %%' %

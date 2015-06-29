@@ -4,7 +4,7 @@ Boltzmann Machines (BMs) are a particular form of energy-based model which
 contain hidden variables. Restricted Boltzmann Machines further restrict BMs
 to those without visible-visible and hidden-hidden connections.
 """
-import time
+import timeit
 
 try:
     import PIL.Image as Image
@@ -428,7 +428,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     )
 
     plotting_time = 0.
-    start_time = time.time()
+    start_time = timeit.default_timer()
 
     # go through training epochs
     for epoch in xrange(training_epochs):
@@ -441,7 +441,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
         print 'Training epoch %d, cost is ' % epoch, numpy.mean(mean_cost)
 
         # Plot filters after each training epoch
-        plotting_start = time.time()
+        plotting_start = timeit.default_timer()
         # Construct image from the weight matrix
         image = Image.fromarray(
             tile_raster_images(
@@ -452,10 +452,10 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
             )
         )
         image.save('filters_at_epoch_%i.png' % epoch)
-        plotting_stop = time.time()
+        plotting_stop = timeit.default_timer()
         plotting_time += (plotting_stop - plotting_start)
 
-    end_time = time.time()
+    end_time = timeit.default_timer()
 
     pretraining_time = (end_time - start_time) - plotting_time
 
