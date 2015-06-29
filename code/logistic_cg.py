@@ -38,7 +38,7 @@ __docformat__ = 'restructedtext en'
 
 import os
 import sys
-import time
+import timeit
 
 import numpy
 
@@ -275,7 +275,7 @@ def cg_optimization_mnist(n_epochs=50, mnist_pkl_gz='mnist.pkl.gz'):
     # using scipy conjugate gradient optimizer
     import scipy.optimize
     print ("Optimizing using scipy.optimize.fmin_cg...")
-    start_time = time.clock()
+    start_time = timeit.default_timer()
     best_w_b = scipy.optimize.fmin_cg(
         f=train_fn,
         x0=numpy.zeros((n_in + 1) * n_out, dtype=x.dtype),
@@ -284,7 +284,7 @@ def cg_optimization_mnist(n_epochs=50, mnist_pkl_gz='mnist.pkl.gz'):
         disp=0,
         maxiter=n_epochs
     )
-    end_time = time.clock()
+    end_time = timeit.default_timer()
     print(
         (
             'Optimization complete with best validation score of %f %%, with '

@@ -31,7 +31,7 @@
 """
 import os
 import sys
-import time
+import timeit
 
 import numpy
 
@@ -379,7 +379,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
                                                 batch_size=batch_size)
 
     print '... pre-training the model'
-    start_time = time.clock()
+    start_time = timeit.default_timer()
     ## Pre-train layer-wise
     corruption_levels = [.1, .2, .3]
     for i in xrange(sda.n_layers):
@@ -394,7 +394,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print numpy.mean(c)
 
-    end_time = time.clock()
+    end_time = timeit.default_timer()
 
     print >> sys.stderr, ('The pretraining code for file ' +
                           os.path.split(__file__)[1] +
@@ -427,7 +427,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
 
     best_validation_loss = numpy.inf
     test_score = 0.
-    start_time = time.clock()
+    start_time = timeit.default_timer()
 
     done_looping = False
     epoch = 0
@@ -471,7 +471,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
                 done_looping = True
                 break
 
-    end_time = time.clock()
+    end_time = timeit.default_timer()
     print(
         (
             'Optimization complete with best validation score of %f %%, '

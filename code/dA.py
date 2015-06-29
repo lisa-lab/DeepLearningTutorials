@@ -32,7 +32,7 @@
 
 import os
 import sys
-import time
+import timeit
 
 import numpy
 
@@ -321,7 +321,7 @@ def test_dA(learning_rate=0.1, training_epochs=15,
         }
     )
 
-    start_time = time.clock()
+    start_time = timeit.default_timer()
 
     ############
     # TRAINING #
@@ -336,7 +336,7 @@ def test_dA(learning_rate=0.1, training_epochs=15,
 
         print 'Training epoch %d, cost ' % epoch, numpy.mean(c)
 
-    end_time = time.clock()
+    end_time = timeit.default_timer()
 
     training_time = (end_time - start_time)
 
@@ -379,7 +379,7 @@ def test_dA(learning_rate=0.1, training_epochs=15,
         }
     )
 
-    start_time = time.clock()
+    start_time = timeit.default_timer()
 
     ############
     # TRAINING #
@@ -394,7 +394,7 @@ def test_dA(learning_rate=0.1, training_epochs=15,
 
         print 'Training epoch %d, cost ' % epoch, numpy.mean(c)
 
-    end_time = time.clock()
+    end_time = timeit.default_timer()
 
     training_time = (end_time - start_time)
 

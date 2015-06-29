@@ -8,7 +8,7 @@ import random
 import stat
 import subprocess
 import sys
-import time
+import timeit
 
 import numpy
 
@@ -318,13 +318,13 @@ def main(param=None):
         shuffle([train_lex, train_ne, train_y], param['seed'])
 
         param['ce'] = e
-        tic = time.time()
+        tic = timeit.default_timer()
 
         for i, (x, y) in enumerate(zip(train_lex, train_y)):
             rnn.train(x, y, param['win'], param['clr'])
             print '[learning] epoch %i >> %2.2f%%' % (
                 e, (i + 1) * 100. / nsentences),
-            print 'completed in %.2f (sec) <<\r' % (time.time() - tic),
+            print 'completed in %.2f (sec) <<\r' % (timeit.default_timer() - tic),
             sys.stdout.flush()
 
         # evaluation // back into the real world : idx -> words
