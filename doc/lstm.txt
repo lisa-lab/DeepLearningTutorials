@@ -185,6 +185,8 @@ The LSTM implementation can be found in the two following files :
 
 * `imdb.py <http://deeplearning.net/tutorial/code/imdb.py>`_ : Secondary script. Handles the loading and preprocessing of the IMDB dataset.
 
+* `imdb.dict.pkl.gz <http://www.iro.umontreal.ca/~lisa/deep/data/imdb.dict.pkl.gz>`_ : Word-index dictionary. Use it to test a trained model on your own corpus.
+
 After downloading both scripts and putting both in the same folder, the user
 can run the code by calling:
 
