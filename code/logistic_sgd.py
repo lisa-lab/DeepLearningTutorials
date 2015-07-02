@@ -109,6 +109,9 @@ class LogisticRegression(object):
         # parameters of the model
         self.params = [self.W, self.b]
 
+        # keep track of model input
+        self.input = input
+
     def negative_log_likelihood(self, y):
         """Return the mean of the negative log-likelihood of the prediction
         of this model under a given target distribution.
@@ -415,6 +418,10 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
                         )
                     )
 
+                    # save the best model
+                    with open('best_model.pkl', 'w') as f:
+                        cPickle.dump(classifier, f)
+
             if patience <= iter:
                 done_looping = True
                 break
@@ -432,6 +439,32 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
     print >> sys.stderr, ('The code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.1fs' % ((end_time - start_time)))
+
+
+def predict():
+    """
+    An example of how to load a trained model and use it
+    to predict labels.
+    """
+
+    # load the saved model
+    classifier = cPickle.load(open('best_model.pkl'))
+
+    # compile a predictor function
+    predict_model = theano.function(
+        inputs=[classifier.input],
+        outputs=classifier.y_pred)
+
+    # We can test it on some examples from test test
+    dataset='mnist.pkl.gz'
+    datasets = load_data(dataset)
+    test_set_x, test_set_y = datasets[2]
+    test_set_x = test_set_x.get_value()
+
+    predicted_values = predict_model(test_set_x[:10])
+    print ("Predicted values for the first 10 examples in test set:")
+    print predicted_values
+
 
 if __name__ == '__main__':
     sgd_optimization_mnist()
