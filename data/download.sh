@@ -16,6 +16,7 @@ fi
 $DL_CMD http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz
 $DL_CMD http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist_py3k.pkl.gz
 $DL_CMD http://www.iro.umontreal.ca/~lisa/deep/data/imdb.pkl.gz && gunzip imdb.pkl.gz
+$DL_CMD http://www.iro.umontreal.ca/~lisa/deep/data/imdb.dict.pkl.gz && gunzip imdb.dict.pkl.gz
 $DL_CMD http://www.iro.umontreal.ca/~lisa/deep/data/Nottingham.zip && unzip -u Nottingham.zip
 $DL_CMD http://www.iro.umontreal.ca/~lisa/deep/midi.zip && unzip -u midi.zip -d ../code && echo "extracted Modified Python MIDI package (GPL)"
 $DL_CMD http://www-etud.iro.umontreal.ca/~mesnilgr/atis/atis.fold0.pkl.gz
