@@ -27,6 +27,11 @@ that has previously been preprocessed according to the needs of this LSTM
 implementation. Running the code provided in this tutorial will automatically
 download the data to the local directory.
 
+Once the model is trained, you can test it with your own corpus using the
+word-index dictionary 
+(`imdb.dict.pkl.gz <http://www.iro.umontreal.ca/~lisa/deep/data/imdb.dict.pkl.gz>`_)
+provided as a part of this tutorial.
+
 Model
 +++++
 
