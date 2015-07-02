@@ -191,6 +191,9 @@ class MLP(object):
         self.params = self.hiddenLayer.params + self.logRegressionLayer.params
         # end-snippet-3
 
+        # keep track of model input
+        self.input = input
+
 
 def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
              dataset='mnist.pkl.gz', batch_size=20, n_hidden=500):

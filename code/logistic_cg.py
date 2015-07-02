@@ -97,6 +97,9 @@ class LogisticRegression(object):
         # symbolic form
         self.y_pred = T.argmax(self.p_y_given_x, axis=1)
 
+        # keep track of model input
+        self.input = input
+
     def negative_log_likelihood(self, y):
         """Return the negative log-likelihood of the prediction of this model
         under a given target distribution.
