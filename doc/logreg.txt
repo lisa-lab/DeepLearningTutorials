@@ -266,7 +266,7 @@ instance we used a batch size of 600.
 
 
 Prediction Using a Trained Model
-+++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++
 
 ``sgd_optimization_mnist`` serialize and pickle the model each time new
 lowest validation error is reached. We can reload this model and predict
