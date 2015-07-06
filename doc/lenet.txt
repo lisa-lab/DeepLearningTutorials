@@ -401,10 +401,31 @@ to be compatible with our previous MLP implementation.
 
 
 .. note::
-    Note that the term convolution could corresponds to different mathematical operations.
-    1. theano.tensor.nnet.conv2d which is the most common one in almost all of the recent published convolutional models. In this op for each output feature map, all the input feature maps are summed together after being convolved with the filter.
-    2. Original LeNet model: In this work for each output feature map, only subset of input feature maps were selected.
-    3. The convolution used in signal processing: theano.tensor.signal.conv.conv2d which works only on single channel inputs.
+    Note that the term "convolution" could corresponds to different mathematical operations:
+
+    1. `theano.tensor.nnet.conv2d
+       <http://deeplearning.net/software/theano/library/tensor/nnet/conv.html#theano.tensor.nnet.conv.conv2d>`_,
+       which is the most common one in almost all of the recent published
+       convolutional models.
+       In this operation, each output feature map is connected to each
+       input feature map by a different 2D filter, and its value is the sum of
+       the individual convolution of all inputs through the corresponding filter.
+
+    2. The convolution used in the original LeNet model: In this work,
+       each output feature map is only connected to a subset of input
+       feature maps.
+
+    3. The convolution used in signal processing:
+       `theano.tensor.signal.conv.conv2d
+       <http://deeplearning.net/software/theano/library/tensor/signal/conv.html#theano.tensor.signal.conv.conv2d>`_,
+       which works only on single channel inputs.
+
+    Here, we use the first operation, so this models differ slightly
+    from the original LeNet paper. One reason to use 2. would be to
+    reduce the amount of computation needed, but modern hardware makes
+    it as fast to have the full connection pattern. Another reason would
+    be to slightly reduce the number of free parameters, but we have
+    other regularization techniques at our disposal.
 
 
 
