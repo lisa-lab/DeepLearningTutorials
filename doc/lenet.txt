@@ -400,6 +400,14 @@ tensors. These are then flattened to a 2D matrix of rasterized feature maps,
 to be compatible with our previous MLP implementation.
 
 
+.. note::
+    Note that the term convolution could corresponds to different mathematical operations.
+    1. theano.tensor.nnet.conv2d which is the most common one in almost all of the recent published convolutional models. In this op for each output feature map, all the input feature maps are summed together after being convolved with the filter.
+    2. Original LeNet model: In this work for each output feature map, only subset of input feature maps were selected.
+    3. The convolution used in signal processing: theano.tensor.signal.conv.conv2d which works only on single channel inputs.
+
+
+
 Putting it All Together
 +++++++++++++++++++++++
 
