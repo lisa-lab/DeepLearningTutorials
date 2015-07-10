@@ -211,21 +211,21 @@ If you use this tutorial, please cite the following papers.
 
 Introduction of the LSTM model:
 
-* `[pdf] <http://deeplearning.cs.cmu.edu/pdfs/Hochreiter97_lstm.pdf>`_ Hochreiter, S., & Schmidhuber, J. (1997). Long short-term memory. Neural computation, 9(8), 1735-1780.
+* `[pdf] <http://deeplearning.cs.cmu.edu/pdfs/Hochreiter97_lstm.pdf>`__ Hochreiter, S., & Schmidhuber, J. (1997). Long short-term memory. Neural computation, 9(8), 1735-1780.
 
 Addition of the forget gate to the LSTM model:
 
-* `[pdf] <http://www.mitpressjournals.org/doi/pdf/10.1162/089976600300015015>`_ Gers, F. A., Schmidhuber, J., & Cummins, F. (2000). Learning to forget: Continual prediction with LSTM. Neural computation, 12(10), 2451-2471.
+* `[pdf] <http://www.mitpressjournals.org/doi/pdf/10.1162/089976600300015015>`__ Gers, F. A., Schmidhuber, J., & Cummins, F. (2000). Learning to forget: Continual prediction with LSTM. Neural computation, 12(10), 2451-2471.
 
 More recent LSTM paper:
 
-* `[pdf] <http://www.cs.toronto.edu/~graves/preprint.pdf>`_ Graves, Alex. Supervised sequence labelling with recurrent neural networks. Vol. 385. Springer, 2012.
+* `[pdf] <http://www.cs.toronto.edu/~graves/preprint.pdf>`__ Graves, Alex. Supervised sequence labelling with recurrent neural networks. Vol. 385. Springer, 2012.
 
 Papers related to Theano:
 
-* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/nips2012_deep_workshop_theano_final.pdf>`_ Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Bergstra, James, Goodfellow, Ian, Bergeron, Arnaud, Bouchard, Nicolas, and Bengio, Yoshua. Theano: new features and speed improvements. NIPS Workshop on Deep Learning and Unsupervised Feature Learning, 2012.
+* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/nips2012_deep_workshop_theano_final.pdf>`__ Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Bergstra, James, Goodfellow, Ian, Bergeron, Arnaud, Bouchard, Nicolas, and Bengio, Yoshua. Theano: new features and speed improvements. NIPS Workshop on Deep Learning and Unsupervised Feature Learning, 2012.
 
-* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/theano_scipy2010.pdf>`_ Bergstra, James, Breuleux, Olivier, Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Desjardins, Guillaume, Turian, Joseph, Warde-Farley, David, and Bengio, Yoshua. Theano: a CPU and GPU math expression compiler. In Proceedings of the Python for Scientific Computing Conference (SciPy), June 2010.
+* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/theano_scipy2010.pdf>`__ Bergstra, James, Breuleux, Olivier, Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Desjardins, Guillaume, Turian, Joseph, Warde-Farley, David, and Bengio, Yoshua. Theano: a CPU and GPU math expression compiler. In Proceedings of the Python for Scientific Computing Conference (SciPy), June 2010.
 
 Thank you!
 
