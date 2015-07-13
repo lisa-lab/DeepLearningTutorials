@@ -296,9 +296,9 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=1000,
     # specify how to update the parameters of the model as a list of
     # (variable, update expression) pairs
 
-    # given two list the zip A = [a1, a2, a3, a4] and B = [b1, b2, b3, b4] of
-    # same length, zip generates a list C of same size, where each element
-    # is a pair formed from the two lists :
+    # given two lists of the same length, A = [a1, a2, a3, a4] and
+    # B = [b1, b2, b3, b4], zip generates a list C of same size, where each
+    # element is a pair formed from the two lists :
     #    C = [(a1, b1), (a2, b2), (a3, b3), (a4, b4)]
     updates = [
         (param, param - learning_rate * gparam)
