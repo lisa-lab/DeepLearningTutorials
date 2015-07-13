@@ -101,7 +101,7 @@ Raw input encoding
 
 A token corresponds to a word. Each token in the ATIS vocabulary is associated to an index. Each sentence is a
 array of indexes (``int32``). Then, each set (train, valid, test) is a list of arrays of indexes. A python
-dictionnary is defined for mapping the space of indexes to the space of words.
+dictionary is defined for mapping the space of indexes to the space of words.
     
     >>> sentence
     array([383, 189,  13, 193, 208, 307, 195, 502, 260, 539,
@@ -224,7 +224,7 @@ The **parameters** of the E-RNN to be learned are:
 * the word embeddings (real-valued matrix) 
 * the initial hidden state (real-value vector)
 * two matrices for the linear projection of the input ``t`` and the previous hidden layer state ``t-1``
-* (optionnal) bias. `Recommendation <http://en.wikipedia.org/wiki/Occam's_razor>`_: don't use it.
+* (optional) bias. `Recommendation <http://en.wikipedia.org/wiki/Occam's_razor>`_: don't use it.
 * softmax classification layer on top
 
 The **hyperparameters** define the whole architecture:
@@ -282,7 +282,7 @@ the true labels and compute some metrics. In this `repo
 <http://www.cnts.ua.ac.be/conll2000/chunking/conlleval.txt>`_ PERL script.
 It's not trivial to compute those metrics due to the `Inside Outside Beginning
 (IOB) <http://en.wikipedia.org/wiki/Inside_Outside_Beginning>`_ representation
-i.e. a prediction is considered correct if the word-beginnin **and** the
+i.e. a prediction is considered correct if the word-beginning **and** the
 word-inside **and** the word-outside predictions are **all** correct.
 Note that the extension is `txt` and you will have to change it to `pl`.
 

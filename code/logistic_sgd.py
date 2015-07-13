@@ -94,11 +94,11 @@ class LogisticRegression(object):
         # symbolic expression for computing the matrix of class-membership
         # probabilities
         # Where:
-        # W is a matrix where column-k represent the separation hyper plain for
+        # W is a matrix where column-k represent the separation hyperplane for
         # class-k
         # x is a matrix where row-j  represents input training sample-j
-        # b is a vector where element-k represent the free parameter of hyper
-        # plain-k
+        # b is a vector where element-k represent the free parameter of
+        # hyperplane-k
         self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W) + self.b)
 
         # symbolic description of how to compute prediction as class whose
