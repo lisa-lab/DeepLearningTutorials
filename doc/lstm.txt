@@ -25,7 +25,10 @@ recurrent neural network on the Large Movie Review Dataset dataset.
 While the dataset is public, in this tutorial we provide a copy of the dataset
 that has previously been preprocessed according to the needs of this LSTM
 implementation. Running the code provided in this tutorial will automatically
-download the data to the local directory.
+download the data to the local directory. In order to use your own data, please
+use a (`preprocessing script
+<https://raw.githubusercontent.com/kyunghyuncho/DeepLearningTutorials/master/code/imdb_preprocess.py>`_)
+provided as a part of this tutorial.
 
 Once the model is trained, you can test it with your own corpus using the
 word-index dictionary 
