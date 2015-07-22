@@ -66,10 +66,9 @@ class HiddenLayer(object):
         self.input = input
         # end-snippet-1
 
-        # `W` is initialized with `W_values` which is uniformely sampled
-        # from sqrt(-6./(n_in+n_hidden)) and sqrt(6./(n_in+n_hidden))
-        # for tanh activation function
-        # the output of uniform if converted using asarray to dtype
+        # Sparse initialization scheme from section 5 of Martens (2010):
+        # http://www.icml2010.org/papers/458.pdf
+        # the output weight matrix is converted using asarray to dtype
         # theano.config.floatX so that the code is runable on GPU
         # Note : optimal initialization of weights is dependent on the
         #        activation function used (among other things).
@@ -78,22 +77,25 @@ class HiddenLayer(object):
         #        compared to tanh
         #        We have no info for other function, so we use the same as
         #        tanh.
+        num_connections = min(15,n_in)
         if W is None:
-            W_values = numpy.asarray(
-                rng.uniform(
-                    low=-numpy.sqrt(6. / (n_in + n_out)),
-                    high=numpy.sqrt(6. / (n_in + n_out)),
-                    size=(n_in, n_out)
-                ),
-                dtype=theano.config.floatX
-            )
+            indices = range(n_in)
+            weights = numpy.zeros((n_in, n_out),dtype=theano.config.floatX)
+            for i in range(n_out):
+                random.shuffle(indices)
+                for j in indices[:num_connections]:
+                    weights[j,i] = random.gauss(0.0, 0.8)
+
             if activation == theano.tensor.nnet.sigmoid:
                 W_values *= 4
 
             W = theano.shared(value=W_values, name='W', borrow=True)
 
         if b is None:
-            b_values = numpy.zeros((n_out,), dtype=theano.config.floatX)
+            if activation == theano.tensor.tanh:
+                b_values = 0.5*numpy.ones((n_out,), dtype=theano.config.floatX)
+            else:
+                b_values = numpy.zeros((n_out,), dtype=theano.config.floatX)
             b = theano.shared(value=b_values, name='b', borrow=True)
 
         self.W = W
