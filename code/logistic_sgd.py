@@ -81,7 +81,7 @@ class LogisticRegression(object):
             name='W',
             borrow=True
         )
-        # initialize the baises b as a vector of n_out 0s
+        # initialize the biases b as a vector of n_out 0s
         self.b = theano.shared(
             value=numpy.zeros(
                 (n_out,),
