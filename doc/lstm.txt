@@ -124,7 +124,7 @@ output gates and, subsequently, their outputs :
 .. math::
     :label: 5
 
-    o_t = \sigma(W_o x_t + U_o h_{t-1} + V_o C_t + b_1)
+    o_t = \sigma(W_o x_t + U_o h_{t-1} + V_o C_t + b_o)
 
 .. math::
     :label: 6
@@ -144,7 +144,7 @@ matrix :math:`V_o` and equation :eq:`5` is replaced by equation :eq:`5-alt` :
 .. math::
     :label: 5-alt
 
-    o_t = \sigma(W_o x_t + U_o h_{t-1} + b_1)
+    o_t = \sigma(W_o x_t + U_o h_{t-1} + b_o)
 
 Our model is composed of a single LSTM layer followed by an average pooling
 and a logistic regression layer as illustrated in Figure 2 below. Thus, from
@@ -235,8 +235,9 @@ Thank you!
 Contact
 =======
 
-Please email `Kyunghyun Cho <http://www.kyunghyuncho.me/>`_ for any
-problem report or feedback. We will be glad to hear from you.
+Please email `Pierre Luc Carrier <mailto:carriepl..at..iro.umontreal.ca>`_ or
+`Kyunghyun Cho <http://www.kyunghyuncho.me/>`_ for any problem report or
+feedback. We will be glad to hear from you.
 
 References
 ++++++++++
