@@ -235,8 +235,9 @@ Thank you!
 Contact
 =======
 
-Please email `Kyunghyun Cho <http://www.kyunghyuncho.me/>`_ for any
-problem report or feedback. We will be glad to hear from you.
+Please email `Pierre Luc Carrier <mailto:carriepl..at..iro.umontreal.ca>`_ or
+`Kyunghyun Cho <http://www.kyunghyuncho.me/>`_ for any problem report or
+feedback. We will be glad to hear from you.
 
 References
 ++++++++++
