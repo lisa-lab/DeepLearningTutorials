@@ -96,7 +96,7 @@ MNIST Dataset
  memory and therefore bypassing the overhead.
  Because the datapoints and their labels are usually of different nature
  (labels are usually integers while datapoints are real numbers) we
- suggest to use different variables for labes and data. Also we recomand
+ suggest to use different variables for label and data. Also we recommend
  using different variables for the training set, validation set and
  testing set to make the code more readable (resulting in 6 different
  shared variables).
