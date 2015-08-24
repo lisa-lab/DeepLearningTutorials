@@ -20,7 +20,7 @@ Download
 
 On each learning algorithm page, you will be able to download the corresponding files. If you want to download all of them at the same time, you can clone the git repository of the tutorial::
 
-    git clone git://github.com/lisa-lab/DeepLearningTutorials.git
+    git clone https://github.com/lisa-lab/DeepLearningTutorials.git
 
 
 .. _datasets:
