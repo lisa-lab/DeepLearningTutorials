@@ -173,7 +173,7 @@ respectively.
 .. literalinclude:: ../code/hmc/hmc.py
   :pyobject: simulate_dynamics.leapfrog
 
-The `simulate_dynamics` function performs the full algorithm of Eqs.
+The `simulate\_dynamics` function performs the full algorithm of Eqs.
 :eq:`leap-frog2`. We start with the initial half-step update of :math:`\phi`
 and full-step of :math:`s`, and then scan over the `leapfrog` method
 `n\_steps-1` times.
@@ -232,7 +232,7 @@ defined as follows.
   :pyobject: kinetic_energy
 
 `hmc\_move` finally returns the tuple `(accept, final\_pos)`. `accept` is a
-symbolic boolean variable indicating whether or not the new state `final_pos`
+symbolic boolean variable indicating whether or not the new state `final\_pos`
 should be used or not.
 
 
