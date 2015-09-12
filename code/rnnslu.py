@@ -288,10 +288,8 @@ def main(param=None):
     valid_lex, valid_ne, valid_y = valid_set
     test_lex, test_ne, test_y = test_set
 
-    vocsize = len(set(reduce(lambda x, y: list(x) + list(y),
-                             train_lex + valid_lex + test_lex)))
-    nclasses = len(set(reduce(lambda x, y: list(x)+list(y),
-                              train_y + test_y + valid_y)))
+    vocsize = len(dic['words2idx'])
+    nclasses = len(dic['labels2idx'])
     nsentences = len(train_lex)
 
     groundtruth_valid = [map(lambda x: idx2label[x], y) for y in valid_y]
