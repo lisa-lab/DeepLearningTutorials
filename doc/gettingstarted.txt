@@ -389,7 +389,7 @@ form, we estimate the gradient from just a single example at a time.
 
 The variant that we recommend for deep learning is a further twist on
 stochastic gradient descent using so-called "minibatches".
-Minibatch SGD works identically to SGD, except that we use more than
+Minibatch SGD (MSGD) works identically to SGD, except that we use more than
 one training example to make each estimate of the gradient.  This technique reduces
 variance in the estimate of the gradient, and often makes better use of the
 hierarchical memory organization in modern computers.
