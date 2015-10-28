@@ -14,7 +14,7 @@ before_install:
   - conda update --yes conda
 
 install:
-  - conda create --yes -q -n pyenv mkl python=2.7 numpy scipy pip nose yaml pyflakes pillow pyparsing=1.5
+  - conda create --yes -q -n pyenv mkl python=2.7 numpy=1.10 scipy=0.16.0 pip nose yaml pyflakes pillow pyparsing=1.5
   - source activate pyenv
   - pip install git+git://github.com/Theano/Theano.git
 
