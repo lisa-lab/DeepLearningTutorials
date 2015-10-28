@@ -42,8 +42,9 @@ Thank you!
 Contact
 =======
 
-Please email to `Grégoire Mesnil <http://www-etud.iro.umontreal.ca/~mesnilgr/>`_ for any
-problem report or feedback. We will be glad to hear from you.
+Please email to
+``Grégoire Mesnil (first-add-a-dot-last-add-at-gmail-add-a-dot-com)``
+for any problem report or feedback. We will be glad to hear from you.
 
 Task
 ++++
