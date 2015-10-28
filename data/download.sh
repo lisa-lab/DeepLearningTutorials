@@ -19,8 +19,8 @@ $DL_CMD http://www.iro.umontreal.ca/~lisa/deep/data/imdb.pkl.gz && gunzip imdb.p
 $DL_CMD http://www.iro.umontreal.ca/~lisa/deep/data/imdb.dict.pkl.gz && gunzip imdb.dict.pkl.gz
 $DL_CMD http://www.iro.umontreal.ca/~lisa/deep/data/Nottingham.zip && unzip -u Nottingham.zip
 $DL_CMD http://www.iro.umontreal.ca/~lisa/deep/midi.zip && unzip -u midi.zip -d ../code && echo "extracted Modified Python MIDI package (GPL)"
-$DL_CMD http://www-etud.iro.umontreal.ca/~mesnilgr/atis/atis.fold0.pkl.gz
-$DL_CMD http://www-etud.iro.umontreal.ca/~mesnilgr/atis/atis.fold1.pkl.gz
-$DL_CMD http://www-etud.iro.umontreal.ca/~mesnilgr/atis/atis.fold2.pkl.gz
-$DL_CMD http://www-etud.iro.umontreal.ca/~mesnilgr/atis/atis.fold3.pkl.gz
-$DL_CMD http://www-etud.iro.umontreal.ca/~mesnilgr/atis/atis.fold4.pkl.gz
+$DL_CMD http://lisaweb.iro.umontreal.ca/transfert/lisa/users/mesnilgr/atis/atis.fold0.pkl.gz
+$DL_CMD http://lisaweb.iro.umontreal.ca/transfert/lisa/users/mesnilgr/atis/atis.fold1.pkl.gz
+$DL_CMD http://lisaweb.iro.umontreal.ca/transfert/lisa/users/mesnilgr/atis/atis.fold2.pkl.gz
+$DL_CMD http://lisaweb.iro.umontreal.ca/transfert/lisa/users/mesnilgr/atis/atis.fold3.pkl.gz
+$DL_CMD http://lisaweb.iro.umontreal.ca/transfert/lisa/users/mesnilgr/atis/atis.fold4.pkl.gz
