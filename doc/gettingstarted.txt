@@ -525,7 +525,7 @@ L2 regularization term weighted by :math:`\lambda_2`
   L1  = T.sum(abs(param))
 
   # symbolic Theano variable that represents the squared L2 term
-  L2_sqr = T.sum(param ** 2)
+  L2 = T.sum(param ** 2)
 
   # the loss
   loss = NLL + lambda_1 * L1 + lambda_2 * L2
