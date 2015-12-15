@@ -87,9 +87,9 @@ def speed():
     # 7.1-2 (python 2.7.2, mkl unknow). BLAS with only 1 thread.
 
     expected_times_64 = numpy.asarray([9.8, 22.0, 76.1, 73.7, 116.4,
-                                       346.9, 355.0, 558.1, 130.4, 23.2, 106])
-    expected_times_32 = numpy.asarray([8.1, 17.9, 42.5, 66.5, 71,
-                                       191.2, 199.0, 432.8, 119.5, 36.9, 78.0])
+                                       346.9, 355.0, 510.9, 130.4, 23.2, 106])
+    expected_times_32 = numpy.asarray([6.4, 17.9, 42.5, 66.5, 71,
+                                       191.2, 199.0, 400.4, 119.5, 36.9, 67.2])
 
     # Number with just 1 decimal are new value that are faster with
     # the Theano version 0.5rc2 Other number are older. They are not
@@ -110,7 +110,7 @@ def speed():
 
     expected_times_gpu = numpy.asarray([3.0, 7.55523491, 18.99226785,
                                         5.8, 20.0,
-                                        11.2, 17.2, 257.7, 118.8, 34.2, 8.7])
+                                        11.2, 17.2, 244.3, 118.8, 34.2, 8.7])
     expected_times_64 = [s for idx, s in enumerate(expected_times_64)
                          if to_exec[idx]]
     expected_times_32 = [s for idx, s in enumerate(expected_times_32)

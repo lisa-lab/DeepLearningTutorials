@@ -15,13 +15,13 @@ before_install:
   - conda update --yes conda
 
 install:
-  - conda create --yes -q -n pyenv mkl python=2.7 numpy=1.10 scipy=0.16.0 pip nose yaml pyflakes pillow pyparsing=1.5
+  - conda create --yes -q -n pyenv mkl python=2.7 numpy=1.10 scipy=0.16.1 pip nose yaml pyflakes pillow pyparsing=1.5
   - source activate pyenv
   - pip install git+git://github.com/Theano/Theano.git
 
 env:
   - PART="test.py:test_logistic_sgd test.py:test_logistic_cg test.py:test_mlp test.py:test_convolutional_mlp test.py:test_dA"
-  - PART="test.py:test_SdA"
+  - PART="test.py:test_SdA test.py:test_lstm"
   - PART="test.py:test_dbn"
   - PART="test.py:test_rbm test.py:test_rnnrbm"
   - PART="-e test.py"
