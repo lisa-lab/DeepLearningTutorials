@@ -1,5 +1,4 @@
 import numpy
-from scipy import linalg
 import theano
 
 from hmc import HMC_sampler
@@ -15,7 +14,7 @@ def sampler_on_nd_gaussian(sampler_cls, burnin, n_samples, dim=10):
     cov = numpy.array(rng.rand(dim, dim), dtype=theano.config.floatX)
     cov = (cov + cov.T) / 2.
     cov[numpy.arange(dim), numpy.arange(dim)] = 1.0
-    cov_inv = linalg.inv(cov)
+    cov_inv = numpy.linalg.inv(cov)
 
     # Define energy function for a multi-variate Gaussian
     def gaussian_energy(x):
