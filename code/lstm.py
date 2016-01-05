@@ -2,9 +2,7 @@
 Build a tweet sentiment analyzer
 '''
 from collections import OrderedDict
-import cPickle as pkl
 import sys
-import time
 
 import numpy
 import theano
@@ -12,13 +10,20 @@ from theano import config
 import theano.tensor as tensor
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 
+import sys
+import os
+sys.path.append(os.path.expanduser('~/ext/platoon'))
+
 import imdb
+import channel
+from param_sync import EASGD
 
 datasets = {'imdb': (imdb.load_data, imdb.prepare_data)}
 
 # Set the random number generators' seeds for consistency
 SEED = 123
 numpy.random.seed(SEED)
+
 
 def numpy_floatX(data):
     return numpy.asarray(data, dtype=config.floatX)
@@ -443,50 +448,32 @@ def pred_error(f_pred, prepare_data, data, iterator, verbose=False):
 
 
 def train_lstm(
-    dim_proj=128,  # word embeding dimension and LSTM number of hidden units.
-    patience=10,  # Number of epoch to wait before early stop if no progress
-    max_epochs=5000,  # The maximum number of epoch to run
+    dim_proj=1024,  # word embeding dimension and LSTM number of hidden units.
     dispFreq=10,  # Display to stdout the training progress every N updates
     decay_c=0.,  # Weight decay for the classifier applied to the U weights.
     lrate=0.0001,  # Learning rate for sgd (not used for adadelta and rmsprop)
-    n_words=10000,  # Vocabulary size
     optimizer=adadelta,  # sgd, adadelta and rmsprop available, sgd very hard to use, not recommanded (probably need momentum and decaying learning rate).
     encoder='lstm',  # TODO: can be removed must be lstm.
     saveto='lstm_model.npz',  # The best model will be saved there
-    validFreq=370,  # Compute the validation error after this number of update.
-    saveFreq=1110,  # Save the parameters after every saveFreq updates
-    maxlen=100,  # Sequence longer then this get ignored
-    batch_size=16,  # The batch size during training.
-    valid_batch_size=64,  # The batch size used for validation/test set.
-    dataset='imdb',
 
     # Parameter for extra option
     noise_std=0.,
     use_dropout=True,  # if False slightly faster, but worst test error
                        # This frequently need a bigger model.
     reload_model=None,  # Path to a saved model we want to start from.
-    test_size=-1,  # If >0, we keep only this number of test example.
+    valid_batch_size=64,
+    n_words=10000,
+    maxlen=100,
+    mode='init',
 ):
+
+    s = channel.Soldier(port=5566, cport=5567)
 
     # Model options
     model_options = locals().copy()
     print "model options", model_options
 
-    load_data, prepare_data = get_dataset(dataset)
-
-    print 'Loading data'
-    train, valid, test = load_data(n_words=n_words, valid_portion=0.05,
-                                   maxlen=maxlen)
-    if test_size > 0:
-        # The test set is sorted by size, but we want to keep random
-        # size example.  So we must select a random selection of the
-        # examples.
-        idx = numpy.arange(len(test[0]))
-        numpy.random.shuffle(idx)
-        idx = idx[:test_size]
-        test = ([test[0][n] for n in idx], [test[1][n] for n in idx])
-
-    ydim = numpy.max(train[1]) + 1
+    ydim = int(s.send_req('ydim'))
 
     model_options['ydim'] = ydim
 
@@ -495,13 +482,22 @@ def train_lstm(
     # Dict name (string) -> numpy ndarray
     params = init_params(model_options)
 
-    if reload_model:
-        load_params('lstm_model.npz', params)
+    if mode == 'init':
+        if reload_model:
+            load_params('lstm_model.npz', params)
 
-    # This create Theano Shared Variable from the parameters.
+    # This creates Theano Shared Variable from the parameters.
     # Dict name (string) -> Theano Tensor Shared Variable
     # params and tparams have different copy of the weights.
     tparams = init_tparams(params)
+
+    s.init_shared_params('DLTlstm', tparams.values(),
+                         param_sync_rule=EASGD(0.4),
+                         cleanup=(mode == 'init'))
+    print "Params init done"
+
+    if mode == 'test':
+        import pdb; pdb.set_trace()
 
     # use_noise is for dropout
     (use_noise, x, mask,
@@ -525,110 +521,68 @@ def train_lstm(
 
     print 'Optimization'
 
+    load_data, prepare_data = get_dataset('imdb')
+    train, valid, test = load_data(n_words=n_words, valid_portion=0.05,
+                                   maxlen=maxlen)
+    del train
+
     kf_valid = get_minibatches_idx(len(valid[0]), valid_batch_size)
     kf_test = get_minibatches_idx(len(test[0]), valid_batch_size)
 
-    print "%d train examples" % len(train[0])
-    print "%d valid examples" % len(valid[0])
-    print "%d test examples" % len(test[0])
-
-    history_errs = []
     best_p = None
-    bad_count = 0
 
-    if validFreq == -1:
-        validFreq = len(train[0]) / batch_size
-    if saveFreq == -1:
-        saveFreq = len(train[0]) / batch_size
-
-    uidx = 0  # the number of update done
-    estop = False  # early stop
-    start_time = time.time()
-    try:
-        for eidx in xrange(max_epochs):
-            n_samples = 0
-
-            # Get new shuffled index for the training set.
-            kf = get_minibatches_idx(len(train[0]), batch_size, shuffle=True)
-
-            for _, train_index in kf:
-                uidx += 1
-                use_noise.set_value(1.)
-
-                # Select the random examples for this minibatch
-                y = [train[1][t] for t in train_index]
-                x = [train[0][t]for t in train_index]
-
-                # Get the data in numpy.ndarray format
-                # This swap the axis!
-                # Return something of shape (minibatch maxlen, n samples)
-                x, mask, y = prepare_data(x, y)
-                n_samples += x.shape[1]
+    while True:
+        step = s.send_req('next')
+        print step
+        if step == 'train':
+            use_noise.set_value(numpy_floatX(1.))
+            for i in xrange(10):
+                x, mask, y = s.recv_mb()
 
                 cost = f_grad_shared(x, mask, y)
+                print "Train cost", cost
                 f_update(lrate)
+            s.send_req(dict(done=10))
+            print "Syncing with global params"
+            s.sync_params(synchronous=True)
 
-                if numpy.isnan(cost) or numpy.isinf(cost):
-                    print 'bad cost detected: ', cost
-                    return 1., 1., 1.
+        """
+        if step.startswith('save '):
+            _, saveto = step.split(' ', 1)
+            print 'Saving...',
+            # TODO fix that shit so that saving works.
+            numpy.savez(saveto, history_errs=history_errs, **s.params)
+            pkl.dump(model_options, open('%s.pkl' % saveto, 'wb'), -1)
+            print 'Done'
+        """
 
-                if numpy.mod(uidx, dispFreq) == 0:
-                    print 'Epoch ', eidx, 'Update ', uidx, 'Cost ', cost
+        if step == 'valid':
+            use_noise.set_value(numpy_floatX(0.))
+            valid_err = pred_error(f_pred, prepare_data, valid,
+                                   kf_valid)
+            test_err = pred_error(f_pred, prepare_data, test, kf_test)
+            res = s.send_req(dict(test_err=float(test_err),
+                                  valid_err=float(valid_err)))
 
-                if saveto and numpy.mod(uidx, saveFreq) == 0:
-                    print 'Saving...',
+            if res == 'best':
+                best_p = unzip(tparams)
 
-                    if best_p is not None:
-                        params = best_p
-                    else:
-                        params = unzip(tparams)
-                    numpy.savez(saveto, history_errs=history_errs, **params)
-                    pkl.dump(model_options, open('%s.pkl' % saveto, 'wb'), -1)
-                    print 'Done'
+            print ('Valid ', valid_err,
+                   'Test ', test_err)
 
-                if numpy.mod(uidx, validFreq) == 0:
-                    use_noise.set_value(0.)
-                    train_err = pred_error(f_pred, prepare_data, train, kf)
-                    valid_err = pred_error(f_pred, prepare_data, valid,
-                                           kf_valid)
-                    test_err = pred_error(f_pred, prepare_data, test, kf_test)
+        if step == 'stop':
+            break
 
-                    history_errs.append([valid_err, test_err])
+    return
 
-                    if (best_p is None or
-                        valid_err <= numpy.array(history_errs)[:,
-                                                               0].min()):
-
-                        best_p = unzip(tparams)
-                        bad_counter = 0
-
-                    print ('Train ', train_err, 'Valid ', valid_err,
-                           'Test ', test_err)
-
-                    if (len(history_errs) > patience and
-                        valid_err >= numpy.array(history_errs)[:-patience,
-                                                               0].min()):
-                        bad_counter += 1
-                        if bad_counter > patience:
-                            print 'Early Stop!'
-                            estop = True
-                            break
-
-            print 'Seen %d samples' % n_samples
-
-            if estop:
-                break
-
-    except KeyboardInterrupt:
-        print "Training interupted"
-
-    end_time = time.time()
+    # FIX that shit later.
+"""
     if best_p is not None:
         zipp(best_p, tparams)
     else:
         best_p = unzip(tparams)
 
-    use_noise.set_value(0.)
+    use_noise.set_value(numpy_floatX(0.))
     kf_train_sorted = get_minibatches_idx(len(train[0]), batch_size)
     train_err = pred_error(f_pred, prepare_data, train, kf_train_sorted)
     valid_err = pred_error(f_pred, prepare_data, valid, kf_valid)
@@ -644,11 +598,10 @@ def train_lstm(
     print >> sys.stderr, ('Training took %.1fs' %
                           (end_time - start_time))
     return train_err, valid_err, test_err
-
+"""
 
 if __name__ == '__main__':
     # See function train for all possible parameter and there definition.
     train_lstm(
-        max_epochs=100,
-        test_size=500,
+        mode=sys.argv[1]
     )
