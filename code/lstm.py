@@ -553,7 +553,7 @@ def train_lstm(
 
             for _, train_index in kf:
                 uidx += 1
-                use_noise.set_value(1.)
+                use_noise.set_value(numpy_floatX(1.))
 
                 # Select the random examples for this minibatch
                 y = [train[1][t] for t in train_index]
@@ -587,7 +587,7 @@ def train_lstm(
                     print 'Done'
 
                 if numpy.mod(uidx, validFreq) == 0:
-                    use_noise.set_value(0.)
+                    use_noise.set_value(numpy_floatX(0.))
                     train_err = pred_error(f_pred, prepare_data, train, kf)
                     valid_err = pred_error(f_pred, prepare_data, valid,
                                            kf_valid)
@@ -628,7 +628,7 @@ def train_lstm(
     else:
         best_p = unzip(tparams)
 
-    use_noise.set_value(0.)
+    use_noise.set_value(numpy_floatX(0.))
     kf_train_sorted = get_minibatches_idx(len(train[0]), batch_size)
     train_err = pred_error(f_pred, prepare_data, train, kf_train_sorted)
     valid_err = pred_error(f_pred, prepare_data, valid, kf_valid)
