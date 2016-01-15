@@ -86,9 +86,9 @@ def speed():
     # 580 for the GPU. OS=Fedora 14, gcc=4.5.1, python/BLAS from EPD
     # 7.1-2 (python 2.7.2, mkl unknow). BLAS with only 1 thread.
 
-    expected_times_64 = numpy.asarray([9.8, 22.0, 76.1, 73.7, 116.4,
+    expected_times_64 = numpy.asarray([9.3, 21.0, 76.1, 73.7, 116.4,
                                        346.9, 355.0, 510.9, 130.4, 23.2, 106])
-    expected_times_32 = numpy.asarray([6.4, 17.9, 42.5, 66.5, 71,
+    expected_times_32 = numpy.asarray([6.4, 14.7, 42.5, 66.5, 71,
                                        191.2, 199.0, 400.4, 119.5, 36.9, 67.2])
 
     # Number with just 1 decimal are new value that are faster with
