@@ -32,9 +32,12 @@ References:
                  Christopher M. Bishop, section 4.3.2
 
 """
+
+from __future__ import print_function
+
 __docformat__ = 'restructedtext en'
 
-import cPickle
+import six.moves.cPickle as pickle
 import gzip
 import os
 import sys
@@ -194,19 +197,21 @@ def load_data(dataset):
             dataset = new_path
 
     if (not os.path.isfile(dataset)) and data_file == 'mnist.pkl.gz':
-        import urllib
+        from six.moves import urllib
         origin = (
             'http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz'
         )
-        print 'Downloading data from %s' % origin
-        urllib.urlretrieve(origin, dataset)
+        print('Downloading data from %s' % origin)
+        urllib.request.urlretrieve(origin, dataset)
 
-    print '... loading data'
+    print('... loading data')
 
     # Load the dataset
-    f = gzip.open(dataset, 'rb')
-    train_set, valid_set, test_set = cPickle.load(f)
-    f.close()
+    with gzip.open(dataset, 'rb') as f:
+        try:
+            train_set, valid_set, test_set = pickle.load(f, encoding='latin1')
+        except:
+            train_set, valid_set, test_set = pickle.load(f)
     # train_set, valid_set, test_set format: tuple(input, target)
     # input is a numpy.ndarray of 2 dimensions (a matrix)
     # where each row corresponds to an example. target is a
@@ -276,14 +281,14 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
     test_set_x, test_set_y = datasets[2]
 
     # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
-    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] / batch_size
-    n_test_batches = test_set_x.get_value(borrow=True).shape[0] / batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0] // batch_size
+    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] // batch_size
+    n_test_batches = test_set_x.get_value(borrow=True).shape[0] // batch_size
 
     ######################
     # BUILD ACTUAL MODEL #
     ######################
-    print '... building the model'
+    print('... building the model')
 
     # allocate symbolic variables for the data
     index = T.lscalar()  # index to a [mini]batch
@@ -348,14 +353,14 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
     ###############
     # TRAIN MODEL #
     ###############
-    print '... training the model'
+    print('... training the model')
     # early-stopping parameters
     patience = 5000  # look as this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is
                                   # found
     improvement_threshold = 0.995  # a relative improvement of this much is
                                   # considered significant
-    validation_frequency = min(n_train_batches, patience / 2)
+    validation_frequency = min(n_train_batches, patience // 2)
                                   # go through this many
                                   # minibatche before checking the network
                                   # on the validation set; in this case we
@@ -369,7 +374,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
     epoch = 0
     while (epoch < n_epochs) and (not done_looping):
         epoch = epoch + 1
-        for minibatch_index in xrange(n_train_batches):
+        for minibatch_index in range(n_train_batches):
 
             minibatch_avg_cost = train_model(minibatch_index)
             # iteration number
@@ -378,7 +383,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
             if (iter + 1) % validation_frequency == 0:
                 # compute zero-one loss on validation set
                 validation_losses = [validate_model(i)
-                                     for i in xrange(n_valid_batches)]
+                                     for i in range(n_valid_batches)]
                 this_validation_loss = numpy.mean(validation_losses)
 
                 print(
@@ -402,7 +407,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
                     # test it on the test set
 
                     test_losses = [test_model(i)
-                                   for i in xrange(n_test_batches)]
+                                   for i in range(n_test_batches)]
                     test_score = numpy.mean(test_losses)
 
                     print(
@@ -419,8 +424,8 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
                     )
 
                     # save the best model
-                    with open('best_model.pkl', 'w') as f:
-                        cPickle.dump(classifier, f)
+                    with open('best_model.pkl', 'wb') as f:
+                        pickle.dump(classifier, f)
 
             if patience <= iter:
                 done_looping = True
@@ -434,11 +439,11 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
         )
         % (best_validation_loss * 100., test_score * 100.)
     )
-    print 'The code run for %d epochs, with %f epochs/sec' % (
-        epoch, 1. * epoch / (end_time - start_time))
-    print >> sys.stderr, ('The code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.1fs' % ((end_time - start_time)))
+    print('The code run for %d epochs, with %f epochs/sec' % (
+        epoch, 1. * epoch / (end_time - start_time)))
+    print(('The code for file ' +
+           os.path.split(__file__)[1] +
+           ' ran for %.1fs' % ((end_time - start_time))), file=sys.stderr)
 
 
 def predict():
@@ -448,7 +453,7 @@ def predict():
     """
 
     # load the saved model
-    classifier = cPickle.load(open('best_model.pkl'))
+    classifier = pickle.load(open('best_model.pkl'))
 
     # compile a predictor function
     predict_model = theano.function(
@@ -462,8 +467,8 @@ def predict():
     test_set_x = test_set_x.get_value()
 
     predicted_values = predict_model(test_set_x[:10])
-    print ("Predicted values for the first 10 examples in test set:")
-    print predicted_values
+    print("Predicted values for the first 10 examples in test set:")
+    print(predicted_values)
 
 
 if __name__ == '__main__':
