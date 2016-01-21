@@ -29,6 +29,9 @@
    Systems 19, 2007
 
 """
+
+from __future__ import print_function
+
 import os
 import sys
 import timeit
@@ -116,7 +119,7 @@ class SdA(object):
         # stochastich gradient descent on the MLP
 
         # start-snippet-2
-        for i in xrange(self.n_layers):
+        for i in range(self.n_layers):
             # construct the sigmoidal layer
 
             # the size of the input is either the number of hidden units of
@@ -254,9 +257,9 @@ class SdA(object):
 
         # compute number of minibatches for training, validation and testing
         n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
-        n_valid_batches /= batch_size
+        n_valid_batches //= batch_size
         n_test_batches = test_set_x.get_value(borrow=True).shape[0]
-        n_test_batches /= batch_size
+        n_test_batches //= batch_size
 
         index = T.lscalar('index')  # index to a [mini]batch
 
@@ -314,11 +317,11 @@ class SdA(object):
 
         # Create a function that scans the entire validation set
         def valid_score():
-            return [valid_score_i(i) for i in xrange(n_valid_batches)]
+            return [valid_score_i(i) for i in range(n_valid_batches)]
 
         # Create a function that scans the entire test set
         def test_score():
-            return [test_score_i(i) for i in xrange(n_test_batches)]
+            return [test_score_i(i) for i in range(n_test_batches)]
 
         return train_fn, valid_score, test_score
 
@@ -357,12 +360,12 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0]
-    n_train_batches /= batch_size
+    n_train_batches //= batch_size
 
     # numpy random generator
     # start-snippet-3
     numpy_rng = numpy.random.RandomState(89677)
-    print '... building the model'
+    print('... building the model')
     # construct the stacked denoising autoencoder class
     sda = SdA(
         numpy_rng=numpy_rng,
@@ -374,52 +377,52 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
     #########################
     # PRETRAINING THE MODEL #
     #########################
-    print '... getting the pretraining functions'
+    print('... getting the pretraining functions')
     pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=batch_size)
 
-    print '... pre-training the model'
+    print('... pre-training the model')
     start_time = timeit.default_timer()
     ## Pre-train layer-wise
     corruption_levels = [.1, .2, .3]
-    for i in xrange(sda.n_layers):
+    for i in range(sda.n_layers):
         # go through pretraining epochs
-        for epoch in xrange(pretraining_epochs):
+        for epoch in range(pretraining_epochs):
             # go through the training set
             c = []
-            for batch_index in xrange(n_train_batches):
+            for batch_index in range(n_train_batches):
                 c.append(pretraining_fns[i](index=batch_index,
                          corruption=corruption_levels[i],
                          lr=pretrain_lr))
-            print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
-            print numpy.mean(c)
+            print('Pre-training layer %i, epoch %d, cost ' % (i, epoch))
+            print(numpy.mean(c))
 
     end_time = timeit.default_timer()
 
-    print >> sys.stderr, ('The pretraining code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.2fm' % ((end_time - start_time) / 60.))
+    print(('The pretraining code for file ' +
+           os.path.split(__file__)[1] +
+           ' ran for %.2fm' % ((end_time - start_time) / 60.)), file=sys.stderr)
     # end-snippet-4
     ########################
     # FINETUNING THE MODEL #
     ########################
 
     # get the training, validation and testing function for the model
-    print '... getting the finetuning functions'
+    print('... getting the finetuning functions')
     train_fn, validate_model, test_model = sda.build_finetune_functions(
         datasets=datasets,
         batch_size=batch_size,
         learning_rate=finetune_lr
     )
 
-    print '... finetunning the model'
+    print('... finetunning the model')
     # early-stopping parameters
     patience = 10 * n_train_batches  # look as this many examples regardless
     patience_increase = 2.  # wait this much longer when a new best is
                             # found
     improvement_threshold = 0.995  # a relative improvement of this much is
                                    # considered significant
-    validation_frequency = min(n_train_batches, patience / 2)
+    validation_frequency = min(n_train_batches, patience // 2)
                                   # go through this many
                                   # minibatche before checking the network
                                   # on the validation set; in this case we
@@ -434,7 +437,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
 
     while (epoch < training_epochs) and (not done_looping):
         epoch = epoch + 1
-        for minibatch_index in xrange(n_train_batches):
+        for minibatch_index in range(n_train_batches):
             minibatch_avg_cost = train_fn(minibatch_index)
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
@@ -480,9 +483,9 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
         )
         % (best_validation_loss * 100., best_iter + 1, test_score * 100.)
     )
-    print >> sys.stderr, ('The training code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.2fm' % ((end_time - start_time) / 60.))
+    print(('The training code for file ' +
+           os.path.split(__file__)[1] +
+           ' ran for %.2fm' % ((end_time - start_time) / 60.)), file=sys.stderr)
 
 
 if __name__ == '__main__':

@@ -4,6 +4,10 @@ Boltzmann Machines (BMs) are a particular form of energy-based model which
 contain hidden variables. Restricted Boltzmann Machines further restrict BMs
 to those without visible-visible and hidden-hidden connections.
 """
+
+from __future__ import print_function
+from six.moves import xrange
+
 import timeit
 
 try:
@@ -384,7 +388,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     test_set_x, test_set_y = datasets[2]
 
     # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0] // batch_size
 
     # allocate symbolic variables for the data
     index = T.lscalar()    # index to a [mini]batch
@@ -438,7 +442,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
         for batch_index in xrange(n_train_batches):
             mean_cost += [train_rbm(batch_index)]
 
-        print 'Training epoch %d, cost is ' % epoch, numpy.mean(mean_cost)
+        print('Training epoch %d, cost is ' % epoch, numpy.mean(mean_cost))
 
         # Plot filters after each training epoch
         plotting_start = timeit.default_timer()
@@ -522,7 +526,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
         # generate `plot_every` intermediate samples that we discard,
         # because successive samples in the chain are too correlated
         vis_mf, vis_sample = sample_fn()
-        print ' ... plotting sample ', idx
+        print(' ... plotting sample %d' % idx)
         image_data[29 * idx:29 * idx + 28, :] = tile_raster_images(
             X=vis_mf,
             img_shape=(28, 28),

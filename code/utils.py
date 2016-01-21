@@ -7,6 +7,7 @@ image from a set of samples or weights.
 """
 
 
+from six.moves import xrange
 import numpy
 
 
