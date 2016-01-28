@@ -1,6 +1,10 @@
+
+from __future__ import print_function
+from six.moves import xrange
+import six.moves.cPickle as pickle
+
 from collections import OrderedDict
 import copy
-import cPickle
 import gzip
 import os
 import urllib
@@ -66,7 +70,10 @@ def atisfold(fold):
     assert fold in range(5)
     filename = os.path.join(PREFIX, 'atis.fold'+str(fold)+'.pkl.gz')
     f = gzip.open(filename, 'rb')
-    train_set, valid_set, test_set, dicts = cPickle.load(f)
+    try:
+        train_set, valid_set, test_set, dicts = pickle.load(f, encoding='latin1')
+    except:
+        train_set, valid_set, test_set, dicts = pickle.load(f)
     return train_set, valid_set, test_set, dicts
 
 
@@ -107,7 +114,7 @@ def download(origin, destination):
     download the corresponding atis file
     from http://www-etud.iro.umontreal.ca/~mesnilgr/atis/
     '''
-    print 'Downloading data from %s' % origin
+    print('Downloading data from %s' % origin)
     urllib.urlretrieve(origin, destination)
 
 
@@ -125,8 +132,10 @@ def get_perf(filename, folder):
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE)
 
-    stdout, _ = proc.communicate(''.join(open(filename).readlines()))
+    stdout, _ = proc.communicate(''.join(open(filename).readlines()).encode('utf-8'))
+    stdout = stdout.decode('utf-8')
     out = None
+
     for line in stdout.split('\n'):
         if 'accuracy' in line:
             out = line.split()
@@ -237,7 +246,7 @@ class RNNSLU(object):
     def train(self, x, y, window_size, learning_rate):
 
         cwords = contextwin(x, window_size)
-        words = map(lambda x: numpy.asarray(x).astype('int32'), cwords)
+        words = list(map(lambda x: numpy.asarray(x).astype('int32'), cwords))
         labels = y
 
         self.sentence_train(words, labels, learning_rate)
@@ -274,7 +283,7 @@ def main(param=None):
             'nepochs': 60,
             # 60 is recommended
             'savemodel': False}
-    print param
+    print(param)
 
     folder_name = os.path.basename(__file__).split('.')[0]
     folder = os.path.join(os.path.dirname(__file__), folder_name)
@@ -284,8 +293,8 @@ def main(param=None):
     # load the dataset
     train_set, valid_set, test_set, dic = atisfold(param['fold'])
 
-    idx2label = dict((k, v) for v, k in dic['labels2idx'].iteritems())
-    idx2word = dict((k, v) for v, k in dic['words2idx'].iteritems())
+    idx2label = dict((k, v) for v, k in dic['labels2idx'].items())
+    idx2word = dict((k, v) for v, k in dic['words2idx'].items())
 
     train_lex, train_ne, train_y = train_set
     valid_lex, valid_ne, valid_y = valid_set
@@ -323,9 +332,9 @@ def main(param=None):
 
         for i, (x, y) in enumerate(zip(train_lex, train_y)):
             rnn.train(x, y, param['win'], param['clr'])
-            print '[learning] epoch %i >> %2.2f%%' % (
-                e, (i + 1) * 100. / nsentences),
-            print 'completed in %.2f (sec) <<\r' % (timeit.default_timer() - tic),
+            print('[learning] epoch %i >> %2.2f%%' % (
+                e, (i + 1) * 100. / nsentences),)
+            print('completed in %.2f (sec) <<\r' % (timeit.default_timer() - tic),)
             sys.stdout.flush()
 
         # evaluation // back into the real world : idx -> words
@@ -374,7 +383,7 @@ def main(param=None):
                             folder + '/best.valid.txt'])
         else:
             if param['verbose']:
-                print ''
+                print('')
 
         # learning rate decay if no improvement in 10 epochs
         if param['decay'] and abs(param['be']-param['ce']) >= 10:
@@ -384,10 +393,10 @@ def main(param=None):
         if param['clr'] < 1e-5:
             break
 
-    print('BEST RESULT: epoch', param['be'],
-          'valid F1', param['vf1'],
-          'best test F1', param['tf1'],
-          'with the model', folder)
+    print(('BEST RESULT: epoch', param['be'],
+           'valid F1', param['vf1'],
+           'best test F1', param['tf1'],
+           'with the model', folder))
 
 
 if __name__ == '__main__':
