@@ -6,7 +6,6 @@ from __future__ import print_function
 from six.moves import xrange
 import six.moves.cPickle as pickle
 
-#from six.moves.collections import OrderedDict
 from collections import OrderedDict
 import sys
 import time

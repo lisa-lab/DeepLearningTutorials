@@ -394,8 +394,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
                 c.append(pretraining_fns[i](index=batch_index,
                          corruption=corruption_levels[i],
                          lr=pretrain_lr))
-            print('Pre-training layer %i, epoch %d, cost ' % (i, epoch))
-            print(numpy.mean(c))
+            print('Pre-training layer %i, epoch %d, cost %f' % (i, epoch, numpy.mean(c)))
 
     end_time = timeit.default_timer()
 

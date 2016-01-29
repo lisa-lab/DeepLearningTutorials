@@ -333,8 +333,8 @@ def main(param=None):
         for i, (x, y) in enumerate(zip(train_lex, train_y)):
             rnn.train(x, y, param['win'], param['clr'])
             print('[learning] epoch %i >> %2.2f%%' % (
-                e, (i + 1) * 100. / nsentences),)
-            print('completed in %.2f (sec) <<\r' % (timeit.default_timer() - tic),)
+                e, (i + 1) * 100. / nsentences), end=' ')
+            print('completed in %.2f (sec) <<\r' % (timeit.default_timer() - tic), end='')
             sys.stdout.flush()
 
         # evaluation // back into the real world : idx -> words
@@ -393,10 +393,10 @@ def main(param=None):
         if param['clr'] < 1e-5:
             break
 
-    print(('BEST RESULT: epoch', param['be'],
+    print('BEST RESULT: epoch', param['be'],
            'valid F1', param['vf1'],
            'best test F1', param['tf1'],
-           'with the model', folder))
+           'with the model', folder)
 
 
 if __name__ == '__main__':
