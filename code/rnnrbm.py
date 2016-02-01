@@ -4,7 +4,6 @@
 # More information at http://deeplearning.net/tutorial/rnnrbm.html
 
 from __future__ import print_function
-from six.moves import xrange
 
 import glob
 import os
@@ -249,12 +248,12 @@ class RnnRbm:
                    for f in files]
 
         try:
-            for epoch in xrange(num_epochs):
+            for epoch in range(num_epochs):
                 numpy.random.shuffle(dataset)
                 costs = []
 
                 for s, sequence in enumerate(dataset):
-                    for i in xrange(0, len(sequence), batch_size):
+                    for i in range(0, len(sequence), batch_size):
                         cost = self.train_function(sequence[i:i + batch_size])
                         costs.append(cost)
 

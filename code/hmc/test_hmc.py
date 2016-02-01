@@ -1,6 +1,5 @@
 
 from __future__ import print_function
-from six.moves import xrange
 
 import numpy
 import theano
@@ -39,10 +38,10 @@ def sampler_on_nd_gaussian(sampler_cls, burnin, n_samples, dim=10):
                           initial_stepsize=1e-3, stepsize_max=0.5)
 
     # Start with a burn-in process
-    garbage = [sampler.draw() for r in xrange(burnin)]  # burn-in Draw
+    garbage = [sampler.draw() for r in range(burnin)]  # burn-in Draw
     # `n_samples`: result is a 3D tensor of dim [n_samples, batchsize,
     # dim]
-    _samples = numpy.asarray([sampler.draw() for r in xrange(n_samples)])
+    _samples = numpy.asarray([sampler.draw() for r in range(n_samples)])
     # Flatten to [n_samples * batchsize, dim]
     samples = _samples.T.reshape(dim, -1).T
 

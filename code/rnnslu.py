@@ -1,6 +1,5 @@
 
 from __future__ import print_function
-from six.moves import xrange
 import six.moves.cPickle as pickle
 
 from collections import OrderedDict
@@ -322,7 +321,7 @@ def main(param=None):
     # train with early stopping on validation set
     best_f1 = -numpy.inf
     param['clr'] = param['lr']
-    for e in xrange(param['nepochs']):
+    for e in range(param['nepochs']):
 
         # shuffle
         shuffle([train_lex, train_ne, train_y], param['seed'])

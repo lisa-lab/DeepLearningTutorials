@@ -6,7 +6,6 @@ to those without visible-visible and hidden-hidden connections.
 """
 
 from __future__ import print_function
-from six.moves import xrange
 
 import timeit
 
@@ -435,11 +434,11 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     start_time = timeit.default_timer()
 
     # go through training epochs
-    for epoch in xrange(training_epochs):
+    for epoch in range(training_epochs):
 
         # go through the training set
         mean_cost = []
-        for batch_index in xrange(n_train_batches):
+        for batch_index in range(n_train_batches):
             mean_cost += [train_rbm(batch_index)]
 
         print('Training epoch %d, cost is ' % epoch, numpy.mean(mean_cost))
@@ -522,7 +521,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
         (29 * n_samples + 1, 29 * n_chains - 1),
         dtype='uint8'
     )
-    for idx in xrange(n_samples):
+    for idx in range(n_samples):
         # generate `plot_every` intermediate samples that we discard,
         # because successive samples in the chain are too correlated
         vis_mf, vis_sample = sample_fn()

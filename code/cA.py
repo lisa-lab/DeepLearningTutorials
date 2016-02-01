@@ -30,7 +30,6 @@
 """
 
 from __future__ import print_function
-from six.moves import xrange
 
 import os
 import sys
@@ -287,10 +286,10 @@ def test_cA(learning_rate=0.01, training_epochs=20,
     ############
 
     # go through training epochs
-    for epoch in xrange(training_epochs):
+    for epoch in range(training_epochs):
         # go through trainng set
         c = []
-        for batch_index in xrange(n_train_batches):
+        for batch_index in range(n_train_batches):
             c.append(train_ca(batch_index))
 
         c_array = numpy.vstack(c)

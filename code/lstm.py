@@ -3,7 +3,6 @@ Build a tweet sentiment analyzer
 '''
 
 from __future__ import print_function
-from six.moves import xrange
 import six.moves.cPickle as pickle
 
 from collections import OrderedDict
@@ -549,7 +548,7 @@ def train_lstm(
     estop = False  # early stop
     start_time = time.time()
     try:
-        for eidx in xrange(max_epochs):
+        for eidx in range(max_epochs):
             n_samples = 0
 
             # Get new shuffled index for the training set.
