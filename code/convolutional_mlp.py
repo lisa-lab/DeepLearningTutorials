@@ -30,7 +30,7 @@ import numpy
 import theano
 import theano.tensor as T
 from theano.tensor.signal import downsample
-from theano.tensor.nnet import conv
+from theano.tensor.nnet import conv2d
 
 from logistic_sgd import LogisticRegression, load_data
 from mlp import HiddenLayer
@@ -87,7 +87,7 @@ class LeNetConvPoolLayer(object):
         self.b = theano.shared(value=b_values, borrow=True)
 
         # convolve input feature maps with filters
-        conv_out = conv.conv2d(
+        conv_out = conv2d(
             input=input,
             filters=self.W,
             filter_shape=filter_shape,
