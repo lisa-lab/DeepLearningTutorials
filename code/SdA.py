@@ -214,8 +214,8 @@ class SdA(object):
             fn = theano.function(
                 inputs=[
                     index,
-                    theano.Param(corruption_level, default=0.2),
-                    theano.Param(learning_rate, default=0.1)
+                    theano.In(corruption_level, value=0.2),
+                    theano.In(learning_rate, value=0.1)
                 ],
                 outputs=cost,
                 updates=updates,
