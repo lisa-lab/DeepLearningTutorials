@@ -246,7 +246,8 @@ def test_cA(learning_rate=0.01, training_epochs=20,
     train_set_x, train_set_y = datasets[0]
 
     # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0]
+    n_train_batches = int(numpy.ceil(n_train_batches / float(batch_size)))
 
     # allocate symbolic variables for the data
     index = T.lscalar()    # index to a [mini]batch

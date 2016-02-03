@@ -158,6 +158,7 @@ class DBN(object):
 
         # number of batches
         n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+        n_batches = int(numpy.ceil(n_batches / float(batch_size)))
         # begining of a batch, given `index`
         batch_begin = index * batch_size
         # ending of a batch given `index`
@@ -211,9 +212,9 @@ class DBN(object):
 
         # compute number of minibatches for training, validation and testing
         n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
-        n_valid_batches /= batch_size
         n_test_batches = test_set_x.get_value(borrow=True).shape[0]
-        n_test_batches /= batch_size
+        n_valid_batches = int(numpy.ceil(n_valid_batches / float(batch_size)))
+        n_test_batches = int(numpy.ceil(n_test_batches / float(batch_size)))
 
         index = T.lscalar('index')  # index to a [mini]batch
 

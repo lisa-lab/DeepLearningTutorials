@@ -254,9 +254,9 @@ class SdA(object):
 
         # compute number of minibatches for training, validation and testing
         n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
-        n_valid_batches /= batch_size
         n_test_batches = test_set_x.get_value(borrow=True).shape[0]
-        n_test_batches /= batch_size
+        n_valid_batches = int(numpy.ceil(n_valid_batches / float(batch_size)))
+        n_test_batches = int(numpy.ceil(n_test_batches / float(batch_size)))
 
         index = T.lscalar('index')  # index to a [mini]batch
 
@@ -357,7 +357,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0]
-    n_train_batches /= batch_size
+    n_train_batches = int(numpy.ceil(n_train_batches / float(batch_size)))
 
     # numpy random generator
     # start-snippet-3

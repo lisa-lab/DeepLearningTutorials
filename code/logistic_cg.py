@@ -165,9 +165,12 @@ def cg_optimization_mnist(n_epochs=50, mnist_pkl_gz='mnist.pkl.gz'):
 
     batch_size = 600    # size of the minibatch
 
-    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
-    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] / batch_size
-    n_test_batches = test_set_x.get_value(borrow=True).shape[0] / batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0]
+    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
+    n_test_batches = test_set_x.get_value(borrow=True).shape[0]
+    n_train_batches = int(numpy.ceil(n_train_batches / float(batch_size)))
+    n_valid_batches = int(numpy.ceil(n_valid_batches / float(batch_size)))
+    n_test_batches = int(numpy.ceil(n_test_batches / float(batch_size)))
 
     n_in = 28 * 28  # number of input units
     n_out = 10  # number of output units
