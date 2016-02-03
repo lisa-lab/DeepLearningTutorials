@@ -87,7 +87,7 @@ def speed():
     # 7.1-2 (python 2.7.2, mkl unknow). BLAS with only 1 thread.
 
     expected_times_64 = numpy.asarray([9.3, 21.0, 76.1, 73.7, 116.4,
-                                       346.9, 355.0, 510.9, 130.4, 23.2, 106])
+                                       346.9, 355.0, 510.9, 130.4, 23.2, 98.8])
     expected_times_32 = numpy.asarray([6.4, 14.7, 42.5, 66.5, 71,
                                        191.2, 199.0, 400.4, 119.5, 36.9, 67.2])
 
@@ -108,7 +108,7 @@ def speed():
 #expected/get [0.82492841,  0.75984178,  0.65092691,  1.04930573, 0.93125138
 #              1.35324519 1.7356905   1.12937868]
 
-    expected_times_gpu = numpy.asarray([3.0, 7.55523491, 18.99226785,
+    expected_times_gpu = numpy.asarray([2.9, 7.55523491, 18.99226785,
                                         5.8, 20.0,
                                         11.2, 17.2, 244.3, 118.8, 34.2, 8.7])
     expected_times_64 = [s for idx, s in enumerate(expected_times_64)
