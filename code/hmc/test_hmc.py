@@ -6,7 +6,7 @@ import theano
 
 try:
     from hmc import HMC_sampler
-except:
+except ImportError as e:
     # python 3 compatibility
     # http://stackoverflow.com/questions/3073259/python-nose-import-error
     from hmc.hmc import HMC_sampler
