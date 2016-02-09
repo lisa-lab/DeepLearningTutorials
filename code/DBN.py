@@ -75,7 +75,7 @@ class DBN(object):
         # training the DBN by doing stochastic gradient descent on the
         # MLP.
 
-        for i in xrange(self.n_layers):
+        for i in range(self.n_layers):
             # construct the sigmoidal layer
 
             # the size of the input is either the number of hidden
@@ -267,11 +267,11 @@ class DBN(object):
 
         # Create a function that scans the entire validation set
         def valid_score():
-            return [valid_score_i(i) for i in xrange(n_valid_batches)]
+            return [valid_score_i(i) for i in range(n_valid_batches)]
 
         # Create a function that scans the entire test set
         def test_score():
-            return [test_score_i(i) for i in xrange(n_test_batches)]
+            return [test_score_i(i) for i in range(n_test_batches)]
 
         return train_fn, valid_score, test_score
 
@@ -329,12 +329,12 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
     print '... pre-training the model'
     start_time = timeit.default_timer()
     ## Pre-train layer-wise
-    for i in xrange(dbn.n_layers):
+    for i in range(dbn.n_layers):
         # go through pretraining epochs
-        for epoch in xrange(pretraining_epochs):
+        for epoch in range(pretraining_epochs):
             # go through the training set
             c = []
-            for batch_index in xrange(n_train_batches):
+            for batch_index in range(n_train_batches):
                 c.append(pretraining_fns[i](index=batch_index,
                                             lr=pretrain_lr))
             print 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
@@ -379,7 +379,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
 
     while (epoch < training_epochs) and (not done_looping):
         epoch = epoch + 1
-        for minibatch_index in xrange(n_train_batches):
+        for minibatch_index in range(n_train_batches):
 
             minibatch_avg_cost = train_fn(minibatch_index)
             iter = (epoch - 1) * n_train_batches + minibatch_index

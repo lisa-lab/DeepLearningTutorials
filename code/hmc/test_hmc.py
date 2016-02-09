@@ -1,7 +1,15 @@
+
+from __future__ import print_function
+
 import numpy
 import theano
 
-from hmc import HMC_sampler
+try:
+    from hmc import HMC_sampler
+except ImportError as e:
+    # python 3 compatibility
+    # http://stackoverflow.com/questions/3073259/python-nose-import-error
+    from hmc.hmc import HMC_sampler
 
 
 def sampler_on_nd_gaussian(sampler_cls, burnin, n_samples, dim=10):
@@ -30,24 +38,24 @@ def sampler_on_nd_gaussian(sampler_cls, burnin, n_samples, dim=10):
                           initial_stepsize=1e-3, stepsize_max=0.5)
 
     # Start with a burn-in process
-    garbage = [sampler.draw() for r in xrange(burnin)]  # burn-in Draw
+    garbage = [sampler.draw() for r in range(burnin)]  # burn-in Draw
     # `n_samples`: result is a 3D tensor of dim [n_samples, batchsize,
     # dim]
-    _samples = numpy.asarray([sampler.draw() for r in xrange(n_samples)])
+    _samples = numpy.asarray([sampler.draw() for r in range(n_samples)])
     # Flatten to [n_samples * batchsize, dim]
     samples = _samples.T.reshape(dim, -1).T
 
-    print '****** TARGET VALUES ******'
-    print 'target mean:', mu
-    print 'target cov:\n', cov
+    print('****** TARGET VALUES ******')
+    print('target mean:', mu)
+    print('target cov:\n', cov)
 
-    print '****** EMPIRICAL MEAN/COV USING HMC ******'
-    print 'empirical mean: ', samples.mean(axis=0)
-    print 'empirical_cov:\n', numpy.cov(samples.T)
+    print('****** EMPIRICAL MEAN/COV USING HMC ******')
+    print('empirical mean: ', samples.mean(axis=0))
+    print('empirical_cov:\n', numpy.cov(samples.T))
 
-    print '****** HMC INTERNALS ******'
-    print 'final stepsize', sampler.stepsize.get_value()
-    print 'final acceptance_rate', sampler.avg_acceptance_rate.get_value()
+    print('****** HMC INTERNALS ******')
+    print('final stepsize', sampler.stepsize.get_value())
+    print('final acceptance_rate', sampler.avg_acceptance_rate.get_value())
 
     return sampler
 

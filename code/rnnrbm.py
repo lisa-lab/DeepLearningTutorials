@@ -3,6 +3,8 @@
 # RNN-RBM deep learning tutorial
 # More information at http://deeplearning.net/tutorial/rnnrbm.html
 
+from __future__ import print_function
+
 import glob
 import os
 import sys
@@ -11,10 +13,8 @@ import numpy
 try:
     import pylab
 except ImportError:
-    print (
-        "pylab isn't available. If you use its functionality, it will crash."
-    )
-    print "It can be installed with 'pip install -q Pillow'"
+    print ("pylab isn't available. If you use its functionality, it will crash.")
+    print("It can be installed with 'pip install -q Pillow'")
 
 from midi.utils import midiread, midiwrite
 import theano
@@ -248,21 +248,21 @@ class RnnRbm:
                    for f in files]
 
         try:
-            for epoch in xrange(num_epochs):
+            for epoch in range(num_epochs):
                 numpy.random.shuffle(dataset)
                 costs = []
 
                 for s, sequence in enumerate(dataset):
-                    for i in xrange(0, len(sequence), batch_size):
+                    for i in range(0, len(sequence), batch_size):
                         cost = self.train_function(sequence[i:i + batch_size])
                         costs.append(cost)
 
-                print 'Epoch %i/%i' % (epoch + 1, num_epochs),
-                print numpy.mean(costs)
+                print('Epoch %i/%i' % (epoch + 1, num_epochs))
+                print(numpy.mean(costs))
                 sys.stdout.flush()
 
         except KeyboardInterrupt:
-            print 'Interrupted by user.'
+            print('Interrupted by user.')
 
     def generate(self, filename, show=True):
         '''Generate a sample sequence, plot the resulting piano-roll and save

@@ -128,14 +128,14 @@ def simulate_dynamics(initial_pos, initial_vel, stepsize, n_steps, energy_fn):
         rval2: dictionary
             Dictionary of updates for the Scan Op
         """
-        # from pos(t) and vel(t-stepsize/2), compute vel(t+stepsize/2)
+        # from pos(t) and vel(t-stepsize//2), compute vel(t+stepsize//2)
         dE_dpos = TT.grad(energy_fn(pos).sum(), pos)
         new_vel = vel - step * dE_dpos
-        # from vel(t+stepsize/2) compute pos(t+stepsize)
+        # from vel(t+stepsize//2) compute pos(t+stepsize)
         new_pos = pos + step * new_vel
         return [new_pos, new_vel], {}
 
-    # compute velocity at time-step: t + stepsize/2
+    # compute velocity at time-step: t + stepsize//2
     initial_energy = energy_fn(initial_pos)
     dE_dpos = TT.grad(initial_energy.sum(), initial_pos)
     vel_half_step = initial_vel - 0.5 * stepsize * dE_dpos

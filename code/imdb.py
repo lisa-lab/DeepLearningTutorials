@@ -1,4 +1,7 @@
-import cPickle
+from __future__ import print_function
+from six.moves import xrange
+import six.moves.cPickle as pickle
+
 import gzip
 import os
 
@@ -68,9 +71,11 @@ def get_dataset_file(dataset, default_dataset, origin):
             dataset = new_path
 
     if (not os.path.isfile(dataset)) and data_file == default_dataset:
-        import urllib
-        print 'Downloading data from %s' % origin
-        urllib.urlretrieve(origin, dataset)
+        from six.moves import urllib
+        print('Downloading data from %s' % origin)
+        urllib.request.urlretrieve(origin, dataset)
+
+        
     return dataset
 
 
@@ -110,8 +115,8 @@ def load_data(path="imdb.pkl", n_words=100000, valid_portion=0.1, maxlen=None,
     else:
         f = open(path, 'rb')
 
-    train_set = cPickle.load(f)
-    test_set = cPickle.load(f)
+    train_set = pickle.load(f)
+    test_set = pickle.load(f)
     f.close()
     if maxlen:
         new_train_set_x = []

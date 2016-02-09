@@ -63,3 +63,6 @@ Energy-based recurrent neural network (RNN-RBM):
 .. _Theano basic tutorial: http://deeplearning.net/software/theano/tutorial
 
 .. _Contractive auto-encoders: https://github.com/lisa-lab/DeepLearningTutorials/blob/master/code/cA.py
+
+Note that the tutorials here are all compatible with Python 2 and 3, with the exception of :ref:`rnnrbm` which is only available for Python 2.
+

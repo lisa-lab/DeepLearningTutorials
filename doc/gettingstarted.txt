@@ -578,7 +578,7 @@ of a strategy based on a geometrically increasing amount of patience.
     while (epoch < n_epochs) and (not done_looping):
         # Report "1" for first epoch, "n_epochs" for last epoch
         epoch = epoch + 1
-        for minibatch_index in xrange(n_train_batches):
+        for minibatch_index in range(n_train_batches):
 
             d_loss_wrt_params = ... # compute gradient
             params -= learning_rate * d_loss_wrt_params # gradient descent
