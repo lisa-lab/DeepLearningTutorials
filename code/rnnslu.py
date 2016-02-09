@@ -141,7 +141,7 @@ def get_perf(filename, folder):
             break
     # To help debug
     if out is None:
-        print stdout.split('\n')
+        print(stdout.split('\n'))
     precision = float(out[6][:-2])
     recall = float(out[8][:-2])
     f1score = float(out[10])
