@@ -104,7 +104,7 @@ def speed():
 
     expected_times_64 = numpy.asarray([9.3, 21.0, 76.1, 73.7, 116.4,
                                        346.9, 355.0, 268.2, 130.4, 23.2, 98.8])
-    expected_times_32 = numpy.asarray([6.4, 14.7, 42.5, 66.5, 71,
+    expected_times_32 = numpy.asarray([6.4, 14.7, 42.5, 63.1, 71,
                                        191.2, 199.0, 201.9, 119.5, 36.9, 67.2])
 
     # Number with just 1 decimal are new value that are faster with
