@@ -5,7 +5,7 @@ WGET=$?
 which curl >/dev/null 2>&1
 CURL=$?
 if [ "$WGET" -eq 0 ]; then
-    DL_CMD="wget -c"
+    DL_CMD="wget --no-verbose -c"
 elif [ "$CURL" -eq 0 ]; then
     DL_CMD="curl -C - -O"
 else
