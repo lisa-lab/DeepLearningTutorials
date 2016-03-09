@@ -257,7 +257,8 @@ class RBM(object):
             # chain_start is the initial state corresponding to the
             # 6th output
             outputs_info=[None, None, None, None, None, chain_start],
-            n_steps=k
+            n_steps=k,
+            name="gibbs_hvh"
         )
         # start-snippet-3
         # determine gradients on RBM parameters
@@ -496,7 +497,8 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     ) = theano.scan(
         rbm.gibbs_vhv,
         outputs_info=[None, None, None, None, None, persistent_vis_chain],
-        n_steps=plot_every
+        n_steps=plot_every,
+        name="gibbs_vhv"
     )
 
     # add to updates the shared variable that takes care of our persistent
