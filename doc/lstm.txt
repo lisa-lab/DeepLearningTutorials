@@ -174,7 +174,7 @@ be computed with :
 
 .. math::
 
-    z = \sigma(W x_t + U h_{t-1} + b)
+    z = W x_t + U h_{t-1} + b
 
 The result is then sliced to obtain the pre-nonlinearity activations for
 :math:`i`, :math:`f`, :math:`\widetilde{C_t}`, and :math:`o` and the
