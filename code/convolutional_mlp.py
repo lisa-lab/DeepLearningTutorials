@@ -94,7 +94,7 @@ class LeNetConvPoolLayer(object):
             input=input,
             filters=self.W,
             filter_shape=filter_shape,
-            image_shape=image_shape
+            input_shape=image_shape
         )
 
         # downsample each feature map individually, using maxpooling
