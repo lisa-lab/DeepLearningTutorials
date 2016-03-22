@@ -174,7 +174,7 @@ class DBN(object):
 
             # compile the theano function
             fn = theano.function(
-                inputs=[index, theano.Param(learning_rate, default=0.1)],
+                inputs=[index, theano.In(learning_rate, value=0.1)],
                 outputs=cost,
                 updates=updates,
                 givens={
