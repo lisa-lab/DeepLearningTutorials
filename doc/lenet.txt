@@ -196,7 +196,7 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
 
         import theano
         from theano import tensor as T
-        from theano.tensor.nnet import conv
+        from theano.tensor.nnet import conv2d
 
         import numpy
 
@@ -226,7 +226,7 @@ one of Figure 1. The input consists of 3 features maps (an RGB color image) of s
                     dtype=input.dtype), name ='b')
 
         # build symbolic expression that computes the convolution of input with filters in w
-        conv_out = conv.conv2d(input, W)
+        conv_out = conv2d(input, W)
 
         # build symbolic expression to add bias and apply activation function, i.e. produce neural net layer output
         # A few words on ``dimshuffle`` :
@@ -404,7 +404,7 @@ to be compatible with our previous MLP implementation.
     Note that the term "convolution" could corresponds to different mathematical operations:
 
     1. `theano.tensor.nnet.conv2d
-       <http://deeplearning.net/software/theano/library/tensor/nnet/conv.html#theano.tensor.nnet.conv.conv2d>`_,
+       <http://deeplearning.net/software/theano/library/tensor/nnet/conv.html#theano.tensor.nnet.conv2d>`_,
        which is the most common one in almost all of the recent published
        convolutional models.
        In this operation, each output feature map is connected to each
