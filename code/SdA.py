@@ -81,8 +81,8 @@ class SdA(object):
         :type n_ins: int
         :param n_ins: dimension of the input to the sdA
 
-        :type n_layers_sizes: list of ints
-        :param n_layers_sizes: intermediate layers size, must contain
+        :type hidden_layers_sizes: list of ints
+        :param hidden_layers_sizes: intermediate layers size, must contain
                                at least one value
 
         :type n_outs: int
