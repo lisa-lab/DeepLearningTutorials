@@ -126,7 +126,7 @@ def speed():
 
     expected_times_gpu = numpy.asarray([2.9, 7.55523491, 18.99226785,
                                         5.8, 19.2,
-                                        11.2, 7.8, 122, 112.5, 31.1, 8.3])
+                                        11.2, 7.3, 122, 112.5, 31.1, 8.3])
     expected_times_64 = [s for idx, s in enumerate(expected_times_64)
                          if to_exec[idx]]
     expected_times_32 = [s for idx, s in enumerate(expected_times_32)
