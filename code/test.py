@@ -1,3 +1,4 @@
+from __future__ import absolute_import, print_function, division
 import sys
 
 import numpy
@@ -137,12 +138,12 @@ def speed():
     def time_test(m, l, idx, f, **kwargs):
         if not to_exec[idx]:
             return
-        print algo[idx]
+        print(algo[idx])
         ts = m.call_time
         try:
             f(**kwargs)
-        except Exception, e:
-            print >> sys.stderr, 'test', algo[idx], 'FAILED', e
+        except Exception as e:
+            print('test', algo[idx], 'FAILED', e, file=sys.stderr)
             l.append(numpy.nan)
             return
         te = m.call_time
@@ -265,7 +266,7 @@ def speed():
                 print >> sys.stderr, 'gpu % expected/get', (
                     expected_times_gpu / gpu_times)
 
-            print
+            print()
             if do_float64 and do_float32:
                 print >> sys.stderr, 'float64/float32', (
                     float64_times / float32_times)
@@ -286,7 +287,7 @@ def speed():
         # time and the real time, we consider this an error.
         return sum((ratio < 0.95) + (ratio > 1.05))
 
-    print
+    print()
     if do_float64:
         err = compare(expected_times_64, float64_times)
         print >> sys.stderr, 'speed_failure_float64=' + str(err)
