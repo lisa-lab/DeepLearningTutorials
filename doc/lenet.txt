@@ -7,7 +7,7 @@ Convolutional Neural Networks (LeNet)
     This section assumes the reader has already read through :doc:`logreg` and
     :doc:`mlp`. Additionally, it uses the following new Theano functions and concepts:
     `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_,
-    `floatX`_, `downsample`_ , `conv2d`_, `dimshuffle`_. If you intend to run the
+    `floatX`_, `pool`_ , `conv2d`_, `dimshuffle`_. If you intend to run the
     code on GPU also read `GPU`_.
 
     To run this example on a GPU, you need a good GPU. It needs
@@ -35,7 +35,7 @@ Convolutional Neural Networks (LeNet)
 
 .. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html
 
-.. _downsample: http://deeplearning.net/software/theano/library/tensor/signal/downsample.html
+.. _pool: http://deeplearning.net/software/theano/library/tensor/signal/pool.html
 
 .. _conv2d: http://deeplearning.net/software/theano/library/tensor/signal/conv.html#module-conv
 
@@ -320,7 +320,7 @@ Max-pooling is useful in vision for two reasons:
      "smart" way of reducing the dimensionality of intermediate representations.
 
 Max-pooling is done in Theano by way of
-``theano.tensor.signal.downsample.max_pool_2d``. This function takes as input
+``theano.tensor.signal.pool.pool_2d``. This function takes as input
 an N dimensional tensor (where N >= 2) and a downscaling factor and performs
 max-pooling over the 2 trailing dimensions of the tensor.
 
@@ -328,11 +328,11 @@ An example is worth a thousand words:
 
 .. code-block:: python
 
-    from theano.tensor.signal import downsample
+    from theano.tensor.signal import pool
 
     input = T.dtensor4('input')
     maxpool_shape = (2, 2)
-    pool_out = downsample.max_pool_2d(input, maxpool_shape, ignore_border=True)
+    pool_out = pool.pool_2d(input, maxpool_shape, ignore_border=True)
     f = theano.function([input],pool_out)
 
     invals = numpy.random.RandomState(1).rand(3, 2, 5, 5)
@@ -340,7 +340,7 @@ An example is worth a thousand words:
     print 'invals[0, 0, :, :] =\n', invals[0, 0, :, :]
     print 'output[0, 0, :, :] =\n', f(invals)[0, 0, :, :]
 
-    pool_out = downsample.max_pool_2d(input, maxpool_shape, ignore_border=False)
+    pool_out = pool.pool_2d(input, maxpool_shape, ignore_border=False)
     f = theano.function([input],pool_out)
     print 'With ignore_border set to False:'
     print 'invals[1, 0, :, :] =\n ', invals[1, 0, :, :]
