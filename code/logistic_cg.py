@@ -33,6 +33,7 @@ References:
 
 
 """
+from __future__ import print_function, division
 __docformat__ = 'restructedtext en'
 
 
@@ -165,9 +166,9 @@ def cg_optimization_mnist(n_epochs=50, mnist_pkl_gz='mnist.pkl.gz'):
 
     batch_size = 600    # size of the minibatch
 
-    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
-    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] / batch_size
-    n_test_batches = test_set_x.get_value(borrow=True).shape[0] / batch_size
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0] // batch_size
+    n_valid_batches = valid_set_x.get_value(borrow=True).shape[0] // batch_size
+    n_test_batches = test_set_x.get_value(borrow=True).shape[0] // batch_size
 
     n_in = 28 * 28  # number of input units
     n_out = 10  # number of output units
@@ -175,7 +176,7 @@ def cg_optimization_mnist(n_epochs=50, mnist_pkl_gz='mnist.pkl.gz'):
     ######################
     # BUILD ACTUAL MODEL #
     ######################
-    print '... building the model'
+    print('... building the model')
 
     # allocate symbolic variables for the data
     minibatch_offset = T.lscalar()  # offset to the start of a [mini]batch
@@ -260,7 +261,7 @@ def cg_optimization_mnist(n_epochs=50, mnist_pkl_gz='mnist.pkl.gz'):
         validation_losses = [validate_model(i * batch_size)
                              for i in range(n_valid_batches)]
         this_validation_loss = numpy.mean(validation_losses)
-        print('validation error %f %%' % (this_validation_loss * 100.,))
+        print(('validation error %f %%' % (this_validation_loss * 100.,)))
 
         # check if it is better then best validation score got until now
         if this_validation_loss < validation_scores[0]:
@@ -288,17 +289,13 @@ def cg_optimization_mnist(n_epochs=50, mnist_pkl_gz='mnist.pkl.gz'):
         maxiter=n_epochs
     )
     end_time = timeit.default_timer()
-    print(
-        (
-            'Optimization complete with best validation score of %f %%, with '
-            'test performance %f %%'
-        )
-        % (validation_scores[0] * 100., validation_scores[1] * 100.)
+    print(('Optimization complete with best validation score of %f %%, with '
+           'test performance %f %%'
+           ) % (validation_scores[0] * 100., validation_scores[1] * 100.)
     )
 
-    print >> sys.stderr, ('The code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.1fs' % ((end_time - start_time)))
+    print('The code for file ' + os.path.split(__file__)[1] +
+          ' ran for %.1fs' % (end_time - start_time), file=sys.stderr)
 
 
 if __name__ == '__main__':
