@@ -194,92 +194,92 @@ def speed():
         theano.config.floatX = 'float64'
         theano.config.mode = 'FAST_RUN'
         float64_times = do_tests()
-        print >> sys.stderr, algo_executed
-        print >> sys.stderr, 'float64 times', float64_times
-        print >> sys.stderr, 'float64 expected', expected_times_64
-        print >> sys.stderr, 'float64 % expected/get', (
-            expected_times_64 / float64_times)
+        print(algo_executed, file=sys.stderr)
+        print('float64 times', float64_times, file=sys.stderr)
+        print('float64 expected', expected_times_64, file=sys.stderr)
+        print('float64 % expected/get', (
+            expected_times_64 / float64_times), file=sys.stderr)
 
     #test in float32 in FAST_RUN mode on the cpu
     theano.config.floatX = 'float32'
     if do_float32:
         float32_times = do_tests()
-        print >> sys.stderr, algo_executed
-        print >> sys.stderr, 'float32 times', float32_times
-        print >> sys.stderr, 'float32 expected', expected_times_32
-        print >> sys.stderr, 'float32 % expected/get', (
-            expected_times_32 / float32_times)
+        print(algo_executed, file=sys.stderr)
+        print('float32 times', float32_times, file=sys.stderr)
+        print('float32 expected', expected_times_32, file=sys.stderr)
+        print('float32 % expected/get', (
+            expected_times_32 / float32_times), file=sys.stderr)
 
         if do_float64:
-            print >> sys.stderr, 'float64/float32', (
-                float64_times / float32_times)
-            print >> sys.stderr
-            print >> sys.stderr, ('Duplicate the timing to have everything '
-                                  'in one place')
-            print >> sys.stderr, algo_executed
-            print >> sys.stderr, 'float64 times', float64_times
-            print >> sys.stderr, 'float64 expected', expected_times_64
-            print >> sys.stderr, 'float64 % expected/get', (
-                expected_times_64 / float64_times)
-            print >> sys.stderr, 'float32 times', float32_times
-            print >> sys.stderr, 'float32 expected', expected_times_32
-            print >> sys.stderr, 'float32 % expected/get', (
-                expected_times_32 / float32_times)
+            print('float64/float32', (
+                float64_times / float32_times), file=sys.stderr)
+            print(file=sys.stderr)
+            print(('Duplicate the timing to have everything '
+                                  'in one place'), file=sys.stderr)
+            print(algo_executed, file=sys.stderr)
+            print('float64 times', float64_times, file=sys.stderr)
+            print('float64 expected', expected_times_64, file=sys.stderr)
+            print('float64 % expected/get', (
+                expected_times_64 / float64_times), file=sys.stderr)
+            print('float32 times', float32_times, file=sys.stderr)
+            print('float32 expected', expected_times_32, file=sys.stderr)
+            print('float32 % expected/get', (
+                expected_times_32 / float32_times), file=sys.stderr)
 
-            print >> sys.stderr, 'float64/float32', (
-                float64_times / float32_times)
-            print >> sys.stderr, 'expected float64/float32', (
-                expected_times_64 / float32_times)
+            print('float64/float32', (
+                float64_times / float32_times), file=sys.stderr)
+            print('expected float64/float32', (
+                expected_times_64 / float32_times), file=sys.stderr)
 
     #test in float32 in FAST_RUN mode on the gpu
     import theano.sandbox.cuda
     if do_gpu:
         theano.sandbox.cuda.use('gpu')
         gpu_times = do_tests()
-        print >> sys.stderr, algo_executed
-        print >> sys.stderr, 'gpu times', gpu_times
-        print >> sys.stderr, 'gpu expected', expected_times_gpu
-        print >> sys.stderr, 'gpu % expected/get', (
-            expected_times_gpu / gpu_times)
+        print(algo_executed, file=sys.stderr)
+        print('gpu times', gpu_times, file=sys.stderr)
+        print('gpu expected', expected_times_gpu, file=sys.stderr)
+        print('gpu % expected/get', (
+            expected_times_gpu / gpu_times), file=sys.stderr)
 
         if do_float64:
-            print >> sys.stderr, 'float64/gpu', float64_times / gpu_times
+            print('float64/gpu', float64_times / gpu_times, file=sys.stderr)
 
         if (do_float64 + do_float32 + do_gpu) > 1:
-            print >> sys.stderr
-            print >> sys.stderr, ('Duplicate the timing to have everything '
-                                  'in one place')
-            print >> sys.stderr, algo_executed
+            print(file=sys.stderr)
+            print(('Duplicate the timing to have everything '
+                                  'in one place'), file=sys.stderr)
+            print(algo_executed, file=sys.stderr)
             if do_float64:
-                print >> sys.stderr, 'float64 times', float64_times
-                print >> sys.stderr, 'float64 expected', expected_times_64
-                print >> sys.stderr, 'float64 % expected/get', (
-                    expected_times_64 / float64_times)
+                print('float64 times', float64_times, file=sys.stderr)
+                print('float64 expected', expected_times_64, file=sys.stderr)
+                print('float64 % expected/get', (
+                    expected_times_64 / float64_times), file=sys.stderr)
             if do_float32:
-                print >> sys.stderr, 'float32 times', float32_times
-                print >> sys.stderr, 'float32 expected', expected_times_32
-                print >> sys.stderr, 'float32 % expected/get', (
-                    expected_times_32 / float32_times)
+                print('float32 times', float32_times, file=sys.stderr)
+                print('float32 expected', expected_times_32, file=sys.stderr)
+                print('float32 % expected/get', (
+                    expected_times_32 / float32_times), file=sys.stderr)
             if do_gpu:
-                print >> sys.stderr, 'gpu times', gpu_times
-                print >> sys.stderr, 'gpu expected', expected_times_gpu
-                print >> sys.stderr, 'gpu % expected/get', (
-                    expected_times_gpu / gpu_times)
+                print('gpu times', gpu_times, file=sys.stderr)
+                print('gpu expected', expected_times_gpu, file=sys.stderr)
+                print('gpu % expected/get', (
+                    expected_times_gpu / gpu_times), file=sys.stderr)
 
             print()
             if do_float64 and do_float32:
-                print >> sys.stderr, 'float64/float32', (
-                    float64_times / float32_times)
-                print >> sys.stderr, 'expected float64/float32', (
-                    expected_times_64 / float32_times)
+                print('float64/float32', (
+                    float64_times / float32_times), file=sys.stderr)
+                print('expected float64/float32', (
+                    expected_times_64 / float32_times), file=sys.stderr)
             if do_float64 and do_gpu:
-                print >> sys.stderr, 'float64/gpu', float64_times / gpu_times
-                print >> sys.stderr, 'expected float64/gpu', (
-                    expected_times_64 / gpu_times)
+                print('float64/gpu', float64_times / gpu_times, file=sys.stderr)
+                print('expected float64/gpu', (
+                    expected_times_64 / gpu_times), file=sys.stderr)
             if do_float32 and do_gpu:
-                print >> sys.stderr, 'float32/gpu', float32_times / gpu_times
-                print >> sys.stderr, 'expected float32/gpu', (
-                    expected_times_32 / gpu_times)
+                print('float32/gpu', float32_times / gpu_times, file=sys.stderr)
+                print('expected float32/gpu', (
+                    expected_times_32 / gpu_times), file=sys.stderr)
 
     def compare(x, y):
         ratio = x / y
@@ -287,15 +287,15 @@ def speed():
         # time and the real time, we consider this an error.
         return sum((ratio < 0.95) + (ratio > 1.05))
 
-    print()
+    print(file=sys.stderr)
     if do_float64:
         err = compare(expected_times_64, float64_times)
-        print >> sys.stderr, 'speed_failure_float64=' + str(err)
+        print('speed_failure_float64=' + str(err), file=sys.stderr)
     if do_float32:
         err = compare(expected_times_32, float32_times)
-        print >> sys.stderr, 'speed_failure_float32=' + str(err)
+        print('speed_failure_float32=' + str(err), file=sys.stderr)
     if do_gpu:
         err = compare(expected_times_gpu, gpu_times)
-        print >> sys.stderr, 'speed_failure_gpu=' + str(err)
+        print('speed_failure_gpu=' + str(err), file=sys.stderr)
 
         assert not numpy.isnan(gpu_times).any()
