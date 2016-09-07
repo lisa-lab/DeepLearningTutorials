@@ -7,7 +7,7 @@ fi
 
 date
 ROOT_CWD=$WORKSPACE/nightly_build
-COMPILEDIR=$WORKSPACE/lisa_theano_compile_dir_deeplearning
+COMPILEDIR=$WORKSPACE/compile/lisa_theano_compile_dir_deeplearning
 NOSETESTS=${ROOT_CWD}/Theano/bin/theano-nose
 XUNIT="--with-xunit --xunit-file="
 
