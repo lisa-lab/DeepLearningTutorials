@@ -33,7 +33,7 @@ THEANO_FLAGS=${FLAGS},mode=FAST_RUN ${NOSETESTS} ${XUNIT}${FILE} test.py:speed
 #echo "executing nosetests speed with mode=FAST_RUN and OMP_NUM_THREADS=2"
 #OMP_NUM_THREADS=2 THEANO_FLAGS=${FLAGS},mode=FAST_RUN ${NOSETESTS} test.py:speed
 echo "executing nosetests with mode=FAST_RUN,floatX=float32"
-FILE=${ROOT_CWD}/dlt_32bit_tests.xml
+FILE=${ROOT_CWD}/dlt_float32_tests.xml
 THEANO_FLAGS=${FLAGS},mode=FAST_RUN,floatX=float32 ${NOSETESTS} ${XUNIT}${FILE}
 
 #we change the seed and record it everyday to test different combination. We record it to be able to reproduce bug caused by different seed. We don't want multiple test in DEBUG_MODE each day as this take too long.
