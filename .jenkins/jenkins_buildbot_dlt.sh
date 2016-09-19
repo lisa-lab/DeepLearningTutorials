@@ -20,7 +20,8 @@ fi
 # update repo
 cd ${BUILDBOT_DIR}/Theano; git pull
 
-${WORKSPACE}/data/download.sh
+cd ${WORKSPACE}/data
+./download.sh
 
 cd ${BUILDBOT_DIR}/Theano
 echo "git version for Theano:" `git rev-parse HEAD`
