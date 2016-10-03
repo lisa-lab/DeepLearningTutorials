@@ -40,7 +40,7 @@ import numpy
 
 import theano
 import theano.tensor as T
-from theano.tensor.shared_randomstreams import RandomStreams
+from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 
 from logistic_sgd import load_data
 from utils import tile_raster_images

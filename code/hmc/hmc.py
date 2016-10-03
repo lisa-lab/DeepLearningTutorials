@@ -358,7 +358,7 @@ class HMC_sampler(object):
         stepsize = sharedX(initial_stepsize, 'hmc_stepsize')
         avg_acceptance_rate = sharedX(target_acceptance_rate,
                                       'avg_acceptance_rate')
-        s_rng = TT.shared_randomstreams.RandomStreams(seed)
+        s_rng = theano.sandbox.rng_mrg.MRG_RandomStreams(seed)
 
         # define graph for an `n_steps` HMC simulation
         accept, final_pos = hmc_move(
