@@ -9,6 +9,8 @@ date
 COMPILEDIR=$WORKSPACE/compile/lisa_theano_compile_dir_deeplearning
 NOSETESTS=${BUILDBOT_DIR}/Theano/bin/theano-nose
 XUNIT="--with-xunit --xunit-file="
+# name test suites
+SUITE="--xunit-prefix-with-testsuite-name --xunit-testsuite-name="
 
 FLAGS=warn.ignore_bug_before=0.5,compiledir=${COMPILEDIR}
 export PYTHONPATH=${BUILDBOT_DIR}/Theano:${BUILDBOT_DIR}/Pylearn:$PYTHONPATH
@@ -29,8 +31,10 @@ cd ${WORKSPACE}/code
 echo "git version:" `git rev-parse HEAD`
 
 echo "executing nosetests speed with mode=FAST_RUN"
-FILE=${BUILDBOT_DIR}/dlt_tests.xml
-THEANO_FLAGS=${FLAGS},mode=FAST_RUN ${NOSETESTS} ${XUNIT}${FILE} test.py:speed
+NAME=dlt_speed
+FILE=${BUILDBOT_DIR}/${NAME}_tests.xml
+THEANO_FLAGS=${FLAGS},mode=FAST_RUN ${NOSETESTS} ${XUNIT}${FILE} ${SUITE}${NAME} test.py:speed
 echo "executing nosetests with mode=FAST_RUN,floatX=float32"
-FILE=${BUILDBOT_DIR}/dlt_float32_tests.xml
-THEANO_FLAGS=${FLAGS},mode=FAST_RUN,floatX=float32 ${NOSETESTS} ${XUNIT}${FILE}
+NAME=dlt_float32
+FILE=${BUILDBOT_DIR}/${NAME}_tests.xml
+THEANO_FLAGS=${FLAGS},mode=FAST_RUN,floatX=float32 ${NOSETESTS} ${XUNIT}${FILE} ${SUITE}${NAME}
