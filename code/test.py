@@ -238,3 +238,6 @@ def speed():
         for label, times in times_dic.items():
             write_junit(f, algo_executed, times, label)
         f.write('</testsuite>\n')
+
+    if do_gpu:
+        assert not numpy.isnan(gpu_times).any()
