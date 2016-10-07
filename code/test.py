@@ -152,12 +152,18 @@ def speed():
                   saveto='')
         return numpy.asarray(l)
 
+    # Initialize test count and results dictionnary
+    test_total = 0
+    times_dic = {}
+
     #test in float64 in FAST_RUN mode on the cpu
     import theano
     if do_float64:
         theano.config.floatX = 'float64'
         theano.config.mode = 'FAST_RUN'
         float64_times = do_tests()
+        times_dic['float64'] = float64_times
+        test_total += numpy.size(float64_times)
         print(algo_executed, file=sys.stderr)
         print('float64 times', float64_times, file=sys.stderr)
 
@@ -165,6 +171,8 @@ def speed():
     theano.config.floatX = 'float32'
     if do_float32:
         float32_times = do_tests()
+        times_dic['float32'] = float32_times
+        test_total += numpy.size(float32_times)
         print(algo_executed, file=sys.stderr)
         print('float32 times', float32_times, file=sys.stderr)
 
@@ -186,6 +194,8 @@ def speed():
     if do_gpu:
         theano.sandbox.cuda.use('gpu')
         gpu_times = do_tests()
+        times_dic['gpu'] = gpu_times
+        test_total += numpy.size(gpu_times)
         print(algo_executed, file=sys.stderr)
         print('gpu times', gpu_times, file=sys.stderr)
 
@@ -213,30 +223,18 @@ def speed():
             if do_float32 and do_gpu:
                 print('float32/gpu', float32_times / gpu_times, file=sys.stderr)
         
-    # Write JUnit xml for speed test performance report
+    # Generate JUnit performance report
+    # Define speedtest file write method
+    def write_junit(f, algos, times, label):
+        for algo, time in zip(algos, times):
+            f.write('   <testcase classname="{label}" name="{algo}" time="{time}">'
+                    .format(label=label, algo=algo, time=time))
+            f.write('   </testcase>\n')
 
-    speed_file = 'speedtests_time.xml'
-
-    # Define speed test file write method
-    def write_junit(filename, algos, times, label):
-        with open(filename, 'a') as f:
-            for algo, time in zip(algos, times):
-                f.write('   <testcase classname="{label}" name="{algo}" time="{time}">'
-                        .format(label=label, algo=algo, time=time))
-                f.write('   </testcase>\n')
-
-    test_total = numpy.size(float64_times) \
-                 + numpy.size(float32_times) \
-                 + numpy.size(gpu_times)
-
-    with open(speed_file, 'w') as f:
+    with open('speedtests_time.xml', 'w') as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        f.write('<testsuite name="theano_speedtests" tests="{ntests}">\n'
-                .format(ntests=numpy.size(test_total)))
-
-    write_junit(speed_file, algo_executed, float64_times, label='float64')
-    write_junit(speed_file, algo_executed, float32_times, label='float32')
-    write_junit(speed_file, algo_executed, gpu_times, label='gpu')
-        
-    with open(speed_file, 'a') as f:
+        f.write('<testsuite name="dlt_speedtests" tests="{ntests}">\n'
+                .format(ntests=test_total))
+        for label, times in times_dic.items():
+            write_junit(f, algo_executed, times, label)
         f.write('</testsuite>\n')
