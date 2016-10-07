@@ -10,7 +10,7 @@ COMPILEDIR=$WORKSPACE/compile/lisa_theano_compile_dir_deeplearning
 NOSETESTS=${BUILDBOT_DIR}/Theano/bin/theano-nose
 XUNIT="--with-xunit --xunit-file="
 # name test suites
-SUITE="--xunit-prefix-with-testsuite-name --xunit-testsuite-name="
+SUITE="--xunit-testsuite-name="
 
 FLAGS=warn.ignore_bug_before=0.5,compiledir=${COMPILEDIR}
 export PYTHONPATH=${BUILDBOT_DIR}/Theano:${BUILDBOT_DIR}/Pylearn:$PYTHONPATH
