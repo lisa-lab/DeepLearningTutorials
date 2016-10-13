@@ -1,7 +1,11 @@
 #!/bin/bash
 
+# CUDA
+export PATH=/usr/local/cuda/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+export LIBRARY_PATH=/usr/local/cuda/lib64:$LIBRARY_PATH
+
 BUILDBOT_DIR=$WORKSPACE/nightly_build
-source $HOME/.bashrc
 
 mkdir -p ${BUILDBOT_DIR}
 
