@@ -340,7 +340,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
                 c.append(pretraining_fns[i](index=batch_index,
                                             lr=pretrain_lr))
             print('Pre-training layer %i, epoch %d, cost ' % (i, epoch), end=' ')
-            print(numpy.mean(c))
+            print(numpy.mean(c, dtype='float64'))
 
     end_time = timeit.default_timer()
     # end-snippet-2
@@ -391,7 +391,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
             if (iter + 1) % validation_frequency == 0:
 
                 validation_losses = validate_model()
-                this_validation_loss = numpy.mean(validation_losses)
+                this_validation_loss = numpy.mean(validation_losses, dtype='float64')
                 print('epoch %i, minibatch %i/%i, validation error %f %%' % (
                     epoch,
                     minibatch_index + 1,
@@ -414,7 +414,7 @@ def test_DBN(finetune_lr=0.1, pretraining_epochs=100,
 
                     # test it on the test set
                     test_losses = test_model()
-                    test_score = numpy.mean(test_losses)
+                    test_score = numpy.mean(test_losses, dtype='float64')
                     print(('     epoch %i, minibatch %i/%i, test error of '
                            'best model %f %%') %
                           (epoch, minibatch_index + 1, n_train_batches,
