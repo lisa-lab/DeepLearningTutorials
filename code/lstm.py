@@ -605,8 +605,8 @@ def train_lstm(
                         best_p = unzip(tparams)
                         bad_counter = 0
 
-                    print( ('Train ', train_err, 'Valid ', valid_err,
-                           'Test ', test_err) )
+                    print('Train ', train_err, 'Valid ', valid_err,
+                           'Test ', test_err)
 
                     if (len(history_errs) > patience and
                         valid_err >= numpy.array(history_errs)[:-patience,
