@@ -7,6 +7,7 @@ import numpy
 from theano import function, shared
 from theano import tensor as TT
 import theano
+import theano.sandbox.rng_mrg
 
 sharedX = (lambda X, name:
            shared(numpy.asarray(X, dtype=theano.config.floatX), name=name))
@@ -275,14 +276,14 @@ def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
 
     """
 
-    ## POSITION UPDATES ##
+    # POSITION UPDATES #
     # broadcast `accept` scalar to tensor with the same dimensions as
     # final_pos.
     accept_matrix = accept.dimshuffle(0, *(('x',) * (final_pos.ndim - 1)))
     # if accept is True, update to `final_pos` else stay put
     new_positions = TT.switch(accept_matrix, final_pos, positions)
     # end-snippet-5 start-snippet-7
-    ## STEPSIZE UPDATES ##
+    # STEPSIZE UPDATES #
     # if acceptance rate is too low, our sampler is too "noisy" and we reduce
     # the stepsize. If it is too high, our sampler is too conservative, we can
     # get away with a larger stepsize (resulting in better mixing).
@@ -292,7 +293,7 @@ def hmc_updates(positions, stepsize, avg_acceptance_rate, final_pos, accept,
     new_stepsize = TT.clip(_new_stepsize, stepsize_min, stepsize_max)
 
     # end-snippet-7 start-snippet-6
-    ## ACCEPT RATE UPDATES ##
+    # ACCEPT RATE UPDATES #
     # perform exponential moving average
     mean_dtype = theano.scalar.upcast(accept.dtype, avg_acceptance_rate.dtype)
     new_acceptance_rate = TT.add(
@@ -358,7 +359,7 @@ class HMC_sampler(object):
         stepsize = sharedX(initial_stepsize, 'hmc_stepsize')
         avg_acceptance_rate = sharedX(target_acceptance_rate,
                                       'avg_acceptance_rate')
-        s_rng = TT.shared_randomstreams.RandomStreams(seed)
+        s_rng = theano.sandbox.rng_mrg.MRG_RandomStreams(seed)
 
         # define graph for an `n_steps` HMC simulation
         accept, final_pos = hmc_move(

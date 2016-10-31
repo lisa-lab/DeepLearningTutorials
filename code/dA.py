@@ -40,7 +40,7 @@ import numpy
 
 import theano
 import theano.tensor as T
-from theano.tensor.shared_randomstreams import RandomStreams
+from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 
 from logistic_sgd import load_data
 from utils import tile_raster_images
@@ -336,7 +336,7 @@ def test_dA(learning_rate=0.1, training_epochs=15,
         for batch_index in range(n_train_batches):
             c.append(train_da(batch_index))
 
-        print('Training epoch %d, cost ' % epoch, numpy.mean(c))
+        print('Training epoch %d, cost ' % epoch, numpy.mean(c, dtype='float64'))
 
     end_time = timeit.default_timer()
 
@@ -394,7 +394,7 @@ def test_dA(learning_rate=0.1, training_epochs=15,
         for batch_index in range(n_train_batches):
             c.append(train_da(batch_index))
 
-        print('Training epoch %d, cost ' % epoch, numpy.mean(c))
+        print('Training epoch %d, cost ' % epoch, numpy.mean(c, dtype='float64'))
 
     end_time = timeit.default_timer()
 

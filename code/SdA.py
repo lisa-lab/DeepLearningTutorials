@@ -40,7 +40,7 @@ import numpy
 
 import theano
 import theano.tensor as T
-from theano.tensor.shared_randomstreams import RandomStreams
+from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 
 from logistic_sgd import LogisticRegression, load_data
 from mlp import HiddenLayer
@@ -394,7 +394,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
                 c.append(pretraining_fns[i](index=batch_index,
                          corruption=corruption_levels[i],
                          lr=pretrain_lr))
-            print('Pre-training layer %i, epoch %d, cost %f' % (i, epoch, numpy.mean(c)))
+            print('Pre-training layer %i, epoch %d, cost %f' % (i, epoch, numpy.mean(c, dtype='float64')))
 
     end_time = timeit.default_timer()
 
@@ -442,7 +442,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
 
             if (iter + 1) % validation_frequency == 0:
                 validation_losses = validate_model()
-                this_validation_loss = numpy.mean(validation_losses)
+                this_validation_loss = numpy.mean(validation_losses, dtype='float64')
                 print('epoch %i, minibatch %i/%i, validation error %f %%' %
                       (epoch, minibatch_index + 1, n_train_batches,
                        this_validation_loss * 100.))
@@ -463,7 +463,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
 
                     # test it on the test set
                     test_losses = test_model()
-                    test_score = numpy.mean(test_losses)
+                    test_score = numpy.mean(test_losses, dtype='float64')
                     print(('     epoch %i, minibatch %i/%i, test error of '
                            'best model %f %%') %
                           (epoch, minibatch_index + 1, n_train_batches,
