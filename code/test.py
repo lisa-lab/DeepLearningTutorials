@@ -224,20 +224,16 @@ def speed():
                 print('float32/gpu', float32_times / gpu_times, file=sys.stderr)
         
     # Generate JUnit performance report
-    # Define speedtest file write method
-    def write_junit(f, algos, times, label):
-        for algo, time in zip(algos, times):
-            f.write('   <testcase classname="{label}" name="{algo}" time="{time}">'
-                    .format(label=label, algo=algo, time=time))
-            f.write('   </testcase>\n')
-
-    with open('speedtests_time.xml', 'w') as f:
-        f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        f.write('<testsuite name="dlt_speedtests" tests="{ntests}">\n'
-                .format(ntests=test_total))
-        for label, times in times_dic.items():
-            write_junit(f, algo_executed, times, label)
-        f.write('</testsuite>\n')
+    for label, times in times_dic.items():
+        with open('speedtests_{label}.xml'.format(label=label), 'w') as f:
+            f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+            f.write('<testsuite name="dlt_speedtests_{label}" tests="{ntests}">\n'
+                    .format(label=label, ntests=test_total/len(times_dic)))
+            for algo, time in zip(algo_executed, times):
+                f.write('   <testcase classname="speed" name="{algo}" time="{time}">'
+                        .format(label=label, algo=algo, time=time))
+                f.write('   </testcase>\n')
+            f.write('</testsuite>\n')
 
     if do_gpu:
         assert not numpy.isnan(gpu_times).any()
