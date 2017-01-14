@@ -190,9 +190,9 @@ def speed():
                 float64_times / float32_times), file=sys.stderr)
 
     #test in float32 in FAST_RUN mode on the gpu
-    import theano.sandbox.cuda
+    import theano.gpuarray
     if do_gpu:
-        theano.sandbox.cuda.use('gpu')
+        theano.gpuarray.use('cuda')
         gpu_times = do_tests()
         times_dic['gpu'] = gpu_times
         test_total += numpy.size(gpu_times)
