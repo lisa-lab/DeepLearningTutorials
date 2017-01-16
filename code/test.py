@@ -193,6 +193,14 @@ def speed():
     import theano.gpuarray
     if do_gpu:
         theano.gpuarray.use('cuda')
+        # Make sure to initialize the blas kernel here to not count
+        # this time in the runs below.
+        import pygpu
+        a = pygpu.empty((2, 2), dtype='float32',
+                        context=theano.gpuarray.type.get_context(None))
+        pygpu.blas.gemm(0, a, a, 0, a, overwrite_c=True)
+        del a
+
         gpu_times = do_tests()
         times_dic['gpu'] = gpu_times
         test_total += numpy.size(gpu_times)
