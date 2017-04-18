@@ -10,7 +10,7 @@ BUILDBOT_DIR=$WORKSPACE/nightly_build
 mkdir -p ${BUILDBOT_DIR}
 
 date
-COMPILEDIR=$WORKSPACE/compile/lisa_theano_compile_dir_deeplearning
+COMPILEDIR=$HOME/.theano/lisa_theano_buildbot_deeplearning
 NOSETESTS=${BUILDBOT_DIR}/Theano/bin/theano-nose
 XUNIT="--with-xunit --xunit-file="
 # name test suites
