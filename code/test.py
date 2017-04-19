@@ -230,7 +230,7 @@ def speed():
             f.write('<testsuite name="dlt_speedtests_{label}" tests="{ntests}">\n'
                     .format(label=label, ntests=test_total/len(times_dic)))
             for algo, time in zip(algo_executed, times):
-                f.write('   <testcase classname="speed" name="{algo}" time="{time}">'
+                f.write('   <testcase classname="speed.{label}" name="{algo}" time="{time}">'
                         .format(label=label, algo=algo, time=time))
                 f.write('   </testcase>\n')
             f.write('</testsuite>\n')
