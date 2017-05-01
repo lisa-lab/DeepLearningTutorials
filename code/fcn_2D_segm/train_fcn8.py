@@ -15,33 +15,124 @@ from lasagne.regularization import regularize_network_params
 
 from data_loader import load_data
 from fcn8 import buildFCN8
-from metrics import jaccard, accuracy, crossentropy
+# from metrics import jaccard, accuracy, crossentropy
+
 
 _FLOATX = config.floatX
-if getuser() == 'romerosa':
-    SAVEPATH = '/Tmp/romerosa/itinf/models/'
-    LOADPATH = '/data/lisatmp4/romerosa/itinf/models/'
-    WEIGHTS_PATH = '/data/lisatmp4/romerosa/itinf/models/fcn8_model.npz'
-elif getuser() == 'jegousim':
-    SAVEPATH = '/data/lisatmp4/jegousim/iterative_inference/'
-    LOADPATH = '/data/lisatmp4/jegousim/iterative_inference/'
-    WEIGHTS_PATH = '/data/lisatmp4/romerosa/rnncnn/fcn8_model.npz'
-elif getuser() == 'michal':
-    SAVEPATH = '/home/michal/Experiments/iter_inf/'
-    LOADPATH = SAVEPATH
-    WEIGHTS_PATH = '/home/michal/model_earlyjacc.npz'
-elif getuser() == 'erraqaba':
-    SAVEPATH = '/Tmp/erraqaba/iterative_inference/models/'
-    LOADPATH = '/data/lisatmp4/erraqabi/iterative_inference/models/'
-    WEIGHTS_PATH = LOADPATH
-else:
-    raise ValueError('Unknown user : {}'.format(getuser()))
+_EPSILON = 10e-8
+
+
+def jaccard_metric(y_pred, y_true, n_classes, one_hot=False):
+
+    assert (y_pred.ndim == 2) or (y_pred.ndim == 1)
+
+    # y_pred to indices
+    if y_pred.ndim == 2:
+        y_pred = T.argmax(y_pred, axis=1)
+
+    if one_hot:
+        y_true = T.argmax(y_true, axis=1)
+
+    # Compute confusion matrix
+    cm = T.zeros((n_classes, n_classes))
+    for i in range(n_classes):
+        for j in range(n_classes):
+            cm = T.set_subtensor(
+                cm[i, j], T.sum(T.eq(y_pred, i) * T.eq(y_true, j)))
+
+    # Compute Jaccard Index
+    TP_perclass = T.cast(cm.diagonal(), _FLOATX)
+    FP_perclass = cm.sum(1) - TP_perclass
+    FN_perclass = cm.sum(0) - TP_perclass
+
+    num = TP_perclass
+    denom = TP_perclass + FP_perclass + FN_perclass
+
+    return T.stack([num, denom], axis=0)
+
+
+def accuracy_metric(y_pred, y_true, void_labels, one_hot=False):
+
+    assert (y_pred.ndim == 2) or (y_pred.ndim == 1)
+
+    # y_pred to indices
+    if y_pred.ndim == 2:
+        y_pred = T.argmax(y_pred, axis=1)
+
+    if one_hot:
+        y_true = T.argmax(y_true, axis=1)
+
+    # Compute accuracy
+    acc = T.eq(y_pred, y_true).astype(_FLOATX)
+
+    # Create mask
+    mask = T.ones_like(y_true, dtype=_FLOATX)
+    for el in void_labels:
+        indices = T.eq(y_true, el).nonzero()
+        if any(indices):
+            mask = T.set_subtensor(mask[indices], 0.)
+
+    # Apply mask
+    acc *= mask
+    acc = T.sum(acc) / T.sum(mask)
+
+    return acc
+
+
+def crossentropy_metric(y_pred, y_true, void_labels, one_hot=False):
+    # Clip predictions
+    y_pred = T.clip(y_pred, _EPSILON, 1.0 - _EPSILON)
+
+    if one_hot:
+        y_true = T.argmax(y_true, axis=1)
+
+    # Create mask
+    mask = T.ones_like(y_true, dtype=_FLOATX)
+    for el in void_labels:
+        mask = T.set_subtensor(mask[T.eq(y_true, el).nonzero()], 0.)
+
+    # Modify y_true temporarily
+    y_true_tmp = y_true * mask
+    y_true_tmp = y_true_tmp.astype('int32')
+
+    # Compute cross-entropy
+    loss = T.nnet.categorical_crossentropy(y_pred, y_true_tmp)
+
+    # Compute masked mean loss
+    loss *= mask
+    loss = T.sum(loss) / T.sum(mask)
+
+    return loss
+
+
+SAVEPATH = 'save_models/'
+#LOADPATH = SAVEPATH
+WEIGHTS_PATH = SAVEPATH
+
+# if getuser() == 'romerosa':
+#     SAVEPATH = '/Tmp/romerosa/itinf/models/'
+#     LOADPATH = '/data/lisatmp4/romerosa/itinf/models/'
+#     WEIGHTS_PATH = '/data/lisatmp4/romerosa/itinf/models/fcn8_model.npz'
+# elif getuser() == 'jegousim':
+#     SAVEPATH = '/data/lisatmp4/jegousim/iterative_inference/'
+#     LOADPATH = '/data/lisatmp4/jegousim/iterative_inference/'
+#     WEIGHTS_PATH = '/data/lisatmp4/romerosa/rnncnn/fcn8_model.npz'
+# elif getuser() == 'michal':
+#     SAVEPATH = '/home/michal/Experiments/iter_inf/'
+#     LOADPATH = SAVEPATH
+#     WEIGHTS_PATH = '/home/michal/model_earlyjacc.npz'
+# elif getuser() == 'erraqaba':
+#     SAVEPATH = '/Tmp/erraqaba/iterative_inference/models/'
+#     LOADPATH = '/data/lisatmp4/erraqabi/iterative_inference/models/'
+#     WEIGHTS_PATH = LOADPATH
+# else:
+#     raise ValueError('Unknown user : {}'.format(getuser()))
 
 
 def train(dataset, learn_step=0.005,
           weight_decay=1e-4, num_epochs=500,
           max_patience=100, data_augmentation={},
-          savepath=None, loadpath=None,
+          savepath=None, #loadpath=None,
           early_stop_class=None,
           batch_size=None,
           resume=False,
@@ -56,9 +147,9 @@ def train(dataset, learn_step=0.005,
         raise ValueError('A saving directory must be specified')
 
     savepath = os.path.join(savepath, dataset, exp_name)
-    loadpath = os.path.join(loadpath, dataset, exp_name)
+    # loadpath = os.path.join(loadpath, dataset, exp_name)
     print savepath
-    print loadpath
+    # print loadpath
 
     if not os.path.exists(savepath):
         os.makedirs(savepath)
@@ -97,8 +188,7 @@ def train(dataset, learn_step=0.005,
     void_labels = train_iter.void_labels
     nb_in_channels = train_iter.data_shape[0]
 
-    print "Batch. train: %d, val %d, test %d" % (n_batches_train, n_batches_val,
-                                                 n_batches_test)
+    print "Batch. train: %d, val %d, test %d" % (n_batches_train, n_batches_val, n_batches_test)
     print "Nb of classes: %d" % (n_classes)
     print "Nb. of input channels: %d" % (nb_in_channels)
 
@@ -114,7 +204,7 @@ def train(dataset, learn_step=0.005,
     #
     print "Defining and compiling training functions"
     prediction = lasagne.layers.get_output(convmodel)[0]
-    loss = crossentropy(prediction, target_var, void_labels)
+    loss = crossentropy_metric(prediction, target_var, void_labels)
 
     if weight_decay > 0:
         weightsl2 = regularize_network_params(
@@ -127,14 +217,12 @@ def train(dataset, learn_step=0.005,
     train_fn = theano.function([input_var, target_var], loss, updates=updates)
 
     print "Defining and compiling test functions"
-    test_prediction = lasagne.layers.get_output(convmodel,
-                                                deterministic=True)[0]
-    test_loss = crossentropy(test_prediction, target_var, void_labels)
-    test_acc = accuracy(test_prediction, target_var, void_labels)
-    test_jacc = jaccard(test_prediction, target_var, n_classes)
+    test_prediction = lasagne.layers.get_output(convmodel, deterministic=True)[0]
+    test_loss = crossentropy_metric(test_prediction, target_var, void_labels)
+    test_acc = accuracy_metric(test_prediction, target_var, void_labels)
+    test_jacc = jaccard_metric(test_prediction, target_var, n_classes)
 
-    val_fn = theano.function([input_var, target_var], [test_loss, test_acc,
-                                                       test_jacc])
+    val_fn = theano.function([input_var, target_var], [test_loss, test_acc, test_jacc])
 
     #
     # Train
@@ -156,8 +244,7 @@ def train(dataset, learn_step=0.005,
         for i in range(n_batches_train):
             # Get minibatch
             X_train_batch, L_train_batch = train_iter.next()
-            L_train_batch = np.reshape(L_train_batch,
-                                       np.prod(L_train_batch.shape))
+            L_train_batch = np.reshape(L_train_batch, np.prod(L_train_batch.shape))
 
             # Training step
             cost_train = train_fn(X_train_batch, L_train_batch)
@@ -173,8 +260,7 @@ def train(dataset, learn_step=0.005,
         for i in range(n_batches_val):
             # Get minibatch
             X_val_batch, L_val_batch = val_iter.next()
-            L_val_batch = np.reshape(L_val_batch,
-                                     np.prod(L_val_batch.shape))
+            L_val_batch = np.reshape(L_val_batch, np.prod(L_val_batch.shape))
 
             # Validation step
             cost_val, acc_val, jacc_val = val_fn(X_val_batch, L_val_batch)
@@ -210,29 +296,23 @@ def train(dataset, learn_step=0.005,
         elif epoch > 1 and jacc_valid[epoch] > best_jacc_val:
             best_jacc_val = jacc_valid[epoch]
             patience = 0
-            np.savez(os.path.join(savepath, 'new_fcn8_model_best.npz'),
-                     *lasagne.layers.get_all_param_values(convmodel))
+            np.savez(os.path.join(savepath, 'new_fcn8_model_best.npz'),  *lasagne.layers.get_all_param_values(convmodel))
             np.savez(os.path.join(savepath + "fcn8_errors_best.npz"),
-                     err_valid, err_train, acc_valid,
-                     jacc_valid)
+                     err_valid, err_train, acc_valid, jacc_valid)
         else:
             patience += 1
-            np.savez(os.path.join(savepath, 'new_fcn8_model_last.npz'),
-                     *lasagne.layers.get_all_param_values(convmodel))
+            np.savez(os.path.join(savepath, 'new_fcn8_model_last.npz'), *lasagne.layers.get_all_param_values(convmodel))
             np.savez(os.path.join(savepath + "fcn8_errors_last.npz"),
-                     err_valid, err_train, acc_valid,
-                     jacc_valid)
+                     err_valid, err_train, acc_valid, jacc_valid)
         # Finish training if patience has expired or max nber of epochs
         # reached
         if patience == max_patience or epoch == num_epochs-1:
             if test_iter is not None:
                 # Load best model weights
                 with np.load(os.path.join(savepath, 'new_fcn8_model_best.npz')) as f:
-                    param_values = [f['arr_%d' % i]
-                                    for i in range(len(f.files))]
+                    param_values = [f['arr_%d' % i] for i in range(len(f.files))]
                 nlayers = len(lasagne.layers.get_all_params(convmodel))
-                lasagne.layers.set_all_param_values(convmodel,
-                                                    param_values[:nlayers])
+                lasagne.layers.set_all_param_values(convmodel, param_values[:nlayers])
                 # Test
                 cost_test_tot = 0
                 acc_test_tot = 0
@@ -241,12 +321,10 @@ def train(dataset, learn_step=0.005,
                 for i in range(n_batches_test):
                     # Get minibatch
                     X_test_batch, L_test_batch = test_iter.next()
-                    L_test_batch = np.reshape(L_test_batch,
-                                              np.prod(L_test_batch.shape))
+                    L_test_batch = np.reshape(L_test_batch, np.prod(L_test_batch.shape))
 
                     # Test step
-                    cost_test, acc_test, jacc_test = \
-                        val_fn(X_test_batch, L_test_batch)
+                    cost_test, acc_test, jacc_test = val_fn(X_test_batch, L_test_batch)
                     jacc_num_test, jacc_denom_test = jacc_test
 
                     acc_test_tot += acc_test
@@ -263,9 +341,9 @@ def train(dataset, learn_step=0.005,
                                      acc_test,
                                      jacc_test)
                 print out_str
-            if savepath != loadpath:
-                print('Copying model and other training files to {}'.format(loadpath))
-                copy_tree(savepath, loadpath)
+            # if savepath != loadpath:
+            #     print('Copying model and other training files to {}'.format(loadpath))
+            #     copy_tree(savepath, loadpath)
 
             # End
             return
@@ -314,7 +392,7 @@ def main():
           float(args.penal_cst), int(args.num_epochs), int(args.max_patience),
           data_augmentation=args.data_augmentation, batch_size=args.batch_size,
           early_stop_class=args.early_stop_class, savepath=SAVEPATH,
-          train_from_0_255=args.train_from_0_255, loadpath=LOADPATH)
+          train_from_0_255=args.train_from_0_255)#, loadpath=LOADPATH)
 
 if __name__ == "__main__":
     main()
