@@ -84,9 +84,9 @@ transposed convolution layer with stride 32.
 2. **FCN-16** : Sums the 2x upsampled prediction from *pool5* with *pool4* and then
 produces the segmentation map, by using a transposed convolution layer with stride 16.
 
-3. **FCN-8** : Sums the 4x upsampled *pool5* with the 2x upsampled *pool4* and *pool3*,
-and applies a transposed convolution layer with stride 8 on the resulting feature maps
-to obtain the segmentation map.
+3. **FCN-8** : Sums the 2x upsampled *pool5* with *pool4*, upsamples them and sums them
+with *pool3*, and applies a transposed convolution layer with stride 8 on the resulting
+feature maps to obtain the segmentation map.
 
 
 .. figure:: images/fcn_schema.png
