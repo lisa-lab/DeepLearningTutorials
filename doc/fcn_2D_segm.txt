@@ -16,7 +16,7 @@ not only *what* is in the input, but also *where*.
     :align: center
     :scale: 35%
 
-    **Figure 1** : Segmentation network
+    **Figure 1** : Segmentation network (from FCN paper)
 
 TODO : reference de l'image
 
@@ -66,7 +66,7 @@ explicitely show the relative size of the feature maps.
     :align: center
     :scale: 50%
 
-    **Figure 2** : FCN architecture
+    **Figure 2** : FCN architecture (from FCN paper)
 
 **Difference between the 3 FCN variants**
 
@@ -93,7 +93,7 @@ feature maps to obtain the segmentation map.
     :align: center
     :scale: 65%
 
-    **Figure 3** : FCN architecture
+    **Figure 3** : FCN architecture (from FCN paper)
 
 As explained above, the upsampling paths of the FCN variants are different, since they
 use different skip connection layers and strides for the last convolution, yielding
@@ -105,7 +105,7 @@ contextual information.
     :align: center
     :scale: 30%
 
-    **Figure 4** : FCN results
+    **Figure 4** : FCN results (from FCN paper)
 
 Note that the FCN-8 architecture was used on the polyps dataset below,
 since it produces more precise segmentation map.
@@ -150,7 +150,7 @@ least 0.5.
     :align: center
     :scale: 40%
 
-    **Figure 5** : Jaccard visualisation
+    **Figure 5** : Jaccard visualisation (from this `website <http://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/>`__)
 
 
 TODO: reference image from this `website <http://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/>`__
@@ -164,11 +164,13 @@ Code
 The FCN-8 implementation can be found in the following file:
 
 * `fcn8.py  <../code/fcn_2D_segm/fcn8.py>`_  : Defines the model.
-* `train_fcn8.py <../code/fcn_2D_segm/fcn8.py>`_ : Training loop.
+* `train_fcn8.py <../code/fcn_2D_segm/train_fcn8.py>`_ : Training loop.
 
 
 TODO : import model_helpers, dataset_loader, metrics
 TODO : remove /Tmp/romerosa path and make them relative path
+
+We used Lasagne layers, as you can see in the code below.
 
 .. literalinclude:: ../code/fcn_2D_segm/fcn8.py
   :start-after: start-snippet-1
