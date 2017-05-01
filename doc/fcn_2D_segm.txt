@@ -1,4 +1,4 @@
-.. _fcn2Dsegm:
+.. _fcn_2D_segm:
 
 Fully Convolutional Networks (FCN) for 2D segmentation
 ******************************************************
