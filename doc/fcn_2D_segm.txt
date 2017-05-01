@@ -45,13 +45,13 @@ Data
 
 Polyps
 
-The polyps dataset can be found `[here] <https://drive.google.com/file/d/0B_60jvsCt1hhZWNfcW4wbHE5N3M/view>`__.
-In each of the training, validation and test data, the input images are in the
+The polyps dataset can be found `here <https://drive.google.com/file/d/0B_60jvsCt1hhZWNfcW4wbHE5N3M/view>`__.
+In each of the training, validation and test directory, the input images are in the
 /images directory and the polyps mask (segmentation map) are in /masks2. The
 segmentation maps in the *masks2* directory indicate the presence or absence
 of polyps for each pixel. The other subdirectories (/masks3 and /masks4) are,
 respectively, for a segmentation task with 3 and 4 classes, but will not be
-presented here.   
+presented here.
 
 
 Model
@@ -135,14 +135,25 @@ number of pixels in the union between those two segmentation maps,
 also for that specified class.
 
 .. math::
-   :label: jaccard
+   :label: jaccard_equation
 
     jacc(P(class), GT(class)) = \frac{|P(class)\cap GT(class)|}{|P(class)\cup GT(class)|}
 
-where :math:`P` is the predicted segmentation map and :math: `GT` is the ground
-truth segmentation map. Often, a class is well segmented if its respective jaccard
+where `P` is the predicted segmentation map and `GT` is the ground
+truth segmentation map. `P(class)` is then the binary mask indicating if each
+pixel is predicted as *class* or not.
+Often, a class is well segmented if its respective jaccard
 is at least 0.5. In the polyps dataset, the jaccard(polyps) must thus be at
 least 0.5.
+
+.. figure:: images/jaccard.png
+    :align: center
+    :scale: 40%
+
+    **Figure 5** : Jaccard visualisation
+
+
+TODO: reference image from this `website <http://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/>`__
 
 Code - Citations - Contact
 ++++++++++++++++++++++++++
@@ -152,13 +163,16 @@ Code
 
 The FCN-8 implementation can be found in the following file:
 
-* `fcn8.py <http://deeplearning.net/tutorial/code/fcn8.py>`_ : Defines the model.
-* `train_fcn8.py <http://deeplearning.net/tutorial/code/train_fcn8.py>`_ : Training loop.
+* `fcn8.py  <../code/fcn_2D_segm/fcn8.py>`_  : Defines the model.
+* `train_fcn8.py <../code/fcn_2D_segm/fcn8.py>`_ : Training loop.
 
 
 TODO : import model_helpers, dataset_loader, metrics
+TODO : remove /Tmp/romerosa path and make them relative path
 
-
+.. literalinclude:: ../code/fcn_2D_segm/fcn8.py
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
 
 Papers
 ======
