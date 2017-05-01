@@ -6,11 +6,11 @@ Fully Convolutional Networks (FCN) for 2D segmentation
 Summary
 +++++++
 
-Segmentation task is different from classification task because it require predicting
+Segmentation task is different from classification task because it requires predicting
 a class for each pixel of the input image, instead of only 1 class for the whole input.
 Classification needs to understand *what* is in the input (namely, the context). However,
 in order to predict what is in the input for each pixel, segmentation needs to recover
-*what* is in the input, and *where*.
+not only *what* is in the input, but also *where*.
 
 .. figure:: images/cat_segmentation.png
     :align: center
@@ -20,24 +20,24 @@ in order to predict what is in the input for each pixel, segmentation needs to r
 
 TODO : reference de l'image
 
-The **fully convolutional** network (FCN) owes its name to its architecture that
-have only locally connected layers, such as convolution, pooling, upsampling and
-no dense layer. It reduce the number of parameters and computation time. To obtain
-its segmentation map (output), segmentation networks usually have 2 parts :
+**Fully Convolutional Networks** (FCNs) owe their name to their architecture, which is
+built only from locally connected layers, such as convolution, pooling and upsampling.
+Note that no dense layer is used in this kind of architecture. This reduces the number
+of parameters and computation time. To obtain a segmentation map (output), segmentation
+networks usually have 2 parts :
 
-*  Convolution path : extract semantic/context information
-*  Deconvolution path : recover spatial information
+*  Downsampling path : capture semantic/contextual information
+*  Upsampling path : recover spatial information
 
-The **convolution path** is used to figure out and interpret the context, while the
-**deconvolution path** is used to retrieve *where* in the image were detected the things
-detected by the convolution path. Furthermore, to fully recover the spatial
-information lost in the pooling or downsampling layers, we often use skip connections.
+The **downsampling path** is used to extract and interpret the context (*what*), while the
+**upsampling path** is used to enable precise localization (*where*). Furthermore, to fully
+recover the fine-grained spatial information lost in the pooling or downsampling layers, we
+often use skip connections.
 
-A skip connection is a connection that skips a least one layer. Here, it
+A skip connection is a connection that bypasses a least one layer. Here, it
 is often used to transfer local information by concatenating or summing feature
-maps from the convolution path
-with feature maps from the deconvolution path. It helps combining context
-information with spatial information.
+maps from the downsampling path with feature maps from the upsampling path. Merging features
+from various resolution levels helps combining context information with spatial information.
 
 
 Data
@@ -50,10 +50,10 @@ Polyps
 Model
 +++++
 
-The architecture for FCN network depends on the precision desired. The Figures
-below show 3 different architectures : FCN32, FCN16 and FCN8. The convolutional
-layers are represented as vertical lines between the pooling layers.
-Those pooling layers explicitely show the relative size of the feature maps.
+There are variants of the FCN architecture, which mainly differ in the spatial precision of
+their output. For example, the figures below show the FCN-32, FCN-16 and FCN-8 variants. In the
+figures, convolutional layers are represented as vertical lines between pooling layers, which
+explicitely show the relative size of the feature maps.
 
 .. figure:: images/fcn.png
     :align: center
@@ -61,23 +61,24 @@ Those pooling layers explicitely show the relative size of the feature maps.
 
     **Figure 2** : FCN architecture
 
-**Difference between those 3 architectures**
+**Difference between the 3 FCN variants**
 
-These 3 different architectures differ in the stride for the last convolution,
-and in the skip connections used to obtain their segmentation map, as you can
-see in the image below. I will use the name *convolution path* for the network
-up to *pool5*. Note that these 3 architectures have the same convolution path,
-but their respective deconvolution path differ.
+As shown below, these 3 different architectures differ in the stride of the last convolution,
+and the skip connections used to obtain the output segmentation maps. We will use the term
+*downsampling path* to refer to the network up to *pool5* layer and we will use the term
+*upsampling path* to refer to the network composed of all layers after *pool5*. It is worth
+noting that the 3 FCN architectures share the same downsampling path, but differ in their
+respective upmsapling paths.
 
 
-1. **FCN-32** : Directly produce the segmentation map from *pool5* by using a
-deconvolution layer with stride 32.
+1. **FCN-32** : Directly produces the segmentation map from *pool5*, by using a
+transposed convolution layer with stride 32.
 
-2. **FCN-16** : Sum the 2x upsampled prediction from *pool5* with *pool4* to further
-produce the segmentation map using a deconvolution layer with stride 16.
+2. **FCN-16** : Sums the 2x upsampled prediction from *pool5* with *pool4* and then
+produces the segmentation map, by using a transposed convolution layer with stride 16.
 
-3. **FCN-8** : Sum the feature map obtained by summing *pool4* with the upsampled
-*pool5* with *pool3*, and use a deconvolution with stride 8 on that feature map
+3. **FCN-8** : Sums the 4x upsampled *pool5* with the 2x upsampled *pool4* and *pool3*,
+and applies a transposed convolution layer with stride 8 on the resulting feature maps
 to obtain the segmentation map.
 
 
@@ -87,13 +88,11 @@ to obtain the segmentation map.
 
     **Figure 3** : FCN architecture
 
-As explained above, the deconvolution path is different, since it uses different
-skip connection layers and different stride for the last convolution. It thus
-yield different segmentation, as you can see in Figure 4 below. Combining layers
-that have different precision helps retrieving fine and spatial information, as
-well as coarse and context information.
-
-
+As explained above, the upsampling paths of the FCN variants are different, since they
+use different skip connection layers and strides for the last convolution, yielding
+different segmentations, as shown in Figure 4. Combining layers that have different
+precision helps retrieving fine-grained spatial information, as well as coarse
+contextual information.
 
 .. figure:: images/fcn32_16_8.png
     :align: center
@@ -101,8 +100,8 @@ well as coarse and context information.
 
     **Figure 4** : FCN results
 
-Note that the FCN-8 architecture was used on the polyps dataset,
-because it produces more precise segmentation map.
+Note that the FCN-8 architecture was used on the polyps dataset below,
+since it produces more precise segmentation map.
 
 
 Metrics
@@ -121,7 +120,7 @@ Code - Citations - Contact
 Code
 ====
 
-The FCN8 implementation can be found in the following file:
+The FCN-8 implementation can be found in the following file:
 
 * `fcn8.py <http://deeplearning.net/tutorial/code/fcn8.py>`_ : Defines the model.
 * `train_fcn8.py <http://deeplearning.net/tutorial/code/train_fcn8.py>`_ : Training loop.
