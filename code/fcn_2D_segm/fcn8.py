@@ -12,6 +12,30 @@ from lasagne.nonlinearities import softmax, linear
 
 import model_helpers
 
+def freezeParameters(net, single=True):
+    """
+    Freeze parameters of a layer or a network so that they are not trainable
+    anymore
+
+    Parameters
+    ----------
+    net: a network layer
+    single: whether to freeze a single layer of all of the layers below as well
+    """
+    all_layers = lasagne.layers.get_all_layers(net)
+
+    if single:
+        all_layers = [all_layers[-1]]
+
+    for layer in all_layers:
+        layer_params = layer.get_params()
+        for p in layer_params:
+            try:
+                layer.params[p].remove('trainable')
+            except KeyError:
+                pass
+
+
 # start-snippet-1
 def buildFCN8(nb_in_channels, input_var,
               path_weights='/Tmp/romerosa/itinf/models/' +
