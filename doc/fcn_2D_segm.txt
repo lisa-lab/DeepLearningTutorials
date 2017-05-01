@@ -45,6 +45,13 @@ Data
 
 Polyps
 
+The polyps dataset can be found `[here] <https://drive.google.com/file/d/0B_60jvsCt1hhZWNfcW4wbHE5N3M/view>`__.
+In each of the training, validation and test data, the input images are in the
+/images directory and the polyps mask (segmentation map) are in /masks2. The
+segmentation maps in the *masks2* directory indicate the presence or absence
+of polyps for each pixel. The other subdirectories (/masks3 and /masks4) are,
+respectively, for a segmentation task with 3 and 4 classes, but will not be
+presented here.   
 
 
 Model
@@ -107,12 +114,35 @@ since it produces more precise segmentation map.
 Metrics
 =======
 
-1. Per pixel accuracy
+**Per pixel accuracy**
 
-2. Jaccard (Intersection over Union)
+This metric is self explanatory, since it outputs the class prediction accuracy
+per pixel.
 
-More structured
+.. math::
+   :label: jaccard
 
+    acc(P, GT) = \frac{|\text{pixels correctly predicted}|}{|\text{total nb of pixels}|}
+
+
+**Jaccard (Intersection over Union)**
+
+This evaluation metric is often used for image segmentation, since it is more structured.
+The jaccard is a per class evaluation metric, which compute the nb of pixels in
+the intersection between the
+predicted and ground truth segmentation maps for a specified class, divided by the
+number of pixels in the union between those two segmentation maps,
+also for that specified class.
+
+.. math::
+   :label: jaccard
+
+    jacc(P(class), GT(class)) = \frac{|P(class)\cap GT(class)|}{|P(class)\cup GT(class)|}
+
+where :math:`P` is the predicted segmentation map and :math: `GT` is the ground
+truth segmentation map. Often, a class is well segmented if its respective jaccard
+is at least 0.5. In the polyps dataset, the jaccard(polyps) must thus be at
+least 0.5.
 
 Code - Citations - Contact
 ++++++++++++++++++++++++++
