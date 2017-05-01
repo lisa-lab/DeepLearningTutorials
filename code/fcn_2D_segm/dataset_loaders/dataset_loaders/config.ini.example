@@ -1,0 +1,35 @@
+[general]
+datasets_local_path = /the/local/path/where/the/datasets/will/be/copied
+
+[camvid]
+shared_path = /data/lisatmp4/camvid/segnet/
+
+[cityscapes]
+shared_path = /data/lisatmp4/visin/_datasets/cityscapes/
+
+[isbi_em_stacks]
+shared_path = /data/lisa/data/isbi_challenge_em_stacks/
+
+[kitti]
+shared_path = /data/lisatmp4/romerosa/datasets/kitti/
+
+[mscoco]
+shared_path = /data/lisa/data/COCO
+
+[pascal_voc]
+shared_path = /data/lisa/data/PASCAL-VOC/VOCdevkit
+
+[polyps912]
+shared_path = /data/lisa/exp/vazquezd/datasets/polyps_split7/
+
+[scene_parsing_MIT]
+shared_path = /data/lisa/exp/vazquezd/datasets/SceneParsingMIT/
+
+[change_detection]
+shared_path = /u/visin/exp/_datasets/change_detection
+
+[davis]
+shared_path = /data/lisatmp4/romerosa/datasets/davis/
+
+[gatech]
+shared_path = /data/lisatmp4/dejoieti/data/GATECH/
