@@ -1,0 +1,139 @@
+.. _unet:
+
+U-Net
+**********************************************
+
+Summary
++++++++
+
+This tutorial provides a brief explanation of the U-Net architecture as well as a way to implement
+it using Theano and Lasagne. U-Net is a fully convolution network (FCN) that does image segmentation.
+Its goal is then to predict each pixel's class.
+Compared to image classification, the difficulty arise from the fact that localisation is important.
+The network must capture the overall context and recognize very precise details.
+
+Data
+++++
+
+???
+
+Model
++++++
+
+Compared to Fully Convolutional Network, the main difference is the added skip connections between
+the contracting path and the expansive path. These skip connections intend to provide local information
+to the global information.
+
+U-Net architecture is separated is 2 parts:
+
+- 1 : The contracting path
+- 2 : The expansive path
+
+.. figure:: images/unet.jpg
+    :align: center
+    :scale: 60%
+
+    **Figure 1** : Illustration of U-Net architecture.
+
+
+Contracting/downsampling path
+=============================
+
+The contracting path is composed of 4 blocks. Each block is composed of two 3x3 convolutions, activation function ReLu and 2x2 max pooling.
+The purpose of this contracting path is to capture the context of the image in order to be able to do segmentation.
+
+
+Bottleneck path
+===============
+
+This part of the network is between contracting and downsampling path.
+The bottleneck path in simple a dropout layer, followed by a pool layer and 2 convolutional layers and an other dropout layer.
+
+
+Expansive/upsampling path
+=========================
+
+The expansive path is also composed of 4 blocks. Each of these blocks is composed of a deconvolution layer, followed by the concatenation with the corresponding
+cropped feature map from the contracting path, and then two 3x3 convolutions and ReLU activation.
+The purpose of this expansive path is to enable precise localization combined with context from the contracting path.
+
+Advantages
+==========
+
+- The U-Net combines the location information from the downsampling path with the context information in the upsampling path to finally obtain a general information combining localisation and context, which is necessary to predict a good segmentation map.
+- No dense layer, so images of different sizes can be used as input (since the only parameters to learn on convolution layers are the kernel, and the size of the kernel is independant from input image' size).
+
+
+Code - Citations - Contact
+++++++++++++++++++++++++++
+
+Code
+====
+
+The U-Net implementation can be found in the following file:
+
+* `unet.py <../code/unet.py>`_ : Main script. Defines the model.
+
+The user can now build a U-Net with a specified number of input channels and number of classes.
+
+First include the Lasagna layer needed to define the U-Net architecture :
+
+.. literalinclude:: ../code/unet.py
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
+
+Our net variable will be a dictionary containing the layers' name as key and the layer instance as value.
+This is needed to be able to concatenate the feature maps from the contracting to expansive path.
+For example, the first block of conv+conv+block, including the input layer, would be :
+
+.. literalinclude:: ../code/unet.py
+  :start-after: start-snippet-2
+  :end-before: end-snippet-2
+
+Every layer will be added the same way, by specifying its name and
+input layer (or input layers, for concatenation). For example, the last concatenation for this
+architecture takes as input the 'conv1_2' output and the previous layer as follow:
+
+.. literalinclude:: ../code/unet.py
+  :start-after: start-snippet-3
+  :end-before: end-snippet-3
+
+
+To build this network, simply specify the number of input channels and number of classes as follow:
+
+.. literalinclude:: ../code/unet.py
+  :start-after: start-snippet-4
+  :end-before: end-snippet-4
+
+Papers
+======
+
+If you use this tutorial, please cite the following papers.
+
+U_Net: Convolutional Networks for Biomedical Image Segmentation
+
+* `[pdf] <https://arxiv.org/pdf/1505.04597.pdf>`__ reference
+
+Fully Convolutional Networks for Semantic Segmentation
+
+* `[pdf] <https://people.eecs.berkeley.edu/~jonlong/long_shelhamer_fcn.pdf>`__ reference
+
+Papers related to Theano:
+
+* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/nips2012_deep_workshop_theano_final.pdf>`__ Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Bergstra, James, Goodfellow, Ian, Bergeron, Arnaud, Bouchard, Nicolas, and Bengio, Yoshua. Theano: new features and speed improvements. NIPS Workshop on Deep Learning and Unsupervised Feature Learning, 2012.
+
+* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/theano_scipy2010.pdf>`__ Bergstra, James, Breuleux, Olivier, Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Desjardins, Guillaume, Turian, Joseph, Warde-Farley, David, and Bengio, Yoshua. Theano: a CPU and GPU math expression compiler. In Proceedings of the Python for Scientific Computing Conference (SciPy), June 2010.
+
+Thank you!
+
+Contact
+=======
+
+Please email
+
+References
+++++++++++
+
+* ref1
+
+* ref2
