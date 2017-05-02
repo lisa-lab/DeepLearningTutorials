@@ -80,19 +80,22 @@ explicitely show the relative size of the feature maps.
 
 As shown below, these 3 different architectures differ in the stride of the last convolution,
 and the skip connections used to obtain the output segmentation maps. We will use the term
-*downsampling path* to refer to the network up to *pool5* layer and we will use the term
-*upsampling path* to refer to the network composed of all layers after *pool5*. It is worth
+*downsampling path* to refer to the network up to *conv7* layer and we will use the term
+*upsampling path* to refer to the network composed of all layers after *conv7*. It is worth
 noting that the 3 FCN architectures share the same downsampling path, but differ in their
 respective upsampling paths.
 
 
-1. **FCN-32** : Directly produces the segmentation map from *pool5*, by using a
+1. **FCN-32** : Directly produces the segmentation map from *conv7*, by using a
 transposed convolution layer with stride 32.
 
-2. **FCN-16** : Sums the 2x upsampled prediction from *pool5* with *pool4* and then
-produces the segmentation map, by using a transposed convolution layer with stride 16.
+2. **FCN-16** : Sums the 2x upsampled prediction from *conv7* 
+(using a transposed convolution with stride 2) with *pool4* and then
+produces the segmentation map, by using a transposed convolution layer with stride 16
+on top of that.
 
-3. **FCN-8** : Sums the 2x upsampled *pool5* with *pool4*, upsamples them and sums them
+3. **FCN-8** : Sums the 2x upsampled *pool5* (with a stride 2 transpose convolution)
+with *pool4*, upsamples them and sums them
 with *pool3*, and applies a transposed convolution layer with stride 8 on the resulting
 feature maps to obtain the segmentation map.
 
