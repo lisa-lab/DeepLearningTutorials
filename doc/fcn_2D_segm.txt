@@ -22,8 +22,8 @@ not only *what* is in the input, but also *where*.
 built only from locally connected layers, such as convolution, pooling and upsampling.
 Note that no dense layer is used in this kind of architecture. This reduces the number
 of parameters and computation time. Also, the network can work regardless of the original
-image size, since all connections are local, there does not need to be any fixed number
-of units at any stage.To obtain a segmentation map (output), segmentation
+image size, without requiring any fixed number of units at any stage, givent that all
+connections are local. To obtain a segmentation map (output), segmentation
 networks usually have 2 parts :
 
 *  Downsampling path : capture semantic/contextual information
