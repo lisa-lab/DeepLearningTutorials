@@ -13,7 +13,8 @@ Summary
 The fundamental notions behind segmentation have been explained in :doc:`fcn_2D_segm`.
 A particularity here is that some of these notions will be applied to 1D
 segmentation. However, almost every Lasagne's layers used for 2D segmentation have
-their respective 1D layer, so the implementation won't be very different.
+their respective 1D layer, so the implementation would look alike if the same
+model was used.
 
 
 
@@ -48,8 +49,8 @@ and sizes contained on the layer on which the pixel is. Since the 6 cortical lay
 have different properties (cell density and size), the profile of intensity
 can be used to detect boudaries of the cortical layers.
 
-Each ray has 2 input channels, one representing the raw intensity and the other,
-a smoothed version, as shown in Figure 3.
+Each ray has 2 input channels, one representing the smoothed intensity and the other,
+the raw version, as shown in Figure 3.
 
 
 .. figure:: images/raw_smooth.png
@@ -71,11 +72,12 @@ Model
 +++++
 
 We first started our experiment with more complex models, but we finally found that
-this model had enough capacity to learn how and where the layer boundaries are.
+the model we will present had enough capacity to learn how and where the layer boundaries are.
 This model (as in Figure 5) is composed of 8 identical blocks, followed by a
 last convolution and a softmax non linearity.
 
 Each block is composed of :
+
 * Batch Normalization layer
 * Rectify nonlinearity layer
 * Convolution layer, with kernel size 25, enough padding such that the convolution
