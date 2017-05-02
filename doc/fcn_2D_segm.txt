@@ -21,8 +21,8 @@ not only *what* is in the input, but also *where*.
 **Fully Convolutional Networks** (FCNs) owe their name to their architecture, which is
 built only from locally connected layers, such as convolution, pooling and upsampling.
 Note that no dense layer is used in this kind of architecture. This reduces the number
-of parameters and computation time. Also, the network can work regardless of the original 
-image size, since all connections are local, there does not need to be any fixed number 
+of parameters and computation time. Also, the network can work regardless of the original
+image size, since all connections are local, without needing any fixed number
 of units at any stage.To obtain a segmentation map (output), segmentation
 networks usually have 2 parts :
 
@@ -34,7 +34,7 @@ The **downsampling path** is used to extract and interpret the context (*what*),
 recover the fine-grained spatial information lost in the pooling or downsampling layers, we
 often use skip connections.
 
-A skip connection is a connection that bypasses a least one layer. Here, it
+A skip connection is a connection that bypasses at least one layer. Here, it
 is often used to transfer local information by concatenating or summing feature
 maps from the downsampling path with feature maps from the upsampling path. Merging features
 from various resolution levels helps combining context information with spatial information.
@@ -47,7 +47,7 @@ Polyps
 
 The polyps dataset can be found `here <https://drive.google.com/file/d/0B_60jvsCt1hhZWNfcW4wbHE5N3M/view>`__.
 In each of the training, validation and test directory, the input images are in the
-/images directory and the polyps mask (segmentation map) are in /masks2. The
+/images directory and the polyps masks (segmentation maps) are in /masks2. The
 segmentation maps in the *masks2* directory indicate the presence or absence
 of polyps for each pixel. The other subdirectories (/masks3 and /masks4) are,
 respectively, for a segmentation task with 3 and 4 classes, but will not be
@@ -108,7 +108,7 @@ contextual information.
     **Figure 4** : FCN results (from FCN paper)
 
 Note that the FCN-8 architecture was used on the polyps dataset below,
-since it produces more precise segmentation map.
+since it produces more precise segmentation maps.
 
 
 Metrics
@@ -128,11 +128,11 @@ per pixel.
 **Jaccard (Intersection over Union)**
 
 This evaluation metric is often used for image segmentation, since it is more structured.
-The jaccard is a per class evaluation metric, which compute the nb of pixels in
+The jaccard is a per class evaluation metric, which computes the number of pixels in
 the intersection between the
-predicted and ground truth segmentation maps for a specified class, divided by the
+predicted and ground truth segmentation maps for a given class, divided by the
 number of pixels in the union between those two segmentation maps,
-also for that specified class.
+also for that given class.
 
 .. math::
    :label: jaccard_equation
@@ -141,17 +141,14 @@ also for that specified class.
 
 where `P` is the predicted segmentation map and `GT` is the ground
 truth segmentation map. `P(class)` is then the binary mask indicating if each
-pixel is predicted as *class* or not.
-Often, a class is well segmented if its respective jaccard
-is at least 0.5. In the polyps dataset, the jaccard(polyps) must thus be at
-least 0.5.
+pixel is predicted as *class* or not. In general, the closer to 1, the better.
 
 .. figure:: images/jaccard.png
     :align: center
     :scale: 40%
 
     **Figure 5** : Jaccard visualisation (from this `website <http://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/>`__)
-    
+
 
 Code - Citations - Contact
 ++++++++++++++++++++++++++
