@@ -18,12 +18,12 @@ not only *what* is in the input, but also *where*.
 
     **Figure 1** : Segmentation network (from FCN paper)
 
-TODO : reference de l'image
-
 **Fully Convolutional Networks** (FCNs) owe their name to their architecture, which is
 built only from locally connected layers, such as convolution, pooling and upsampling.
 Note that no dense layer is used in this kind of architecture. This reduces the number
-of parameters and computation time. To obtain a segmentation map (output), segmentation
+of parameters and computation time. Also, the network can work regardless of the original 
+image size, since all connections are local, there does not need to be any fixed number 
+of units at any stage.To obtain a segmentation map (output), segmentation
 networks usually have 2 parts :
 
 *  Downsampling path : capture semantic/contextual information
@@ -75,7 +75,7 @@ and the skip connections used to obtain the output segmentation maps. We will us
 *downsampling path* to refer to the network up to *pool5* layer and we will use the term
 *upsampling path* to refer to the network composed of all layers after *pool5*. It is worth
 noting that the 3 FCN architectures share the same downsampling path, but differ in their
-respective upmsapling paths.
+respective upsampling paths.
 
 
 1. **FCN-32** : Directly produces the segmentation map from *pool5*, by using a
@@ -151,9 +151,7 @@ least 0.5.
     :scale: 40%
 
     **Figure 5** : Jaccard visualisation (from this `website <http://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/>`__)
-
-
-TODO: reference image from this `website <http://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/>`__
+    
 
 Code - Citations - Contact
 ++++++++++++++++++++++++++
