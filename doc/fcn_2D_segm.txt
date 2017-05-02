@@ -94,8 +94,8 @@ transposed convolution layer with stride 32.
 produces the segmentation map, by using a transposed convolution layer with stride 16
 on top of that.
 
-3. **FCN-8** : Sums the 2x upsampled *pool5* (with a stride 2 transpose convolution)
-with *pool4*, upsamples them and sums them
+3. **FCN-8** : Sums the 2x upsampled *conv7* (with a stride 2 transpose convolution)
+with *pool4*, upsamples them with a stride 2 transpose convolution and sums them
 with *pool3*, and applies a transposed convolution layer with stride 8 on the resulting
 feature maps to obtain the segmentation map.
 
