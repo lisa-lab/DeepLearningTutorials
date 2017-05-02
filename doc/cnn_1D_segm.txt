@@ -1,4 +1,4 @@
-.. _fcn_1D_segm:
+.. _cnn_1D_segm:
 
 Network for 1D segmentation
 ***************************
@@ -92,7 +92,7 @@ locally connected layers exclusively.
     :align: center
     :scale: 100%
 
-    **Figure 4** : Model
+    **Figure 5** : Model
 
 Note that we didn't use any pooling, because it was not needed. However, if
 pooling layers were used, an upsampling path would have been necessary to recover full
@@ -111,17 +111,17 @@ Results
 
 The model outputs a vector of the same size as the input (here, 200).
 There are 7 class labels, including the 6 cortical layers and the 'not in the brain yet'
-label. You can see in Figure 5 below the output of the model for some ray.
+label. You can see in Figure 6 below the output of the model for some ray.
 
 .. figure:: images/cortical_ray_result.png
     :align: center
     :scale: 100%
 
-    **Figure 5** : Results for 1 ray
+    **Figure 6** : Results for 1 ray
 
 However, since the purpose was to do 2D segmentation by using 1D segmentation
 of the rays, we needed to put back the rays on the brain section. After interpolation
-between those rays and smoothing, we get the results shown in Figure 6. The colored
+between those rays and smoothing, we get the results shown in Figure 7. The colored
 lines are the prediction from the model and the grayscale stripes correspond to the
 ground truth. As you can see, it achieves really good results on that
 sample.
@@ -132,7 +132,7 @@ sample.
     :align: center
     :scale: 40%
 
-    **Figure 6** : Results put on the brain section
+    **Figure 7** : Results put on the brain section
 
 View other `result <_images/cortical_valid2.png>`_
 
