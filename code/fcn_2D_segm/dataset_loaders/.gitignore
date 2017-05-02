@@ -1,4 +1,0 @@
-*.pyc
-dataset_loaders/datasets
-.cache
-config.ini

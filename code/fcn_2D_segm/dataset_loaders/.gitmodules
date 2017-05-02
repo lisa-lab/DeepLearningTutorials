@@ -1,3 +1,0 @@
-[submodule "dataset_loaders/images/coco"]
-	path = dataset_loaders/images/coco
-	url = https://github.com/pdollar/coco.git
