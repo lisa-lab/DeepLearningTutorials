@@ -22,7 +22,7 @@ not only *what* is in the input, but also *where*.
 built only from locally connected layers, such as convolution, pooling and upsampling.
 Note that no dense layer is used in this kind of architecture. This reduces the number
 of parameters and computation time. Also, the network can work regardless of the original
-image size, since all connections are local, without needing any fixed number
+image size, since all connections are local, there does not need to be any fixed number
 of units at any stage.To obtain a segmentation map (output), segmentation
 networks usually have 2 parts :
 
@@ -43,9 +43,17 @@ from various resolution levels helps combining context information with spatial 
 Data
 ++++
 
-Polyps
-
 The polyps dataset can be found `here <https://drive.google.com/file/d/0B_60jvsCt1hhZWNfcW4wbHE5N3M/view>`__.
+There is a total of 912 images taken from 36 patients.
+
+* Training set : 20 patients and 547 frames
+* Validation set : 8 patients and 183 frames
+* Test set : 8 patients and 182 frames
+
+Each pixel is labelled between 2 classes : polype or background.
+The size of the images vary.
+
+
 In each of the training, validation and test directory, the input images are in the
 /images directory and the polyps masks (segmentation maps) are in /masks2. The
 segmentation maps in the *masks2* directory indicate the presence or absence
