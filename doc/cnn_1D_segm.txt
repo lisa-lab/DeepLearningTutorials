@@ -1,0 +1,170 @@
+.. _fcn_1D_segm:
+
+Network for 1D segmentation
+***************************
+
+.. note::
+    This section assumes the reader has already read through :doc:`fcn_2D_segm`.
+
+
+Summary
++++++++
+
+The fundamental notions behind segmentation have been explained in :doc:`fcn_2D_segm`.
+A particularity here is that some of these notions will be applied to 1D
+segmentation. However, almost every Lasagne's layers used for 2D segmentation have
+their respective 1D layer, so the implementation won't be very different.
+
+
+
+
+Data
+++++
+
+The `[BigBrain] <https://bigbrain.loris.ca/main.php>`__ dataset is composed of 
+sections of the brain.
+We were interested in the outer part of the brain, the cortex.
+More precisly, we were interested in segmenting the 6 different layers of the cortex.
+To do so, instead of giving as input a 2D image of one section of the brain (including the cortex)
+as in Figure 1,
+we gave as input 1D rays going from outside the brain and through the cortex,
+as shown in Figure 2.
+
+.. figure:: images/big_brain_section.png
+    :align: center
+    :scale: 100%
+
+    **Figure 1** : Big Brain section
+
+.. figure:: images/ray.png
+    :align: center
+    :scale: 50%
+
+    **Figure 2** : Ray extraction from segmentated cortex
+    
+We will call *rays* the vectors of size 200 going from outside the brain and 
+through the cortex. Each pixel of these rays represent the cell densities
+and sizes contained on the layer on which the pixel is. Since the 6 cortical layers
+have different properties (cell density and size), the profile of intensity
+can be used to detect boudaries of the cortical layers.  
+
+Each ray has 2 input channels, one representing the raw intensity and the other,
+a smoothed version, as shown in Figure 3.
+    
+    
+.. figure:: images/raw_smooth.png
+    :align: center
+    :scale: 50%
+
+    **Figure 3** : Raw and smooth input channels
+    
+    
+
+Model
++++++
+
+We first started our experiment with more complex models, but we finally found that
+this model had enough capacity to learn how and where the layer boundaries are.
+This model (as in Figure 5) is composed of 8 identical blocks, followed by a 
+last convolution and a softmax non linearity.
+
+Each block is composed of :
+* Batch Normalization layer
+* Rectify nonlinearity layer
+* Convolution layer, with kernel size 25, enough padding such that the convolution
+does not change the size and 32 features map
+
+The last convolution has kernel size 1 and *number of classes* feature maps. 
+The softmax is then
+used to detect which of these classes is more likely for each pixel.
+Note that any input image size could be used here, since there is only
+locally connected layers. 
+
+.. figure:: images/cortical_layers_net.png
+    :align: center
+    :scale: 100%
+
+    **Figure 4** : Model
+
+Note that we didn't use any pooling, because it was not needed. However, if 
+pooling layers were used, an upsampling path would have been necessary to recover full
+spatial size of the input ray. Also, since each pixel of the output prediction has
+a receptive field that includes all of the input pixel, the pooling is not needed.
+
+
+
+
+
+
+
+Results
++++++++
+
+The model outputs a vector of the same size as the input (here, 200). 
+There is 7 class labels, including the 6 cortical layers and the 'not in the brain yet'
+label. You can see in Figure 5 below the output of the model for some ray.
+
+.. figure:: images/cortical_ray_result.png
+    :align: center
+    :scale: 40%
+
+    **Figure 5** : Results for 1 ray
+
+However, since the purpose was to do 2D segmentation by using 1D segmentation 
+of the rays, we needed to put back the rays on the brain section. After interpolation
+between those rays and smoothing, we get the results shown in Figure 6. The colored
+lines are the prediction from the model and the grayscale strips are the
+ground truth labelling. As you can see, it achieves really good results on that
+sample.
+
+
+
+.. figure:: images/cortical_valid1.png
+    :align: center
+    :scale: 40%
+
+    **Figure 6** : Results put on the brain section
+
+View other `result <_images/cortical_valid2.png>`_
+
+Code - Citations - Contact
+++++++++++++++++++++++++++
+
+Code
+====
+
+The FCN implementation can be found in the following file:
+
+* `file.py <../code/file.py>`_ : Main script. Defines the model.
+
+
+
+
+Papers
+======
+
+If you use this tutorial, please cite the following papers.
+
+Fully Convolutional Networks for Semantic Segmentation
+
+* `[pdf] <https://people.eecs.berkeley.edu/~jonlong/long_shelhamer_fcn.pdf>`__ reference
+
+Papers related to Theano:
+
+* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/nips2012_deep_workshop_theano_final.pdf>`__ Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Bergstra, James, Goodfellow, Ian, Bergeron, Arnaud, Bouchard, Nicolas, and Bengio, Yoshua. Theano: new features and speed improvements. NIPS Workshop on Deep Learning and Unsupervised Feature Learning, 2012.
+
+* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/theano_scipy2010.pdf>`__ Bergstra, James, Breuleux, Olivier, Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Desjardins, Guillaume, Turian, Joseph, Warde-Farley, David, and Bengio, Yoshua. Theano: a CPU and GPU math expression compiler. In Proceedings of the Python for Scientific Computing Conference (SciPy), June 2010.
+
+Thank you!
+
+Contact
+=======
+
+Please email
+
+References
+++++++++++
+
+* ref1
+
+* ref2
