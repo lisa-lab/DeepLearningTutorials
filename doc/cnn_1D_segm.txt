@@ -22,13 +22,13 @@ model was used.
 Data
 ++++
 
-The `[BigBrain] <https://bigbrain.loris.ca/main.php>`__ dataset is composed of
+The `BigBrain <https://bigbrain.loris.ca/main.php>`__ dataset is composed of
 sections of the brain.
 We are interested in the outer part of the brain, the cortex.
 More precisely, we are interested in segmenting the 6 different layers of the cortex.
 To do so, instead of giving as input a 2D image of one section of the brain (including the cortex)
 as in Figure 1, we give as input 1D vectors with information from across the cortex of the brain,
- as shown in Figure 2.
+as shown in Figure 2. The actual dataset can be found `here TODO: link the dataset`.
 
 .. figure:: images/big_brain_section.png
     :align: center
@@ -79,8 +79,7 @@ Each block is composed of :
 
 * Batch Normalization layer
 * Rectify nonlinearity layer
-* Convolution layer, with kernel size 25, with enough padding such that the convolution
-does not change the feature resolution, and 32 features map
+* Convolution layer, with kernel size 25, with enough padding such that the convolution does not change the feature resolution, and 64 features maps
 
 The last convolution has kernel size 1 and *number of classes* feature maps.
 The softmax is then
@@ -111,13 +110,16 @@ Results
 
 The model outputs a vector of the same size as the input (here, 200).
 There are 7 class labels, including the 6 cortical layers and the 'not in the brain yet'
-label. You can see in Figure 6 below the output of the model for some ray.
+label. You can see in Figure 6 below the output of the model for some ray. The top
+of the plot represent the ground truth segmentation, while the bottoms represent
+the predicted segmentation. As you can see, there is only a small number of pixels
+not correctly segmented.
 
 .. figure:: images/cortical_ray_result.png
     :align: center
     :scale: 100%
 
-    **Figure 6** : Results for 1 ray
+    **Figure 6** : Ground truth (top) vs prediction (bottom) for 1 ray
 
 However, since the purpose was to do 2D segmentation by using 1D segmentation
 of the rays, we needed to put back the rays on the brain section. After interpolation
