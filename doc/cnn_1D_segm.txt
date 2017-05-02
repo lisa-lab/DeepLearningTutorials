@@ -49,21 +49,26 @@ have different properties (cell density and size), the intensity profile can be 
 detect boudaries of the cortical layers.
 
 Each ray has 2 input channels, one representing the smoothed intensity and the other,
-the raw version, as shown in Figure 3.
+the raw version, as shown in Figure 3. The next figure, Figure 4, shows the
+ground truth segmentation map, where each different color represent
+a different label. The purple color indicate that these pixels are
+outside the cortex, while the 6 other colors represent the 6 cortical layers.
+For exemple, the first layer of the cortex is between pixels ~ 35-55. The cortex
+for this sample starts at pixel ~25 and ends at pixel ~170.
 
 
 .. figure:: images/raw_smooth.png
     :align: center
     :scale: 100%
 
-    **Figure 3** : Raw and smooth input channels
+    **Figure 3** : Raw and smooth intensity profiles (input channels)
 
 
 .. figure:: images/labels.png
     :align: center
     :scale: 100%
 
-    **Figure 4** : Labels for this ray
+    **Figure 4** : Cortical layers labels for this ray
 
 
 
