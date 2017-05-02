@@ -24,7 +24,6 @@ Contents
    rnnrbm
    utilities
    references
-   fcn_1D_segm
    fcn_2D_segm
-   cnn_2D_classif
+   cnn_1D_segm
    unet
