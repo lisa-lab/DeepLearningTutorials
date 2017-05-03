@@ -196,6 +196,6 @@ Acknowledgements
 ================
 
 This work was done in collaboration with Konrad Wagstyl, PhD student, University of Cambridge. 
-We would like to thank Professor Alan Evans' `[MCIN lab] <mcin-cnim.ca>` and Professor Katrin Amunts' `[INM-1 lab] <https://www.fz-juelich.de/inm/inm-1/EN/Home/home_node.html>`.
+We would like to thank Professor Alan Evans' `[MCIN lab] <https://www.mcin-cnim.ca>`_ and Professor Katrin Amunts' `[INM-1 lab] <https://www.fz-juelich.de/inm/inm-1/EN/Home/home_node.html>`_.
 
 Thank you!
