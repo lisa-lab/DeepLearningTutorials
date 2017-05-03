@@ -164,8 +164,6 @@ pixel is predicted as *class* or not. In general, the closer to 1, the better.
 
     **Figure 5** : Jaccard visualisation (from this `website <http://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/>`__)
 
-
-
 Code
 ++++
 
