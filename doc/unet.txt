@@ -13,10 +13,8 @@ Summary
 
 This tutorial provides a brief explanation of the U-Net architecture as well as a way to implement
 it using Theano and Lasagne. U-Net is a Fully Convolutional Network (FCN) that does image segmentation.
-Its goal is then to predict each pixel's class.
-Compared to image classification, the difficulty arises from the fact that localisation is important.
-The network must capture the overall context and recognize very precise details.
-
+Its goal is then to predict each pixel's class. See :doc:`fcn_2D_segm` for differences between
+network architecture for classification and segmentation tasks.
 
 Model
 +++++
