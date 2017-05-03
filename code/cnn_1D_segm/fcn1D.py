@@ -12,61 +12,48 @@ from lasagne.layers import ElemwiseSumLayer, ElemwiseMergeLayer
 from lasagne.nonlinearities import softmax, linear, rectify
 
 
-def conv_bn_relu(net, incoming_layer, depth, num_filters, filter_size,
-                    pad = 'same'):
+def conv_bn_relu(net, incoming_layer, depth, num_filters, filter_size, pad = 'same'):
     net['conv'+str(depth)] = ConvLayer(net[incoming_layer],
-                num_filters = num_filters,
-                filter_size = filter_size,
-                pad = pad,
-                nonlinearity=None)
+                num_filters = num_filters, filter_size = filter_size,
+                pad = pad, nonlinearity=None)
     net['bn'+str(depth)] = BatchNormLayer(net['conv'+str(depth)])
-    net['relu'+str(depth)] = NonlinearityLayer( net['bn'+str(depth)],
-                                    nonlinearity = rectify)
+    net['relu'+str(depth)] = NonlinearityLayer( net['bn'+str(depth)], nonlinearity = rectify)
     incoming_layer = 'relu'+str(depth)
 
     return incoming_layer
 
-
-def bn_relu_conv(net, incoming_layer, depth, num_filters, filter_size,
-                    pad = 'same'):
+# start-snippet-bn_relu_conv
+def bn_relu_conv(net, incoming_layer, depth, num_filters, filter_size, pad = 'same'):
 
     net['bn'+str(depth)] = BatchNormLayer(net[incoming_layer])
-    net['relu'+str(depth)] = NonlinearityLayer( net['bn'+str(depth)],
-                                    nonlinearity = rectify)
+    net['relu'+str(depth)] = NonlinearityLayer( net['bn'+str(depth)], nonlinearity = rectify)
     net['conv'+str(depth)] = ConvLayer(net['relu'+str(depth)],
-                num_filters = num_filters,
-                filter_size = filter_size,
-                pad = pad,
-                nonlinearity=None)
+                num_filters = num_filters, filter_size = filter_size,
+                pad = pad, nonlinearity=None)
     incoming_layer = 'conv'+str(depth)
 
     return incoming_layer
+# end-snippet-bn_relu_conv
 
-
-def build_simple_model(input_var,
-        filter_size=[25],
+# start-snippet-convolutions
+def build_model(input_var,
+	    n_classes = 6,
+	    nb_in_channels = 2,
+        filter_size=25,
         n_filters = 64,
-        n_classes = 6,
-        depth = 1,
+        depth = 8,
         last_filter_size = 1,
-        nb_in_channels = 1,
         block = 'bn_relu_conv',
-        #bn_relu_conv = False, #unused for now
         out_nonlin = softmax):
     '''
     Parameters:
     -----------
-    input_var : theano tensor
-    filter_size : list of odd int (to fit with same padding),
-                size of filter_size list determines the number of
-                convLayer to Concatenate
+    input_var : theano 3Dtensor shape(n_samples, n_in_channels, ray_length)
+    filter_size : odd int (to fit with same padding)
     n_filters : int, number of filters for each convLayer
-    n_classes : int
+    n_classes : int, number of classes to segment
     depth : int, number of stacked convolution before concatenation
-    last_filter_size : int, must be set to 1 (the older version had
-            a last_filter_size of 3, that was an error
-            the argument is there to be able to reassign weights correctly
-            when testing)
+    last_filter_size : int, last convolution filter size to obtain n_classes feature maps
     out_nonlin : default=softmax, non linearity function
     '''
 
@@ -75,19 +62,17 @@ def build_simple_model(input_var,
 
     net['input'] = InputLayer((None, nb_in_channels, 200), input_var)
     incoming_layer = 'input'
-    #incoming_layer = 'input'
 
     #Convolution layers
-
-
     for d in range(depth):
         if block == 'bn_relu_conv':
             incoming_layer = bn_relu_conv(net, incoming_layer, depth = d,
-                            num_filters= n_filters, filter_size=filter_size[0])
-
+                            num_filters= n_filters, filter_size=filter_size)
+            # end-snippet-convolutions
         elif block == 'conv_bn_relu':
             incoming_layer = conv_bn_relu(net, incoming_layer, depth = d,
-                            num_filters= n_filters, filter_size=filter_size[0])
+                            num_filters= n_filters, filter_size=filter_size)
+    # start-snippet-output
     #Output layer
     net['final_conv'] = ConvLayer(net[incoming_layer],
                     num_filters = n_classes,
@@ -120,10 +105,7 @@ def build_simple_model(input_var,
     net['probs_dimshuffle'] = DimshuffleLayer(net[incoming_layer], (0,2,1))
 
 
-    # [net[l] for l in ['last_layer']] : used to directly compute the output
-    #                       of the network
-    # net : dictionary containing each layer {name : Layer instance}
     return [net[l] for l in ['last_layer']], net
 
-
+	# end-snippet-output
 

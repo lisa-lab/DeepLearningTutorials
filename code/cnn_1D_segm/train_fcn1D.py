@@ -76,7 +76,7 @@ WEIGHTS_PATH = LOADPATH
 
 #Model hyperparameters
 n_filters = 64
-filter_size = [25]
+filter_size = 25
 depth  = 8
 block = 'bn_relu_conv'
 
@@ -111,7 +111,7 @@ exp_name += '_data=' + smooth_or_raw
 exp_name += '_decay=' + str(weight_decay)
 exp_name += '_pat=' + str(max_patience)
 exp_name += ('_noshuffle'+str(minibatches_subset)+'batch') if not shuffle_at_each_epoch else ''
-#exp_name += 'test'
+
 
 dataset = str(n_layers)+'cortical_layers'
 savepath = os.path.join(savepath, dataset, exp_name)
@@ -257,9 +257,6 @@ for epoch in range(num_epochs):
     #Cost train and acc train for this epoch
     cost_train_epoch = 0
     acc_train_epoch = 0
-
-
-
 
 
     for i in range(n_batches_train):

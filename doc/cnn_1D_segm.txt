@@ -149,8 +149,37 @@ Code
 
 The FCN implementation can be found in the following file:
 
-* `file.py <../code/file.py>`_ : Main script. Defines the model.
+* `fcn1D.py <../code/cnn_1D_segm/fcn1D.py>`_ : Main script. Defines the model.
+* `train_fcn1D.py <../code/cnn_1D_segm/train_fcn1D.py>`_ : Training loop
 
+First define a *bn+relu+conv* block that returns the name of the last layer of
+the block. Since the implementation uses a dictionary variable *net* that keeps
+the layer's name as key and the actual layer object as variable, the name of the
+last layer is sufficient 
+
+.. literalinclude:: ../code/cnn_1D_segm/fcn1D.py
+  :start-after: start-snippet-bn_relu_conv
+  :end-before: end-snippet-bn_relu_conv
+
+The model is composed of 8 of these blocks, as seen below. Note that the
+model implementation is very tweakable, since the depth (number of blocks), the
+type of block, the filter size are the number of filters can all be changed by user.
+However, the hyperparameters used here were:
+
+* filter_size = 25
+* n_filters = 64
+* depth = 8
+* block = bn_relu_conv
+  
+.. literalinclude:: ../code/cnn_1D_segm/fcn1D.py
+  :start-after: start-snippet-convolutions
+  :end-before: end-snippet-convolutions
+  
+Finally, the last convolution and softmax are achieved by :
+  
+.. literalinclude:: ../code/cnn_1D_segm/fcn1D.py
+  :start-after: start-snippet-output
+  :end-before: end-snippet-output
 
 
 
