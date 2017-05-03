@@ -3,6 +3,9 @@
 U-Net
 **********************************************
 
+.. note::
+    This section assumes the reader has already read through :doc:`fcn_2D_segm`.
+
 Summary
 +++++++
 
@@ -12,56 +15,80 @@ Its goal is then to predict each pixel's class.
 Compared to image classification, the difficulty arise from the fact that localisation is important.
 The network must capture the overall context and recognize very precise details.
 
-Data
-++++
-
-???
 
 Model
 +++++
 
-Compared to Fully Convolutional Network, the main difference is the added skip connections between
-the contracting path and the expansive path. These skip connections intend to provide local information
-to the global information.
+The U-Net architecture is built upon the Fully Convolutional Network and modified
+in a way that it yields better segmentation.
+Compared to FCN-8, the main difference is the added skip connections between
+the contracting path and the expansive path.
+These skip connections intend to provide local information
+to the global information while upsampling.
+Also, the large number of feature maps in the upsampling path allows the network to
+transfer information. By comparison, the basic FCN architecture only had 
+*number of classes* feature maps in its upsampling path. 
+
+The U-Net owes its name to its symmetric shape, which is different from standard
+FCN architectures.
 
 U-Net architecture is separated is 2 parts:
 
-- 1 : The contracting path
-- 2 : The expansive path
+- 1 : The contracting/downsampling path
+- 2 : The expansive/upsampling path
 
 .. figure:: images/unet.jpg
     :align: center
     :scale: 60%
 
-    **Figure 1** : Illustration of U-Net architecture.
+    **Figure 1** : Illustration of U-Net architecture (from U-Net paper)
 
 
 Contracting/downsampling path
 =============================
 
-The contracting path is composed of 4 blocks. Each block is composed of two 3x3 convolutions, activation function ReLu and 2x2 max pooling.
-The purpose of this contracting path is to capture the context of the image in order to be able to do segmentation.
+The contracting path is composed of 4 blocks. Each block is composed of 
+
+* 3x3 Convolution Layer + activation function
+* 3x3 Convolution Layer + activation function
+* 2x2 Max Pooling
+
+Note that the number of feature maps double at each pooling, starting with
+64 feature maps for the first block, 128 for the second, and so on. 
+The purpose of this contracting path is to capture the context of the input image 
+in order to be able to do segmentation. This coarse contextual information will
+then be transfered to the upsampling path with the skip connections.
 
 
 Bottleneck path
 ===============
 
 This part of the network is between contracting and downsampling path.
-The bottleneck path in simple a dropout layer, followed by a pool layer and 2 convolutional layers and an other dropout layer.
+The bottleneck path in simply 2 convolutional layers, with a dropout layer. 
 
 
 Expansive/upsampling path
 =========================
 
-The expansive path is also composed of 4 blocks. Each of these blocks is composed of a deconvolution layer, followed by the concatenation with the corresponding
-cropped feature map from the contracting path, and then two 3x3 convolutions and ReLU activation.
-The purpose of this expansive path is to enable precise localization combined with context from the contracting path.
+The expansive path is also composed of 4 blocks. Each of these blocks is composed of 
+
+* Deconvolution layer with stride 2 
+* Concatenation with the corresponding cropped feature map from the contracting path
+* 3x3 Convolution layer + activation function
+* 3x3 Convolution layer + activation function
+
+
+The purpose of this expansive path is to enable precise localization combined 
+with contextual information from the contracting path.
 
 Advantages
 ==========
 
-- The U-Net combines the location information from the downsampling path with the context information in the upsampling path to finally obtain a general information combining localisation and context, which is necessary to predict a good segmentation map.
-- No dense layer, so images of different sizes can be used as input (since the only parameters to learn on convolution layers are the kernel, and the size of the kernel is independant from input image' size).
+* The U-Net combines the location information from the downsampling path with the contextual information in the upsampling path to finally obtain a general information combining localisation and context, which is necessary to predict a good segmentation map.
+
+* No dense layer, so images of different sizes can be used as input (since the only parameters to learn on convolution layers are the kernel, and the size of the kernel is independant from input image' size).
+
+* The use of massive data augmentation is important is domains like biomedical segmentation, since there are not a lot of annotated examples. 
 
 
 Code - Citations - Contact
@@ -70,40 +97,46 @@ Code - Citations - Contact
 Code
 ====
 
-The U-Net implementation can be found in the following file:
+The U-Net implementation can be found in the following GitHub repo:
 
-* `unet.py <../code/unet.py>`_ : Main script. Defines the model.
+* `Unet.py <https://github.com/Lasagne/Recipes/blob/master/modelzoo/Unet.py>`_ : Main script. Defines the model
 
 The user can now build a U-Net with a specified number of input channels and number of classes.
 
 First include the Lasagna layer needed to define the U-Net architecture :
 
-.. literalinclude:: ../code/unet.py
+.. literalinclude:: ../code/Unet_lasagne_recipes.py
   :start-after: start-snippet-1
   :end-before: end-snippet-1
 
-Our net variable will be a dictionary containing the layers' name as key and the layer instance as value.
+The *net* variable will be a ordered dictionary containing the layers' name as key and the layer instance as value.
 This is needed to be able to concatenate the feature maps from the contracting to expansive path.
-For example, the first block of conv+conv+block, including the input layer, would be :
-
-.. literalinclude:: ../code/unet.py
-  :start-after: start-snippet-2
-  :end-before: end-snippet-2
-
-Every layer will be added the same way, by specifying its name and
-input layer (or input layers, for concatenation). For example, the last concatenation for this
-architecture takes as input the 'conv1_2' output and the previous layer as follow:
-
-.. literalinclude:: ../code/unet.py
-  :start-after: start-snippet-3
-  :end-before: end-snippet-3
 
 
-To build this network, simply specify the number of input channels and number of classes as follow:
+First the downsampling path :
 
-.. literalinclude:: ../code/unet.py
-  :start-after: start-snippet-4
-  :end-before: end-snippet-4
+.. literalinclude:: ../code/Unet_lasagne_recipes.py
+  :start-after: start-snippet-downsampling
+  :end-before: end-snippet-downsampling
+  
+And then the bottleneck path :  
+  
+.. literalinclude:: ../code/Unet_lasagne_recipes.py
+  :start-after: start-snippet-bottleneck
+  :end-before: end-snippet-bottleneck
+  
+And finally the upsampling path :  
+  
+.. literalinclude:: ../code/Unet_lasagne_recipes.py
+  :start-after: start-snippet-upsampling
+  :end-before: end-snippet-upsampling
+
+And the output path (to obtain *number of classes* feature maps):
+
+.. literalinclude:: ../code/Unet_lasagne_recipes.py
+  :start-after: start-snippet-output
+  :end-before: end-snippet-output
+
 
 Papers
 ======
