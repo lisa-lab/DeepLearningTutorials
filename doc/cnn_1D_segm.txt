@@ -141,13 +141,9 @@ sample, which extend well to previously unsegmented cortex.
 
     **Figure 7** : Results put on the brain section
 
-View other `result <_images/cortical_valid2.png>`_
-
-Code - Citations - Contact
-++++++++++++++++++++++++++
-
+    
 Code
-====
+++++
 
 The FCN implementation can be found in the following file:
 
@@ -185,31 +181,21 @@ Finally, the last convolution and softmax are achieved by :
 
 
 
-Papers
-======
-
-If you use this tutorial, please cite the following papers.
-
-Fully Convolutional Networks for Semantic Segmentation
-
-* `[pdf] <https://people.eecs.berkeley.edu/~jonlong/long_shelhamer_fcn.pdf>`__ reference
-
-Papers related to Theano:
-
-* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/nips2012_deep_workshop_theano_final.pdf>`__ Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Bergstra, James, Goodfellow, Ian, Bergeron, Arnaud, Bouchard, Nicolas, and Bengio, Yoshua. Theano: new features and speed improvements. NIPS Workshop on Deep Learning and Unsupervised Feature Learning, 2012.
-
-* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/theano_scipy2010.pdf>`__ Bergstra, James, Breuleux, Olivier, Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Desjardins, Guillaume, Turian, Joseph, Warde-Farley, David, and Bengio, Yoshua. Theano: a CPU and GPU math expression compiler. In Proceedings of the Python for Scientific Computing Conference (SciPy), June 2010.
-
-Thank you!
-
-Contact
-=======
-
-Please email
-
 References
 ++++++++++
 
-* ref1
+If you use this tutorial, please cite the following papers.
 
-* ref2
+Papers related to Theano/Lasagne:
+
+* `[pdf] <https://arxiv.org/pdf/1605.02688.pdf>`_ Theano Development Team. Theano: A Python framework for fast computation of mathematical expresssions. May 2016.
+
+* `[website] <https://zenodo.org/record/27878#.WQocDrw18yc>`_ Sander Dieleman, Jan Schluter, Colin Raffel, Eben Olson, Søren Kaae Sønderby, Daniel Nouri, Daniel Maturana, Martin Thoma, Eric Battenberg, Jack Kelly, Jeffrey De Fauw, Michael Heilman, diogo149, Brian McFee, Hendrik Weideman, takacsg84, peterderivaz, Jon, instagibbs, Dr. Kashif Rasul, CongLiu, Britefury, and Jonas Degrave, “Lasagne: First release.” (2015).
+
+Acknowledgements
+================
+
+This work was done in collaboration with Konrad Wagstyl, PhD student. 
+We would like to thank Alan Evans' MCIN lab and Katrin Amunt's INM lab.
+
+Thank you!

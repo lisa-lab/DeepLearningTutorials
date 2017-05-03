@@ -93,11 +93,8 @@ Advantages
 * The use of massive data augmentation is important in domains like biomedical segmentation, since the number of annotated samples is usually limited.
 
 
-Code - Citations - Contact
-++++++++++++++++++++++++++
-
 Code
-====
+++++
 
 The U-Net implementation can be found in the following GitHub repo:
 
@@ -140,31 +137,20 @@ And finally the output path (to obtain *number of classes* feature maps):
   :end-before: end-snippet-output
 
 
-Papers
-======
-
-If you use this tutorial, please cite the following papers.
-
-U_Net: Convolutional Networks for Biomedical Image Segmentation
-
-* `[pdf] <https://arxiv.org/pdf/1505.04597.pdf>`__ reference
-
-Papers related to Theano:
-
-* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/nips2012_deep_workshop_theano_final.pdf>`__ Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Bergstra, James, Goodfellow, Ian, Bergeron, Arnaud, Bouchard, Nicolas, and Bengio, Yoshua. Theano: new features and speed improvements. NIPS Workshop on Deep Learning and Unsupervised Feature Learning, 2012.
-
-* `[pdf] <http://www.iro.umontreal.ca/~lisa/pointeurs/theano_scipy2010.pdf>`__ Bergstra, James, Breuleux, Olivier, Bastien, Frédéric, Lamblin, Pascal, Pascanu, Razvan, Desjardins, Guillaume, Turian, Joseph, Warde-Farley, David, and Bengio, Yoshua. Theano: a CPU and GPU math expression compiler. In Proceedings of the Python for Scientific Computing Conference (SciPy), June 2010.
-
-Thank you!
-
-Contact
-=======
-
-Please email
-
 References
 ++++++++++
 
-* ref1
+If you use this tutorial, please cite the following papers.
 
-* ref2
+* `[pdf] <https://arxiv.org/pdf/1505.04597.pdf>`__ Olaf Ronneberger, Philipp Fischer, Thomas Brox. U_Net: Convolutional Networks for Biomedical Image Segmentation. May 2015.
+
+Papers related to Theano/Lasagne:
+
+* `[pdf] <https://arxiv.org/pdf/1605.02688.pdf>`_ Theano Development Team. Theano: A Python framework for fast computation of mathematical expresssions. May 2016.
+
+
+* `[website] <https://zenodo.org/record/27878#.WQocDrw18yc>`_ Sander Dieleman, Jan Schluter, Colin Raffel, Eben Olson, Søren Kaae Sønderby, Daniel Nouri, Daniel Maturana, Martin Thoma, Eric Battenberg, Jack Kelly, Jeffrey De Fauw, Michael Heilman, diogo149, Brian McFee, Hendrik Weideman, takacsg84, peterderivaz, Jon, instagibbs, Dr. Kashif Rasul, CongLiu, Britefury, and Jonas Degrave, “Lasagne: First release.” (2015).
+
+
+Thank you!
+
