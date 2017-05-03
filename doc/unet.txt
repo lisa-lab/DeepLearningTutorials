@@ -4,7 +4,9 @@ U-Net
 **********************************************
 
 .. note::
-    This section assumes the reader has already read through :doc:`fcn_2D_segm`.
+    This section assumes the reader has already read through :doc:`lenet` for 
+    convolutional networks motivation and :doc:`fcn_2D_segm` for segmentation
+    standard network.
 
 Summary
 +++++++

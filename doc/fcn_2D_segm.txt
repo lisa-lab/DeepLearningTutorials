@@ -3,6 +3,10 @@
 Fully Convolutional Networks (FCN) for 2D segmentation
 ******************************************************
 
+.. note::
+    This section assumes the reader has already read through :doc:`lenet` for 
+    convolutional networks motivation.
+
 Summary
 +++++++
 
