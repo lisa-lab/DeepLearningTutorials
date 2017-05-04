@@ -20,7 +20,7 @@ import theano.tensor as T
 from theano import config
 import lasagne
 from lasagne.regularization import regularize_network_params
-from lasagne.objectives import categorical_crossentropy, accuracy
+from lasagne.objectives import categorical_crossentropy
 
 import PIL.Image as Image
 from matplotlib import pyplot as plt
@@ -32,6 +32,32 @@ from fcn1D import build_model
 
 
 
+def accuracy_metric(y_pred, y_true, void_labels, one_hot=False):
+
+    assert (y_pred.ndim == 2) or (y_pred.ndim == 1)
+
+    # y_pred to indices
+    if y_pred.ndim == 2:
+        y_pred = T.argmax(y_pred, axis=1)
+
+    if one_hot:
+        y_true = T.argmax(y_true, axis=1)
+
+    # Compute accuracy
+    acc = T.eq(y_pred, y_true).astype(_FLOATX)
+
+    # Create mask
+    mask = T.ones_like(y_true, dtype=_FLOATX)
+    for el in void_labels:
+        indices = T.eq(y_true, el).nonzero()
+        if any(indices):
+            mask = T.set_subtensor(mask[indices], 0.)
+
+    # Apply mask
+    acc *= mask
+    acc = T.sum(acc) / T.sum(mask)
+
+    return acc
 
 # In[2]:
 
@@ -157,7 +183,7 @@ train_iter = Cortical6LayersDataset(
     which_set='train',
     smooth_or_raw = smooth_or_raw,
     batch_size=batch_size[0],
-    data_augm_kwargs=data_augmentation,
+    data_augm_kwargs={},
     shuffle_at_each_epoch = True,
     return_one_hot=False,
     return_01c=False,
@@ -211,7 +237,7 @@ if weight_decay > 0:
         simple_net_output, lasagne.regularization.l2)
     loss += weight_decay * weightsl2
 
-train_acc = accuracy(prediction, target_var, void_labels)
+train_acc = accuracy_metric(prediction, target_var, void_labels)
 
 params = lasagne.layers.get_all_params(simple_net_output, trainable=True)
 updates = lasagne.updates.adam(loss, params, learning_rate=learn_step)
@@ -224,7 +250,7 @@ print "Done"
 print "Defining and compiling valid functions"
 valid_prediction = lasagne.layers.get_output(simple_net_output[0],deterministic=True)
 valid_loss = categorical_crossentropy(valid_prediction, target_var).mean()
-valid_acc  = accuracy(valid_prediction, target_var, void_labels)
+valid_acc  = accuracy_metric(valid_prediction, target_var, void_labels)
 valid_jacc = jaccard(valid_prediction, target_var, n_classes)
 
 valid_fn = theano.function([input_var, target_var], [valid_loss, valid_acc,valid_jacc])
