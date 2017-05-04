@@ -99,6 +99,8 @@ The U-Net implementation can be found in the following GitHub repo:
 
 * `Unet.py <https://github.com/Lasagne/Recipes/blob/master/modelzoo/Unet.py>`_ : Main script. Defines the model
 
+* `train_unet.py <../code/unet/train_unet.py>`_ : Training loop.
+
 The user can now build a U-Net with a specified number of input channels and number of classes.
 
 First include the Lasagne layers needed to define the U-Net architecture :
