@@ -19,7 +19,7 @@ from fcn8 import buildFCN8
 
 
 _FLOATX = config.floatX
-_EPSILON = 10e-8
+_EPSILON = 10e-7
 
 
 def jaccard_metric(y_pred, y_true, n_classes, one_hot=False):

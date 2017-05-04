@@ -34,8 +34,8 @@ The U-Net owes its name to its symmetric shape, which is different from other FC
 U-Net architecture is separated in 3 parts:
 
 - 1 : The contracting/downsampling path
-- 2: Bottleneck
-- 2 : The expanding/upsampling path
+- 2 : Bottleneck
+- 3 : The expanding/upsampling path
 
 .. figure:: images/unet.jpg
     :align: center
