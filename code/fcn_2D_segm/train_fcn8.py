@@ -331,9 +331,9 @@ def train(dataset, learn_step=0.005,
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Unet model training')
+    parser = argparse.ArgumentParser(description='FCN8 model training')
     parser.add_argument('-dataset',
-                        default='camvid',
+                        default='polyps',
                         help='Dataset.')
     parser.add_argument('-learning_rate',
                         default=0.0001,
