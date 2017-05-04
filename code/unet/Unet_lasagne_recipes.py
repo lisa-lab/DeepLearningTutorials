@@ -3,10 +3,10 @@ __author__ = 'Fabian Isensee'
 from collections import OrderedDict
 from lasagne.layers import (InputLayer, ConcatLayer, Pool2DLayer, ReshapeLayer, DimshuffleLayer, NonlinearityLayer,
                             DropoutLayer, Deconv2DLayer, batch_norm)
-# try:
-#     from lasagne.layers.dnn import Conv2DDNNLayer as ConvLayer
-# except ImportError:
-from lasagne.layers import Conv2DLayer as ConvLayer
+try:
+    from lasagne.layers.dnn import Conv2DDNNLayer as ConvLayer
+except ImportError:
+    from lasagne.layers import Conv2DLayer as ConvLayer
 import lasagne
 from lasagne.init import HeNormal
 # end-snippet-1
