@@ -13,7 +13,7 @@ from theano import config
 import lasagne
 from lasagne.regularization import regularize_network_params
 
-from data_loader import load_data
+from dataset_loaders.images.polyps912 import Polyps912Dataset
 from fcn8 import buildFCN8
 
 
@@ -156,10 +156,41 @@ def train(dataset, learn_step=0.005,
         bs = batch_size
     else:
         bs = [10, 1, 1]
+    train_iter = Polyps912Dataset(which_set='train',
+                                  batch_size=batch_size[0],
+                                  seq_per_subset=0,
+                                  seq_length=0,
+                                  data_augm_kwargs=train_data_augm_kwargs,
+                                  return_one_hot=one_hot,
+                                  return_01c=False,
+                                  overlap=0,
+                                  use_threads=False,
+                                  shuffle_at_each_epoch=shuffle_train,
+                                  return_list=True,
+                                  return_0_255=return_0_255)
+    val_iter = Polyps912Dataset(which_set='val',
+                                batch_size=batch_size[1],
+                                seq_per_subset=0,
+                                seq_length=0,
+                                return_one_hot=one_hot,
+                                return_01c=False,
+                                overlap=0,
+                                use_threads=False,
+                                shuffle_at_each_epoch=False,
+                                return_list=True,
+                                return_0_255=return_0_255)
+    test_iter = Polyps912Dataset(which_set='test',
+                                 batch_size=batch_size[2],
+                                 seq_per_subset=0,
+                                 seq_length=0,
+                                 return_one_hot=one_hot,
+                                 return_01c=False,
+                                 overlap=0,
+                                 use_threads=False,
+                                 shuffle_at_each_epoch=False,
+                                 return_list=True,
+                                 return_0_255=return_0_255)
 
-    train_iter, val_iter, test_iter = \
-        load_data(dataset, data_augmentation,
-                  one_hot=False, batch_size=bs, return_0_255=train_from_0_255)
 
     n_batches_train = train_iter.nbatches
     n_batches_val = val_iter.nbatches

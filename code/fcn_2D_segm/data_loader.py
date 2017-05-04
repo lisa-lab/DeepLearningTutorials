@@ -3,7 +3,6 @@ import time
 
 from dataset_loaders.images.polyps912 import Polyps912Dataset
 from dataset_loaders.images.camvid import CamvidDataset
-from dataset_loaders.images.polyps912 import Polyps912Dataset
 from dataset_loaders.images.isbi_em_stacks import IsbiEmStacksDataset
 
 
