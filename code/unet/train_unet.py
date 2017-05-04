@@ -164,8 +164,8 @@ def train(dataset, learn_step=0.005,
                   one_hot=False, batch_size=bs, return_0_255=train_from_0_255)
 
     batch = train_iter.next()
-    input_dim = (np.shape(batch[0])[2], np.shape(batch[0])[3])
-    print 'batch size ', np.shape(batch[0])
+    input_dim = (np.shape(batch[0])[2], np.shape(batch[0])[3]) #(x,y) image shape
+
 
     n_batches_train = train_iter.nbatches
     n_batches_val = val_iter.nbatches
@@ -184,7 +184,7 @@ def train(dataset, learn_step=0.005,
 
     net = build_UNet(n_input_channels= nb_in_channels,# BATCH_SIZE = batch_size,
                 num_output_classes = n_classes, base_n_filters = 64, do_dropout=False,
-                input_dim =input_dim) #(512,512))
+                input_dim =input_dim)
 
     output_layer = net["output_flattened"]
     #
@@ -291,7 +291,7 @@ def train(dataset, learn_step=0.005,
             np.savez(os.path.join(savepath, 'unet_errors_best.npz'), err_valid, err_train, acc_valid, jacc_valid)
         else:
             patience += 1
-            
+
         np.savez(os.path.join(savepath, 'new_unet_model_last.npz'), *lasagne.layers.get_all_param_values(output_layer))
         np.savez(os.path.join(savepath, 'unet_errors_last.npz'),  err_valid, err_train, acc_valid, jacc_valid)
         # Finish training if patience has expired or max nber of epochs

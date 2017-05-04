@@ -213,10 +213,12 @@ def train(dataset, learn_step=0.005,
     jacc_valid = []
     patience = 0
 
-    n_batches_train = 1
-    n_batches_val = 1
-    n_batches_test = 1
-    num_epochs = 1
+    ## Uncomment this to test the training
+    # n_batches_train = 1
+    # n_batches_val = 1
+    # n_batches_test = 1
+    # num_epochs = 1
+
     # Training main loop
     print "Start training"
     for epoch in range(num_epochs):

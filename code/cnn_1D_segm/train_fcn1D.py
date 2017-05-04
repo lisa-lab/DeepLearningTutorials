@@ -91,7 +91,6 @@ learning_rate_value = 0.0005 #learning rate is defined below as a theano variabl
 batch_size=[1000,1000,1]
 smooth_or_raw = 'both' #use both input channels
 shuffle_at_each_epoch = True
-minibatches_subset = 0
 n_layers = 6 #use the 6layer dataset
 
 
@@ -110,7 +109,6 @@ exp_name += '_depth=' + str(depth)
 exp_name += '_data=' + smooth_or_raw
 exp_name += '_decay=' + str(weight_decay)
 exp_name += '_pat=' + str(max_patience)
-exp_name += ('_noshuffle'+str(minibatches_subset)+'batch') if not shuffle_at_each_epoch else ''
 
 
 dataset = str(n_layers)+'cortical_layers'
@@ -290,14 +288,10 @@ for epoch in range(num_epochs):
         # Get minibatch (comment the next line if only 1 minibatch in training)
         val_batch = val_iter.next()
         X_val_batch, L_val_batch, idx_val_batch = val_batch['data'], val_batch['labels'], val_batch['filenames'][0]
-
         L_val_batch = np.reshape(L_val_batch, np.prod(L_val_batch.shape))
-
 
         # Validation step
         cost_val_batch, acc_val_batch, jacc_val_batch = valid_fn(X_val_batch, L_val_batch)
-
-
 
         #Update epoch results
         cost_val_epoch += cost_val_batch
