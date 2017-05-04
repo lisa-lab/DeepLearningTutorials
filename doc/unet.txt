@@ -49,8 +49,8 @@ Contracting/downsampling path
 
 The contracting path is composed of 4 blocks. Each block is composed of
 
-* 3x3 Convolution Layer + activation function
-* 3x3 Convolution Layer + activation function
+* 3x3 Convolution Layer + activation function (with batch normalization)
+* 3x3 Convolution Layer + activation function (with batch normalization)
 * 2x2 Max Pooling
 
 Note that the number of feature maps doubles at each pooling, starting with
@@ -64,7 +64,8 @@ Bottleneck
 ==========
 
 This part of the network is between the contracting and expanding paths.
-The bottleneck is built from simply 2 convolutional layers, with dropout.
+The bottleneck is built from simply 2 convolutional layers (with batch
+normalization), with dropout.
 
 
 Expanding/upsampling path
@@ -74,8 +75,8 @@ The expanding path is also composed of 4 blocks. Each of these blocks is compose
 
 * Deconvolution layer with stride 2
 * Concatenation with the corresponding cropped feature map from the contracting path
-* 3x3 Convolution layer + activation function
-* 3x3 Convolution layer + activation function
+* 3x3 Convolution layer + activation function (with batch normalization)
+* 3x3 Convolution layer + activation function (with batch normalization)
 
 
 The purpose of this expanding path is to enable precise localization combined
@@ -151,4 +152,3 @@ Papers related to Theano/Lasagne:
 
 
 Thank you!
-
