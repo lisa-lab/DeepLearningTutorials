@@ -34,6 +34,7 @@ def jaccard_metric(y_pred, y_true, n_classes, one_hot=False):
         y_true = T.argmax(y_true, axis=1)
 
     # Compute confusion matrix
+    # cm = T.nnet.confusion_matrix(y_pred, y_true)
     cm = T.zeros((n_classes, n_classes))
     for i in range(n_classes):
         for j in range(n_classes):
@@ -156,11 +157,15 @@ def train(dataset, learn_step=0.005,
     if batch_size is not None:
         bs = batch_size
     else:
-        bs = [10, 1, 1]
+        bs = [1, 1, 1]
 
     train_iter, val_iter, test_iter = \
         load_data(dataset, data_augmentation,
                   one_hot=False, batch_size=bs, return_0_255=train_from_0_255)
+
+    batch = train_iter.next()
+    input_dim = (np.shape(batch[0])[2], np.shape(batch[0])[3])
+    print 'batch size ', np.shape(batch[0])
 
     n_batches_train = train_iter.nbatches
     n_batches_val = val_iter.nbatches
@@ -176,29 +181,30 @@ def train(dataset, learn_step=0.005,
     #
     # Build network
     #
-    convmodel = build_UNet(nb_in_channels, input_var, n_classes=n_classes,
-                          void_labels=void_labels, trainable=True,
-                          load_weights=resume, pascal=True, layer=['probs'])
 
+    net = build_UNet(n_input_channels= nb_in_channels,# BATCH_SIZE = batch_size,
+                num_output_classes = n_classes, base_n_filters = 64, do_dropout=False,
+                input_dim =input_dim) #(512,512))
+
+    output_layer = net["output_flattened"]
     #
     # Define and compile theano functions
     #
     print "Defining and compiling training functions"
-    prediction = lasagne.layers.get_output(convmodel)[0]
+    prediction = lasagne.layers.get_output(output_layer, input_var)
     loss = crossentropy_metric(prediction, target_var, void_labels)
 
     if weight_decay > 0:
-        weightsl2 = regularize_network_params(
-            convmodel, lasagne.regularization.l2)
+        weightsl2 = regularize_network_params(output_layer, lasagne.regularization.l2)
         loss += weight_decay * weightsl2
 
-    params = lasagne.layers.get_all_params(convmodel, trainable=True)
+    params = lasagne.layers.get_all_params(output_layer, trainable=True)
     updates = lasagne.updates.adam(loss, params, learning_rate=learn_step)
 
     train_fn = theano.function([input_var, target_var], loss, updates=updates)
 
     print "Defining and compiling test functions"
-    test_prediction = lasagne.layers.get_output(convmodel, deterministic=True)[0]
+    test_prediction = lasagne.layers.get_output(output_layer, input_var,deterministic=True)
     test_loss = crossentropy_metric(test_prediction, target_var, void_labels)
     test_acc = accuracy_metric(test_prediction, target_var, void_labels)
     test_jacc = jaccard_metric(test_prediction, target_var, n_classes)
@@ -221,8 +227,12 @@ def train(dataset, learn_step=0.005,
         start_time = time.time()
         cost_train_tot = 0
 
+        n_batches_train = 2
+        n_batches_val = 2
         # Train
+        print 'Training steps '
         for i in range(n_batches_train):
+            print i
             # Get minibatch
             X_train_batch, L_train_batch = train_iter.next()
             L_train_batch = np.reshape(L_train_batch, np.prod(L_train_batch.shape))
@@ -238,7 +248,10 @@ def train(dataset, learn_step=0.005,
         cost_val_tot = 0
         acc_val_tot = 0
         jacc_val_tot = np.zeros((2, n_classes))
+
+        print 'Validation steps'
         for i in range(n_batches_val):
+            print i
             # Get minibatch
             X_val_batch, L_val_batch = val_iter.next()
             L_val_batch = np.reshape(L_val_batch, np.prod(L_val_batch.shape))
@@ -277,12 +290,12 @@ def train(dataset, learn_step=0.005,
         elif epoch > 1 and jacc_valid[epoch] > best_jacc_val:
             best_jacc_val = jacc_valid[epoch]
             patience = 0
-            np.savez(os.path.join(savepath, 'new_unet_model_best.npz'),  *lasagne.layers.get_all_param_values(convmodel))
+            np.savez(os.path.join(savepath, 'new_unet_model_best.npz'),  *lasagne.layers.get_all_param_values(output_layer))
             np.savez(os.path.join(savepath + "unet_errors_best.npz"),
                      err_valid, err_train, acc_valid, jacc_valid)
         else:
             patience += 1
-            np.savez(os.path.join(savepath, 'new_unet_model_last.npz'), *lasagne.layers.get_all_param_values(convmodel))
+            np.savez(os.path.join(savepath, 'new_unet_model_last.npz'), *lasagne.layers.get_all_param_values(output_layer))
             np.savez(os.path.join(savepath + "unet_errors_last.npz"),
                      err_valid, err_train, acc_valid, jacc_valid)
         # Finish training if patience has expired or max nber of epochs
@@ -292,8 +305,8 @@ def train(dataset, learn_step=0.005,
                 # Load best model weights
                 with np.load(os.path.join(savepath, 'new_unet_model_best.npz')) as f:
                     param_values = [f['arr_%d' % i] for i in range(len(f.files))]
-                nlayers = len(lasagne.layers.get_all_params(convmodel))
-                lasagne.layers.set_all_param_values(convmodel, param_values[:nlayers])
+                nlayers = len(lasagne.layers.get_all_params(output_layer))
+                lasagne.layers.set_all_param_values(output_layer, param_values[:nlayers])
                 # Test
                 cost_test_tot = 0
                 acc_test_tot = 0
@@ -318,13 +331,11 @@ def train(dataset, learn_step=0.005,
                 jacc_test = np.mean(jacc_num_test_tot / jacc_denom_test_tot)
 
                 out_str = "FINAL MODEL: err test % f, acc test %f, jacc test %f"
-                out_str = out_str % (err_test,
-                                     acc_test,
-                                     jacc_test)
+                out_str = out_str % (err_test, acc_test, jacc_test)
                 print out_str
-            # if savepath != loadpath:
-            #     print('Copying model and other training files to {}'.format(loadpath))
-            #     copy_tree(savepath, loadpath)
+            if savepath != loadpath:
+                print('Copying model and other training files to {}'.format(loadpath))
+                copy_tree(savepath, loadpath)
 
             # End
             return
@@ -353,11 +364,18 @@ def main():
                         help='Max patience')
     parser.add_argument('-batch_size',
                         type=int,
-                        default=[10, 1, 1],
+                        default=[1, 1, 1],
                         help='Batch size [train, val, test]')
     parser.add_argument('-data_augmentation',
                         type=dict,
-                        default={'crop_size': (224, 224), 'horizontal_flip': True, 'fill_mode':'constant'},
+                        default={'rotation_range':25,
+                                 'shear_range':0.41,
+                                 'horizontal_flip':True,
+                                 'vertical_flip':True,
+                                 'fill_mode':'reflect',
+                                 'spline_warp':True,
+                                 'warp_sigma':10,
+                                 'warp_grid_size':3},
                         help='use data augmentation')
     parser.add_argument('-early_stop_class',
                         type=int,
