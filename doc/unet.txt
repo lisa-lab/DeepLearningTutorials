@@ -103,7 +103,7 @@ The user can now build a U-Net with a specified number of input channels and num
 
 First include the Lasagne layers needed to define the U-Net architecture :
 
-.. literalinclude:: ../code/Unet_lasagne_recipes.py
+.. literalinclude:: ../code/unet/Unet_lasagne_recipes.py
   :start-after: start-snippet-1
   :end-before: end-snippet-1
 
@@ -113,25 +113,25 @@ This is needed to be able to concatenate the feature maps from the contracting t
 
 First the contracting path :
 
-.. literalinclude:: ../code/Unet_lasagne_recipes.py
+.. literalinclude:: ../code/unet/Unet_lasagne_recipes.py
   :start-after: start-snippet-downsampling
   :end-before: end-snippet-downsampling
 
 And then the bottleneck :
 
-.. literalinclude:: ../code/Unet_lasagne_recipes.py
+.. literalinclude:: ../code/unet/Unet_lasagne_recipes.py
   :start-after: start-snippet-bottleneck
   :end-before: end-snippet-bottleneck
 
 Followed by the expanding path :
 
-.. literalinclude:: ../code/Unet_lasagne_recipes.py
+.. literalinclude:: ../code/unet/Unet_lasagne_recipes.py
   :start-after: start-snippet-upsampling
   :end-before: end-snippet-upsampling
 
 And finally the output path (to obtain *number of classes* feature maps):
 
-.. literalinclude:: ../code/Unet_lasagne_recipes.py
+.. literalinclude:: ../code/unet/Unet_lasagne_recipes.py
   :start-after: start-snippet-output
   :end-before: end-snippet-output
 
