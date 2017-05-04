@@ -15,7 +15,6 @@ from lasagne.regularization import regularize_network_params
 
 from data_loader import load_data
 from fcn8 import buildFCN8
-# from metrics import jaccard, accuracy, crossentropy
 
 
 _FLOATX = config.floatX
