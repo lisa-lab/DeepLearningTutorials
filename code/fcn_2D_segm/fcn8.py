@@ -10,7 +10,7 @@ from lasagne.layers import ElemwiseSumLayer, ElemwiseMergeLayer
 from lasagne.layers import Deconv2DLayer as DeconvLayer
 from lasagne.nonlinearities import softmax, linear
 
-import model_helpers
+
 
 def freezeParameters(net, single=True):
     """
@@ -182,7 +182,7 @@ def buildFCN8(nb_in_channels, input_var,
 
     # Do not train
     if not trainable:
-        model_helpers.freezeParameters(net['probs'])
+        freezeParameters(net['probs'])
 
     # Go back to 4D
     net['probs_reshape'] = ReshapeLayer(net['probs'], (laySize[0], laySize[1],
