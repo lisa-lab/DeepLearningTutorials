@@ -269,7 +269,6 @@ patience = 0
 
 
 
-
 # Training main loop
 print "Start training"
 

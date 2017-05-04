@@ -157,7 +157,7 @@ def train(dataset, learn_step=0.005,
     if batch_size is not None:
         bs = batch_size
     else:
-        bs = [1, 1, 1]
+        bs = [10, 1, 1]
 
     train_iter, val_iter, test_iter = \
         load_data(dataset, data_augmentation,
@@ -360,7 +360,7 @@ def main():
                         help='Max patience')
     parser.add_argument('-batch_size',
                         type=int,
-                        default=[1, 1, 1],
+                        default=[10, 1, 1],
                         help='Batch size [train, val, test]')
     parser.add_argument('-data_augmentation',
                         type=dict,
