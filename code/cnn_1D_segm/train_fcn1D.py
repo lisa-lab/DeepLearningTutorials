@@ -66,10 +66,10 @@ def jaccard(y_pred, y_true, n_classes, one_hot=False):
 
     return T.stack([num, denom], axis=0)
 
+SAVEPATH = 'save_models/'
+LOADPATH = SAVEPATH
+WEIGHTS_PATH = SAVEPATH
 
-SAVEPATH = '/Tmp/larocste/cortical_layers'
-LOADPATH = '/data/lisatmp4/larocste/cortical_layers'
-WEIGHTS_PATH = LOADPATH
 
 
 # In[22]:

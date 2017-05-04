@@ -106,6 +106,4 @@ def build_model(input_var,
 
 
     return [net[l] for l in ['last_layer']], net
-
 	# end-snippet-output
-
