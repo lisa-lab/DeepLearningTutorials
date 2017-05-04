@@ -16,6 +16,11 @@ it using Theano and Lasagne. U-Net is a Fully Convolutional Network (FCN) that d
 Its goal is then to predict each pixel's class. See :doc:`fcn_2D_segm` for differences between
 network architecture for classification and segmentation tasks.
 
+Data
+++++
+
+The data is from ISBI challenge and can be found `here <http://brainiac2.mit.edu/isbi_challenge/home>`_.
+
 Model
 +++++
 
