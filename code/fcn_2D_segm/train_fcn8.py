@@ -213,6 +213,10 @@ def train(dataset, learn_step=0.005,
     jacc_valid = []
     patience = 0
 
+    n_batches_train = 1
+    n_batches_val = 1
+    n_batches_test = 1
+    num_epochs = 1
     # Training main loop
     print "Start training"
     for epoch in range(num_epochs):
@@ -222,9 +226,11 @@ def train(dataset, learn_step=0.005,
 
         # Train
         for i in range(n_batches_train):
+            print 'Training batch ', i
             # Get minibatch
             X_train_batch, L_train_batch = train_iter.next()
             L_train_batch = np.reshape(L_train_batch, np.prod(L_train_batch.shape))
+
 
             # Training step
             cost_train = train_fn(X_train_batch, L_train_batch)
@@ -238,6 +244,7 @@ def train(dataset, learn_step=0.005,
         acc_val_tot = 0
         jacc_val_tot = np.zeros((2, n_classes))
         for i in range(n_batches_val):
+            print 'Valid batch ', i
             # Get minibatch
             X_val_batch, L_val_batch = val_iter.next()
             L_val_batch = np.reshape(L_val_batch, np.prod(L_val_batch.shape))
@@ -277,13 +284,12 @@ def train(dataset, learn_step=0.005,
             best_jacc_val = jacc_valid[epoch]
             patience = 0
             np.savez(os.path.join(savepath, 'new_fcn8_model_best.npz'),  *lasagne.layers.get_all_param_values(convmodel))
-            np.savez(os.path.join(savepath + "fcn8_errors_best.npz"),
-                     err_valid, err_train, acc_valid, jacc_valid)
+            np.savez(os.path.join(savepath, "fcn8_errors_best.npz"),  err_valid, err_train, acc_valid, jacc_valid)
         else:
             patience += 1
-            np.savez(os.path.join(savepath, 'new_fcn8_model_last.npz'), *lasagne.layers.get_all_param_values(convmodel))
-            np.savez(os.path.join(savepath + "fcn8_errors_last.npz"),
-                     err_valid, err_train, acc_valid, jacc_valid)
+
+        np.savez(os.path.join(savepath, 'new_fcn8_model_last.npz'), *lasagne.layers.get_all_param_values(convmodel))
+        np.savez(os.path.join(savepath, "fcn8_errors_last.npz"),  err_valid, err_train, acc_valid, jacc_valid)
         # Finish training if patience has expired or max nber of epochs
         # reached
         if patience == max_patience or epoch == num_epochs-1:

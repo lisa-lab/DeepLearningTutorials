@@ -337,24 +337,18 @@ for epoch in range(num_epochs):
         print('saving best (and last) model')
         best_jacc_val = jacc_valid[epoch]
         patience = 0
-        np.savez(os.path.join(savepath, 'new_fcn1D_model_best.npz'),
-                 *lasagne.layers.get_all_param_values(simple_net_output))
+        np.savez(os.path.join(savepath, 'new_fcn1D_model_best.npz'),  *lasagne.layers.get_all_param_values(simple_net_output))
         np.savez(os.path.join(savepath , "fcn1D_errors_best.npz"),
-                 err_train=err_train, acc_train=acc_train,
-                 err_valid=err_valid, acc_valid=acc_valid, jacc_valid=jacc_valid)
-        np.savez(os.path.join(savepath, 'new_fcn1D_model_last.npz'),
-                 *lasagne.layers.get_all_param_values(simple_net_output))
-        np.savez(os.path.join(savepath , "fcn1D_errors_last.npz"),
                  err_train=err_train, acc_train=acc_train,
                  err_valid=err_valid, acc_valid=acc_valid, jacc_valid=jacc_valid)
     else:
         patience += 1
         print('saving last model')
-        np.savez(os.path.join(savepath, 'new_fcn1D_model_last.npz'),
-                 *lasagne.layers.get_all_param_values(simple_net_output))
-        np.savez(os.path.join(savepath , "fcn1D_errors_last.npz"),
-                 err_train=err_train, acc_train=acc_train,
-                 err_valid=err_valid, acc_valid=acc_valid, jacc_valid=jacc_valid)
+
+    np.savez(os.path.join(savepath, 'new_fcn1D_model_last.npz'),  *lasagne.layers.get_all_param_values(simple_net_output))
+    np.savez(os.path.join(savepath , "fcn1D_errors_last.npz"),
+             err_train=err_train, acc_train=acc_train,
+             err_valid=err_valid, acc_valid=acc_valid, jacc_valid=jacc_valid)
     # Finish training if patience has expired or max nber of epochs reached
 
     if patience == max_patience or epoch == num_epochs-1:

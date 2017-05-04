@@ -226,9 +226,6 @@ def train(dataset, learn_step=0.005,
         # Single epoch training and validation
         start_time = time.time()
         cost_train_tot = 0
-
-        n_batches_train = 2
-        n_batches_val = 2
         # Train
         print 'Training steps '
         for i in range(n_batches_train):
@@ -291,13 +288,12 @@ def train(dataset, learn_step=0.005,
             best_jacc_val = jacc_valid[epoch]
             patience = 0
             np.savez(os.path.join(savepath, 'new_unet_model_best.npz'),  *lasagne.layers.get_all_param_values(output_layer))
-            np.savez(os.path.join(savepath + "unet_errors_best.npz"),
-                     err_valid, err_train, acc_valid, jacc_valid)
+            np.savez(os.path.join(savepath, 'unet_errors_best.npz'), err_valid, err_train, acc_valid, jacc_valid)
         else:
             patience += 1
-            np.savez(os.path.join(savepath, 'new_unet_model_last.npz'), *lasagne.layers.get_all_param_values(output_layer))
-            np.savez(os.path.join(savepath + "unet_errors_last.npz"),
-                     err_valid, err_train, acc_valid, jacc_valid)
+            
+        np.savez(os.path.join(savepath, 'new_unet_model_last.npz'), *lasagne.layers.get_all_param_values(output_layer))
+        np.savez(os.path.join(savepath, 'unet_errors_last.npz'),  err_valid, err_train, acc_valid, jacc_valid)
         # Finish training if patience has expired or max nber of epochs
         # reached
         if patience == max_patience or epoch == num_epochs-1:
