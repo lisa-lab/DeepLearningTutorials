@@ -106,27 +106,8 @@ def crossentropy_metric(y_pred, y_true, void_labels, one_hot=False):
 
 
 SAVEPATH = 'save_models/'
-#LOADPATH = SAVEPATH
+LOADPATH = SAVEPATH
 WEIGHTS_PATH = SAVEPATH
-
-# if getuser() == 'romerosa':
-#     SAVEPATH = '/Tmp/romerosa/itinf/models/'
-#     LOADPATH = '/data/lisatmp4/romerosa/itinf/models/'
-#     WEIGHTS_PATH = '/data/lisatmp4/romerosa/itinf/models/fcn8_model.npz'
-# elif getuser() == 'jegousim':
-#     SAVEPATH = '/data/lisatmp4/jegousim/iterative_inference/'
-#     LOADPATH = '/data/lisatmp4/jegousim/iterative_inference/'
-#     WEIGHTS_PATH = '/data/lisatmp4/romerosa/rnncnn/fcn8_model.npz'
-# elif getuser() == 'michal':
-#     SAVEPATH = '/home/michal/Experiments/iter_inf/'
-#     LOADPATH = SAVEPATH
-#     WEIGHTS_PATH = '/home/michal/model_earlyjacc.npz'
-# elif getuser() == 'erraqaba':
-#     SAVEPATH = '/Tmp/erraqaba/iterative_inference/models/'
-#     LOADPATH = '/data/lisatmp4/erraqabi/iterative_inference/models/'
-#     WEIGHTS_PATH = LOADPATH
-# else:
-#     raise ValueError('Unknown user : {}'.format(getuser()))
 
 
 def train(dataset, learn_step=0.005,
