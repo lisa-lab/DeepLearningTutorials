@@ -130,55 +130,6 @@ def buildFCN8(nb_in_channels, input_var,
                                                     nonlinearity=softmax)
     # end-snippet-1
 
-    # Load weights
-    if load_weights:
-        if pascal:
-            path_weights = '/data/lisatmp4/erraqabi/data/att-segm/' + \
-                          'pre_trained_weights/pascal-fcn8s-tvg-dag.mat'
-            if 'tvg' in path_weights:
-                str_filter = 'f'
-                str_bias = 'b'
-            else:
-                str_filter = '_filter'
-                str_bias = '_bias'
-
-            W = sio.loadmat(path_weights)
-
-            # Load the parameter values into the net
-            num_params = W.get('params').shape[1]
-            for i in range(num_params):
-                # Get layer name from the saved model
-                name = str(W.get('params')[0][i][0])[3:-2]
-                # Get parameter value
-                param_value = W.get('params')[0][i][1]
-
-                # Load weights
-                if name.endswith(str_filter):
-                    raw_name = name[:-len(str_filter)]
-                    if 'score' not in raw_name and \
-                       'upsample' not in raw_name and \
-                       'final' not in raw_name and \
-                       'probs' not in raw_name:
-
-                        # print 'Initializing layer ' + raw_name
-                        param_value = param_value.T
-                        param_value = np.swapaxes(param_value, 2, 3)
-                        net[raw_name].W.set_value(param_value)
-
-                # Load bias terms
-                if name.endswith(str_bias):
-                    raw_name = name[:-len(str_bias)]
-                    if 'score' not in raw_name and \
-                       'upsample' not in raw_name and \
-                       'final' not in raw_name and \
-                       'probs' not in raw_name:
-
-                        param_value = np.squeeze(param_value)
-                        net[raw_name].b.set_value(param_value)
-        else:
-            with np.load(path_weights) as f:
-                param_values = [f['arr_%d' % i] for i in range(len(f.files))]
-            lasagne.layers.set_all_param_values(net['probs'], param_values)
 
     # Do not train
     if not trainable:
