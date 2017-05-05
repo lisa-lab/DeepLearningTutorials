@@ -171,6 +171,7 @@ The FCN-8 implementation can be found in the following file:
 
 * `fcn8.py  <../code/fcn_2D_segm/fcn8.py>`_  : Defines the model.
 * `train_fcn8.py <../code/fcn_2D_segm/train_fcn8.py>`_ : Training loop.
+* `[GitHub Repo] <https://github.com/fvisin/dataset_loaders>`_ Francesco Visin, Adriana Romero - Dataset loaders: a python library to load and preprocess datasets. 2017
 
 
 TODO : import model_helpers, dataset_loader, metrics

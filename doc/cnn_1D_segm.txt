@@ -192,6 +192,8 @@ Papers related to Theano/Lasagne:
 
 * `[website] <https://zenodo.org/record/27878#.WQocDrw18yc>`_ Sander Dieleman, Jan Schluter, Colin Raffel, Eben Olson, Søren Kaae Sønderby, Daniel Nouri, Daniel Maturana, Martin Thoma, Eric Battenberg, Jack Kelly, Jeffrey De Fauw, Michael Heilman, diogo149, Brian McFee, Hendrik Weideman, takacsg84, peterderivaz, Jon, instagibbs, Dr. Kashif Rasul, CongLiu, Britefury, and Jonas Degrave, “Lasagne: First release.” (2015).
 
+* `[GitHub Repo] <https://github.com/fvisin/dataset_loaders>`_ Francesco Visin, Adriana Romero - Dataset loaders: a python library to load and preprocess datasets. 2017
+
 Acknowledgements
 ================
 

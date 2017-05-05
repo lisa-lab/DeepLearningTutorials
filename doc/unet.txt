@@ -149,6 +149,8 @@ References
 If you use this tutorial, please cite the following papers.
 
 * `[pdf] <https://arxiv.org/pdf/1505.04597.pdf>`__ Olaf Ronneberger, Philipp Fischer, Thomas Brox. U_Net: Convolutional Networks for Biomedical Image Segmentation. May 2015.
+* `[GitHub Repo] <https://github.com/fvisin/dataset_loaders>`_ Francesco Visin, Adriana Romero - Dataset loaders: a python library to load and preprocess datasets. 2017
+
 
 Papers related to Theano/Lasagne:
 
