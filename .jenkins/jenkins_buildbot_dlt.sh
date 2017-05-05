@@ -66,11 +66,17 @@ echo "git version for Theano:" `git rev-parse HEAD`
 cd ${WORKSPACE}/code
 echo "git version:" `git rev-parse HEAD`
 
-echo "executing nosetests speed with mode=FAST_RUN"
+echo "==== Executing nosetests speed with mode=FAST_RUN"
 NAME=dlt_speed
 FILE=${BUILDBOT_DIR}/${NAME}_tests.xml
 THEANO_FLAGS=${FLAGS},mode=FAST_RUN ${NOSETESTS} ${XUNIT}${FILE} ${SUITE}${NAME} test.py:speed
-echo "executing nosetests with mode=FAST_RUN,floatX=float32"
+
+echo "==== Executing nosetests with mode=FAST_RUN,floatX=float32"
 NAME=dlt_float32
 FILE=${BUILDBOT_DIR}/${NAME}_tests.xml
 THEANO_FLAGS=${FLAGS},mode=FAST_RUN,floatX=float32 ${NOSETESTS} ${XUNIT}${FILE} ${SUITE}${NAME}
+
+echo "==== Executing nosetests with mode=FAST_RUN,floatX=float32,device=cuda"
+NAME=dlt_float32_cuda
+FILE=${BUILDBOT_DIR}/${NAME}_tests.xml
+PYTHONPATH=${BUILDBOT_DIR}/Theano:${BUILDBOT_DIR}/DeepLearningTutorials/code:${PYTHONPATH} THEANO_FLAGS=${FLAGS},mode=FAST_RUN,floatX=float32,device=cuda nosetests-2.7 test.py ${XUNIT}${FILE} ${SUITE}${NAME}
