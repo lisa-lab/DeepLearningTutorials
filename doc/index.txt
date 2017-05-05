@@ -59,12 +59,26 @@ LSTM network for sentiment analysis:
 
 Energy-based recurrent neural network (RNN-RBM):
   * :ref:`Modeling and generating sequences of polyphonic music <rnnrbm>`
+  
+Segmentation for medical imagery (meant to be read in order):
+  * :ref:`Fully Convolutional Networks (FCN) for 2D segmentation <fcn_2D_segm>`
+  * :ref:`U-Net <unet>`
+  * :ref:`1D segmentation <cnn_1D_segm>`
 
+  
 .. _Theano: http://deeplearning.net/software/theano
 
 .. _Theano basic tutorial: http://deeplearning.net/software/theano/tutorial
 
 .. _Contractive auto-encoders: https://github.com/lisa-lab/DeepLearningTutorials/blob/master/code/cA.py
 
-Note that the tutorials here are all compatible with Python 2 and 3, with the exception of :ref:`rnnrbm` which is only available for Python 2.
+
+
+
+Note that the tutorials here are all compatible with Python 2 and 3, 
+with the exception of :ref:`rnnrbm` which is only available for Python 2, like
+the tutorials in medical imagery segmentation.
+
+
+
 
