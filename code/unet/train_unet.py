@@ -166,24 +166,24 @@ def train(dataset, learn_step=0.005,
                                      seq_per_subset=0,
                                      seq_length=0,
                                      data_augm_kwargs=data_augmentation,
-                                     return_one_hot=one_hot,
+                                     return_one_hot=False,
                                      return_01c=False,
                                      overlap=0,
                                      use_threads=True,
-                                     shuffle_at_each_epoch=shuffle_train,
+                                     shuffle_at_each_epoch=True,
                                      return_list=True,
-                                     return_0_255=return_0_255)
+                                     return_0_255=False)
 
     val_iter = IsbiEmStacksDataset(which_set='val',
                                    batch_size=batch_size[1],
                                    seq_per_subset=0,
                                    seq_length=0,
-                                   return_one_hot=one_hot,
+                                   return_one_hot=False,
                                    return_01c=False,
                                    use_threads=True,
                                    shuffle_at_each_epoch=False,
                                    return_list=True,
-                                   return_0_255=return_0_255)
+                                   return_0_255=False)
     test_iter = None
 
     batch = train_iter.next()

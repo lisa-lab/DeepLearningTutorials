@@ -160,25 +160,25 @@ def train(dataset, learn_step=0.005,
                                   batch_size=batch_size[0],
                                   seq_per_subset=0,
                                   seq_length=0,
-                                  data_augm_kwargs=train_data_augm_kwargs,
+                                  data_augm_kwargs=data_augmentation,
                                   return_one_hot=one_hot,
                                   return_01c=False,
                                   overlap=0,
                                   use_threads=False,
-                                  shuffle_at_each_epoch=shuffle_train,
+                                  shuffle_at_each_epoch=True,
                                   return_list=True,
-                                  return_0_255=return_0_255)
+                                  return_0_255=False)
     val_iter = Polyps912Dataset(which_set='val',
                                 batch_size=batch_size[1],
                                 seq_per_subset=0,
                                 seq_length=0,
-                                return_one_hot=one_hot,
+                                return_one_hot=False,
                                 return_01c=False,
                                 overlap=0,
                                 use_threads=False,
                                 shuffle_at_each_epoch=False,
                                 return_list=True,
-                                return_0_255=return_0_255)
+                                return_0_255=False)
     test_iter = Polyps912Dataset(which_set='test',
                                  batch_size=batch_size[2],
                                  seq_per_subset=0,
@@ -189,7 +189,7 @@ def train(dataset, learn_step=0.005,
                                  use_threads=False,
                                  shuffle_at_each_epoch=False,
                                  return_list=True,
-                                 return_0_255=return_0_255)
+                                 return_0_255=False)
 
 
     n_batches_train = train_iter.nbatches
