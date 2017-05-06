@@ -154,7 +154,7 @@ Change the *dataset_loaders/config.ini* file and add the right path for the data
 
 [cortical_layers]
 
-shared_path = /data/lisa/exp/vazquezd/datasets/cortical_layers/
+shared_path = /path/to/DeepLearningTutorials/data/cortical_layers/
 
 
 First define a *bn+relu+conv* block that returns the name of the last layer of

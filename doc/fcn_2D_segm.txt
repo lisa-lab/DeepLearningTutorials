@@ -186,7 +186,7 @@ Change the *dataset_loaders/config.ini* file and add the right path for the data
 
 [polyps912]
 
-shared_path = /data/lisa/exp/vazquezd/datasets/polyps_split7/
+shared_path = /path/to/DeepLearningTutorials/data/polyps_split7/
 
 We used Lasagne layers, as you can see in the code below.
 
