@@ -174,8 +174,14 @@ The FCN-8 implementation can be found in the following file:
 * `[GitHub Repo] <https://github.com/fvisin/dataset_loaders>`_ Francesco Visin, Adriana Romero - Dataset loaders: a python library to load and preprocess datasets. 2017
 
 
-TODO : import model_helpers, dataset_loader, metrics
-TODO : remove /Tmp/romerosa path and make them relative path
+The user must install `Lasagne <http://lasagne.readthedocs.io/en/latest/user/installation.html>`_ ,
+and clone the GitHub repo `Dataset Loaders <https://github.com/fvisin/dataset_loaders>`_.
+
+Change the *dataset_loaders/config.ini* file and add the right path for the dataset:
+
+[polyps912]
+
+shared_path = /data/lisa/exp/vazquezd/datasets/polyps_split7/
 
 We used Lasagne layers, as you can see in the code below.
 

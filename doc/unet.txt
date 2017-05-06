@@ -106,8 +106,20 @@ The U-Net implementation can be found in the following GitHub repo:
 
 * `train_unet.py <../code/unet/train_unet.py>`_ : Training loop.
 
-The user can now build a U-Net with a specified number of input channels and number of classes.
 
+The user must install `Lasagne <http://lasagne.readthedocs.io/en/latest/user/installation.html>`_ ,
+`SimpleITK <http://www.simpleitk.org/SimpleITK/resources/software.html>`_ and 
+clone the GitHub repo `Dataset Loaders <https://github.com/fvisin/dataset_loaders>`_.
+
+Change the *dataset_loaders/config.ini* file to set the right path for the dataset:
+
+[isbi_em_stacks]  
+
+
+shared_path = /path/to/DeepLearningTutorials/data/isbi_challenge_em_stacks
+
+
+The user can now build a U-Net with a specified number of input channels and number of classes.
 First include the Lasagne layers needed to define the U-Net architecture :
 
 .. literalinclude:: ../code/unet/Unet_lasagne_recipes.py

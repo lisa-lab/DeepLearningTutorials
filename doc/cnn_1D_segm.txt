@@ -150,6 +150,13 @@ The FCN implementation can be found in the following file:
 * `fcn1D.py <../code/cnn_1D_segm/fcn1D.py>`_ : Main script. Defines the model.
 * `train_fcn1D.py <../code/cnn_1D_segm/train_fcn1D.py>`_ : Training loop
 
+Change the *dataset_loaders/config.ini* file and add the right path for the dataset:
+
+[cortical_layers]
+
+shared_path = /data/lisa/exp/vazquezd/datasets/cortical_layers/
+
+
 First define a *bn+relu+conv* block that returns the name of the last layer of
 the block. Since the implementation uses a dictionary variable *net* that keeps
 the layer's name as key and the actual layer object as variable, the name of the
