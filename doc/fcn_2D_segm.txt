@@ -55,7 +55,12 @@ There is a total of 912 images taken from 36 patients.
 * Test set : 8 patients and 182 frames
 
 Each pixel is labelled between 2 classes : polype or background.
-The size of the images vary.
+The size of the images vary. We use data augmentation for training, as specified
+in the defaults arguments for data augmentation in the code given below. Note that
+the data augmentation is necessary for training with batch size greater than 1 
+in order to have same image size with a random cropping. If no random cropping, 
+the batch size for the training set must be set to 1, like for validation and test
+sets (where there is no data augmentation).
 
 
 In each of the training, validation and test directory, the input images are in the
