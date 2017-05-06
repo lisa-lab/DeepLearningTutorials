@@ -21,7 +21,7 @@ Data
 
 The data is from ISBI challenge and can be found `here <http://brainiac2.mit.edu/isbi_challenge/home>`_.
 We use data augmentation for training, as specified
-in the defaults arguments for data augmentation in the code given below.
+in the defaults arguments in the code given below.
 
 Model
 +++++
