@@ -28,7 +28,8 @@ The `BigBrain <https://bigbrain.loris.ca/main.php>`__ dataset is a 3D ultra-high
 We are interested in the outer part of the brain, the cortex.
 More precisely, we are interested in segmenting the 6 different layers of the cortex in 3D.
 Creating an expertly labelled training dataset with each 2D section (shown in figure 1) is unfeasible. Instead of giving as input a 2D image of one section of the brain, we give as input 1D vectors with information from across the cortex, extracted from smaller portions of manually labelled cortex
-as shown in Figure 2. The actual dataset can be found `here TODO: link the dataset <>`_ .
+as shown in Figure 2. The final dataset is not available yet, a preliminary version
+is available `here <http://www.iro.umontreal.ca/~lisa/deep/data/TODO>`_ .
 
 .. figure:: images/big_brain_section.png
     :align: center
