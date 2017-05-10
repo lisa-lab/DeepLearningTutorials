@@ -113,12 +113,12 @@ The user must install `Lasagne <http://lasagne.readthedocs.io/en/latest/user/ins
 `SimpleITK <http://www.simpleitk.org/SimpleITK/resources/software.html>`_ and 
 clone the GitHub repo `Dataset Loaders <https://github.com/fvisin/dataset_loaders>`_.
 
-Change the *dataset_loaders/config.ini* file to set the right path for the dataset:
+Change the ``dataset_loaders/config.ini`` file to set the right path for the dataset:
 
-[isbi_em_stacks]  
+.. code-block:: cfg
 
-
-shared_path = /path/to/DeepLearningTutorials/data/isbi_challenge_em_stacks
+    [isbi_em_stacks]
+    shared_path = /path/to/DeepLearningTutorials/data/isbi_challenge_em_stacks
 
 
 The user can now build a U-Net with a specified number of input channels and number of classes.

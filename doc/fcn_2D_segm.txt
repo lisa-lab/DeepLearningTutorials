@@ -182,11 +182,12 @@ The FCN-8 implementation can be found in the following file:
 The user must install `Lasagne <http://lasagne.readthedocs.io/en/latest/user/installation.html>`_ ,
 and clone the GitHub repo `Dataset Loaders <https://github.com/fvisin/dataset_loaders>`_.
 
-Change the *dataset_loaders/config.ini* file and add the right path for the dataset:
+Change the ``dataset_loaders/config.ini`` file and add the right path for the dataset:
 
-[polyps912]
+.. code-block:: cfg
 
-shared_path = /path/to/DeepLearningTutorials/data/polyps_split7/
+    [polyps912]
+    shared_path = /path/to/DeepLearningTutorials/data/polyps_split7/
 
 We used Lasagne layers, as you can see in the code below.
 
