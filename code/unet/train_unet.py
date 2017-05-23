@@ -293,10 +293,12 @@ def train(dataset, learn_step=0.005,
 
 
         out_str = "EPOCH %i: Avg epoch training cost train %f, cost val %f" +\
-            ", acc val %f, jacc val %f took %f s"
+            ", acc val %f, jacc val class 0 % f, jacc val class 1 %f, jacc val %f took %f s"
         out_str = out_str % (epoch, err_train[epoch],
                              err_valid[epoch],
                              acc_valid[epoch],
+                             jacc_perclass_valid[0],
+                             jacc_perclass_valid[1],
                              jacc_valid[epoch],
                              time.time()-start_time)
         print out_str
@@ -329,8 +331,7 @@ def train(dataset, learn_step=0.005,
                 # Test
                 cost_test_tot = 0
                 acc_test_tot = 0
-                jacc_num_test_tot = np.zeros((1, n_classes))
-                jacc_denom_test_tot = np.zeros((1, n_classes))
+                jacc_test_tot = np.zeros((2, n_classes))
                 for i in range(n_batches_test):
                     # Get minibatch
                     X_test_batch, L_test_batch = test_iter.next()
@@ -338,19 +339,20 @@ def train(dataset, learn_step=0.005,
 
                     # Test step
                     cost_test, acc_test, jacc_test = val_fn(X_test_batch, L_test_batch)
-                    jacc_num_test, jacc_denom_test = jacc_test
 
                     acc_test_tot += acc_test
                     cost_test_tot += cost_test
-                    jacc_num_test_tot += jacc_num_test
-                    jacc_denom_test_tot += jacc_denom_test
+                    jacc_test_tot += jacc_test
 
                 err_test = cost_test_tot/n_batches_test
                 acc_test = acc_test_tot/n_batches_test
-                jacc_test = np.mean(jacc_num_test_tot / jacc_denom_test_tot)
+                jacc_test_perclass = jacc_test_tot[0, :] / jacc_test_tot[1, :]
+                jacc_test = np.mean(jacc_test_perclass)
 
-                out_str = "FINAL MODEL: err test % f, acc test %f, jacc test %f"
-                out_str = out_str % (err_test, acc_test, jacc_test)
+                out_str = "FINAL MODEL: err test % f, acc test %f, " +\
+                    "jacc test class 0 %f, jacc test class 1 %f, jacc test %f"
+                out_str = out_str % (err_test, acc_test, jacc_test_perclass[0],
+                                     jacc_test_perclass[1], jacc_test)
                 print out_str
             if savepath != loadpath:
                 print('Copying model and other training files to {}'.format(loadpath))
