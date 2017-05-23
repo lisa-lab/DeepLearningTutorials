@@ -207,7 +207,7 @@ def train(dataset, learn_step=0.005,
 
     net = build_UNet(n_input_channels= nb_in_channels,# BATCH_SIZE = batch_size,
                 num_output_classes = n_classes, base_n_filters = 64, do_dropout=False,
-                input_dim =input_dim)
+                input_dim = (None, None))
 
     output_layer = net["output_flattened"]
     #
@@ -383,7 +383,8 @@ def main():
                         help='Max patience')
     parser.add_argument('-batch_size',
                         type=int,
-                        default=[10, 1, 1],
+                        nargs='+',
+                        default=[5, 1, 1],
                         help='Batch size [train, val, test]')
     parser.add_argument('-data_augmentation',
                         type=dict,
@@ -394,7 +395,8 @@ def main():
                                  'fill_mode':'reflect',
                                  'spline_warp':True,
                                  'warp_sigma':10,
-                                 'warp_grid_size':3},
+                                 'warp_grid_size':3,
+                                 'crop_size': (224, 224)},
                         help='use data augmentation')
     parser.add_argument('-early_stop_class',
                         type=int,

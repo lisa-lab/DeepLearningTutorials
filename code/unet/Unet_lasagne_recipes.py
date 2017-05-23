@@ -12,7 +12,7 @@ from lasagne.init import HeNormal
 # end-snippet-1
 
 # start-snippet-downsampling
-def build_UNet(n_input_channels=1, BATCH_SIZE=None, num_output_classes=2, pad='same', nonlinearity=lasagne.nonlinearities.elu, input_dim=(128, 128), base_n_filters=64, do_dropout=False):
+def build_UNet(n_input_channels=1, BATCH_SIZE=None, num_output_classes=2, pad='same', nonlinearity=lasagne.nonlinearities.elu, input_dim=(None, None), base_n_filters=64, do_dropout=False):
     net = OrderedDict()
     net['input'] = InputLayer((BATCH_SIZE, n_input_channels, input_dim[0], input_dim[1]))
 
