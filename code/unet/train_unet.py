@@ -386,7 +386,7 @@ def main():
     parser.add_argument('-batch_size',
                         type=int,
                         nargs='+',
-                        default=[5, 1, 1],
+                        default=[5, 5, 1],
                         help='Batch size [train, val, test]')
     parser.add_argument('-data_augmentation',
                         type=dict,

@@ -156,6 +156,14 @@ And finally the output path (to obtain *number of classes* feature maps):
   :start-after: start-snippet-output
   :end-before: end-snippet-output
 
+Running ``train_unet.py`` on a Titan X lasted for around 60 minutes, ending with the following:
+
+.. code-block:: text
+
+    $ THEANO_FLAGS=device=cuda0,floatX=float32,dnn.conv.algo_fwd=time_once,dnn.conv.algo_bwd_data=time_once,dnn.conv.algo_bwd_filter=time_once,gpuarray.preallocate=1 python train_unet.py
+    [...]
+    EPOCH 364: Avg epoch training cost train 0.160667, cost val 0.265909, acc val 0.888796, jacc val class 0  0.636058, jacc val class 1 0.861970, jacc val 0.749014 took 4.379772 s
+
 
 References
 ++++++++++
