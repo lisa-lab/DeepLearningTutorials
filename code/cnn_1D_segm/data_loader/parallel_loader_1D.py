@@ -175,6 +175,7 @@ class ThreadedDataset_1D(ThreadedDataset):
                  divide_by_per_img_std=False,  # img stats
                  raise_IOErrors=False,
                  rng=None,
+                 preload=False,
                  **kwargs):
 
         if len(kwargs):
@@ -299,6 +300,7 @@ class ThreadedDataset_1D(ThreadedDataset):
         self.divide_by_per_img_std = divide_by_per_img_std
         self.raise_IOErrors = raise_IOErrors
         self.rng = rng if rng is not None else RandomState(0xbeef)
+        self.preload = preload
 
         self.set_has_GT = getattr(self, 'set_has_GT', True)
         self.mean = getattr(self, 'mean', [])
@@ -324,6 +326,20 @@ class ThreadedDataset_1D(ThreadedDataset):
             raise RuntimeError('The name list cannot be empty')
         self._fill_names_batches(shuffle_at_each_epoch)
 
+        # Cache for already loaded data
+        if self.preload:
+            self.image_raw = self._preload_data(
+                self.image_path_raw, dtype='floatX', expand=True)
+            self.image_smooth = self._preload_data(
+                self.image_path_smooth, dtype='floatX', expand=True)
+            self.mask = self._preload_data(self.mask_path, dtype='int32')
+            self.regions = self._preload_data(self.regions_path, dtype='int32')
+        else:
+            self.image_raw = None
+            self.image_smooth = None
+            self.mask = None
+            self.regions = None
+
         if self.use_threads:
             # Initialize the queues
             self.names_queue = Queue.Queue(maxsize=self.queues_size)
@@ -344,8 +360,27 @@ class ThreadedDataset_1D(ThreadedDataset):
             # Give time to the data fetcher to die, in case of errors
             # sleep(1)
 
-
         # super(ThreadedDataset_1D, self).__init__(*args, **kwargs)
+
+    def _preload_data(self, path, dtype, expand=False):
+        if dtype == 'floatX':
+            py_type = float
+            dtype = floatX
+        elif dtype == 'int32':
+            py_type = int
+        else:
+            raise ValueError('dtype not supported', dtype)
+        ret = []
+        with open(path) as fp:
+            for i, line in enumerate(fp):
+                line = re.split(' ', line)
+                line = np.array([py_type(el) for el in line], dtype=dtype)
+                ret.append(line)
+        ret = np.vstack(ret)
+        if expand:
+            # b,0 to b,0,c
+            ret = np.expand_dims(ret, axis=2)
+        return ret
 
     def fetch_from_dataset(self, batch_to_load):
         """
@@ -367,35 +402,41 @@ class ThreadedDataset_1D(ThreadedDataset):
         ret['indices'] = []#np.sort(batch_to_load)
 
         if self.smooth_raw_both=='raw' or self.smooth_raw_both=='both':
-            raw=[]
-            with open(self.image_path_raw) as fp:
-                for i, line in enumerate(fp):
-                    if i in batch_to_load:
-                        line = re.split(' ', line)
-                        line = np.array([float(el) for el in line])
-                        line = line.astype(floatX)
-                        raw.append(line)
-                    if len(raw) == len(batch_to_load):
-                        break
-            raw = np.vstack(raw)
-            # b,0 to b,0,c
-            raw = np.expand_dims(raw, axis=2)
+            if self.preload:
+                raw = self.image_raw[batch_to_load]
+            else:
+                raw=[]
+                with open(self.image_path_raw) as fp:
+                    for i, line in enumerate(fp):
+                        if i in batch_to_load:
+                            line = re.split(' ', line)
+                            line = np.array([float(el) for el in line])
+                            line = line.astype(floatX)
+                            raw.append(line)
+                        if len(raw) == len(batch_to_load):
+                            break
+                raw = np.vstack(raw)
+                # b,0 to b,0,c
+                raw = np.expand_dims(raw, axis=2)
 
         if self.smooth_raw_both=='smooth' or self.smooth_raw_both=='both':
-            smooth=[]
-            with open(self.image_path_smooth) as fp:
-                for i, line in enumerate(fp):
-                    if i in batch_to_load:
-                        line = re.split(' ', line)
-                        line = np.array([float(el) for el in line])
-                        line = line.astype(floatX)
-                        smooth.append(line)
-                    if len(smooth) == len(batch_to_load):
-                        break
+            if self.preload:
+                smooth = self.image_smooth[batch_to_load]
+            else:
+                smooth=[]
+                with open(self.image_path_smooth) as fp:
+                    for i, line in enumerate(fp):
+                        if i in batch_to_load:
+                            line = re.split(' ', line)
+                            line = np.array([float(el) for el in line])
+                            line = line.astype(floatX)
+                            smooth.append(line)
+                        if len(smooth) == len(batch_to_load):
+                            break
 
-            smooth = np.vstack(smooth)
-            # b,0 to b,0,c
-            smooth = np.expand_dims(smooth, axis=2)
+                smooth = np.vstack(smooth)
+                # b,0 to b,0,c
+                smooth = np.expand_dims(smooth, axis=2)
 
         if self.smooth_raw_both=='raw':
             ret['data'] = raw
@@ -409,31 +450,34 @@ class ThreadedDataset_1D(ThreadedDataset):
         # Load mask
         ret['labels'] = []
         if self.task=='segmentation':
-            with open(self.mask_path) as fp:
-                for i, line in enumerate(fp):
-                    if i in batch_to_load:
-                        line = re.split(' ', line)
-                        line = np.array([int(el) for el in line])
-                        line = line.astype('int32')
-                        ret['labels'].append(line)
-                    if len(ret['labels']) == len(batch_to_load):
-                        break
-            ret['labels'] = np.vstack(ret['labels'])
-
+            if self.preload:
+                ret['labels'] = self.mask[batch_to_load]
+            else:
+                with open(self.mask_path) as fp:
+                    for i, line in enumerate(fp):
+                        if i in batch_to_load:
+                            line = re.split(' ', line)
+                            line = np.array([int(el) for el in line])
+                            line = line.astype('int32')
+                            ret['labels'].append(line)
+                        if len(ret['labels']) == len(batch_to_load):
+                            break
+                ret['labels'] = np.vstack(ret['labels'])
 
         elif self.task =='classification':
-            with open(self.mask_path) as fp:
-                for i, line in enumerate(fp):
-                    if i in batch_to_load:
-                        line = re.split(' ', line)
-                        line = np.array([int(el) for el in line])
-                        line = line.astype('int32')
-                        ret['labels'].append(line)
-                    if len(ret['labels']) == len(batch_to_load):
-                        break
-            ret['labels'] = np.vstack(ret['labels'])
-
-
+            if self.preload:
+                ret['labels'] = self.mask[batch_to_load]
+            else:
+                with open(self.mask_path) as fp:
+                    for i, line in enumerate(fp):
+                        if i in batch_to_load:
+                            line = re.split(' ', line)
+                            line = np.array([int(el) for el in line])
+                            line = line.astype('int32')
+                            ret['labels'].append(line)
+                        if len(ret['labels']) == len(batch_to_load):
+                            break
+                ret['labels'] = np.vstack(ret['labels'])
 
 
         ret['filenames'] = batch_to_load

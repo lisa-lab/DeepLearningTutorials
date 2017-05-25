@@ -114,7 +114,7 @@ resume=False
 learning_rate_value = 0.0005 #learning rate is defined below as a theano variable.
 
 #Hyperparameters for the dataset loader
-batch_size=[1000,1000,1]
+batch_size=[1024, 1024, 1]
 smooth_or_raw = 'both' #use both input channels
 shuffle_at_each_epoch = True
 n_layers = 6 #use the 6layer dataset
@@ -188,7 +188,8 @@ train_iter = Cortical6LayersDataset(
     return_one_hot=False,
     return_01c=False,
     return_list=False,
-    use_threads=use_threads)
+    use_threads=use_threads,
+    preload=True)
 
 val_iter = Cortical6LayersDataset(
     which_set='valid',
@@ -198,7 +199,8 @@ val_iter = Cortical6LayersDataset(
     return_one_hot=False,
     return_01c=False,
     return_list=False,
-    use_threads=use_threads)
+    use_threads=use_threads,
+    preload=True)
 
 test_iter = None
 
@@ -334,11 +336,15 @@ for epoch in range(num_epochs):
 
     #Print results (once per epoch)
 
-    out_str = "EPOCH %i: Avg cost train %f, acc train %f"+        ", cost val %f, acc val %f, jacc val %f took %f s"
+    out_str = ("EPOCH %i: Avg cost train %f, acc train %f" +
+               ", cost val %f, acc val %f, jacc val per class %s, "
+               "jacc val %f took %f s")
     out_str = out_str % (epoch, err_train[epoch],
                          acc_train[epoch],
                          err_valid[epoch],
                          acc_valid[epoch],
+                         ['%d: %f' % (i, j)
+                          for i, j in enumerate(jacc_perclass_valid)],
                          jacc_valid[epoch],
                          time.time()-start_time)
     print out_str

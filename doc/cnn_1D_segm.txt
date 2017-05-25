@@ -188,6 +188,14 @@ Finally, the last convolution and softmax are achieved by :
   :start-after: start-snippet-output
   :end-before: end-snippet-output
 
+Running ``train_fcn1D.py`` on a Titan X lasted for around 4 hours, ending with the following:
+
+.. code-block:: text
+
+    THEANO_FLAGS=device=cuda0,floatX=float32,dnn.conv.algo_fwd=time_once,dnn.conv.algo_bwd_data=time_once,dnn.conv.algo_bwd_filter=time_once,gpuarray.preallocate=1 python train_fcn1D.py
+    [...]
+    EPOCH 412: Avg cost train 0.065615, acc train 0.993349, cost val 0.041758, acc val 0.984398, jacc val per class ['0: 0.981183', '1: 0.953546', '2: 0.945765', '3: 0.980471', '4: 0.914617', '5: 0.968710', '6: 0.971049'], jacc val 0.959335 took 31.422823 s
+    saving last model
 
 
 References
