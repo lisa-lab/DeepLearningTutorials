@@ -246,7 +246,7 @@ within the DeepLearningTutorials folder:
 
     python code/logistic_sgd.py
 
-The output one should expect is of the form :
+The output one should expect is of the form:
 
 .. code-block:: bash
 
