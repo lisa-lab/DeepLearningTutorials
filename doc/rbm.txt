@@ -7,7 +7,7 @@ Restricted Boltzmann Machines (RBM)
 .. note::
   This section assumes the reader has already read through :doc:`logreg`
   and :doc:`mlp`. Additionally it uses the following Theano functions
-  and concepts : `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, `Random numbers`_, `floatX`_ and `scan`_. If you intend to run the code on GPU also read `GPU`_.
+  and concepts: `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, `Random numbers`_, `floatX`_ and `scan`_. If you intend to run the code on GPU also read `GPU`_.
 
 .. _T.tanh: http://deeplearning.net/software/theano/tutorial/examples.html?highlight=tanh
 
@@ -573,7 +573,7 @@ The output was the following:
      ... plotting sample  8
      ... plotting sample  9
 
-The pictures below show the filters after 15 epochs :
+The pictures below show the filters after 15 epochs:
 
 .. figure:: images/filters_at_epoch_14.png
     :align: center
