@@ -6,7 +6,7 @@ Denoising Autoencoders (dA)
 .. note::
   This section assumes the reader has already read through :doc:`logreg`
   and :doc:`mlp`. Additionally it uses the following Theano functions
-  and concepts : `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, `Random numbers`_, `floatX`_. If you intend to run the code on GPU also read `GPU`_.
+  and concepts: `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, `Random numbers`_, `floatX`_. If you intend to run the code on GPU also read `GPU`_.
 
 .. _T.tanh: http://deeplearning.net/software/theano/tutorial/examples.html?highlight=tanh
 
@@ -126,7 +126,7 @@ signal:
   :pyobject: dA.get_reconstructed_input
 
 And using these functions we can compute the cost and the updates of
-one stochastic gradient descent step :
+one stochastic gradient descent step:
 
 .. literalinclude:: ../code/dA.py
   :pyobject: dA.get_cost_updates
@@ -209,7 +209,7 @@ need to do is to add a stochastic corruption step operating on the input. The in
 corrupted in many ways, but in this tutorial we will stick to the original
 corruption mechanism of randomly masking entries of the input by making
 them zero. The code below
-does just that :
+does just that:
 
 .. literalinclude:: ../code/dA.py
   :pyobject: dA.get_corrupted_input
@@ -221,7 +221,7 @@ For this reason, the constructor of the ``dA`` also gets Theano variables
 pointing to the shared parameters. If those parameters are left to ``None``,
 new ones will be constructed.
 
-The final denoising autoencoder class becomes :
+The final denoising autoencoder class becomes:
 
 .. literalinclude:: ../code/dA.py
   :pyobject: dA
@@ -254,7 +254,7 @@ constant (weights are converted to values between 0 and 1).
 To plot our filters we will need the help of ``tile_raster_images`` (see
 :ref:`how-to-plot`) so we urge the reader to study it. Also
 using the help of the Python Image Library, the following lines of code will
-save the filters as an image :
+save the filters as an image:
 
 .. literalinclude:: ../code/dA.py
   :start-after: start-snippet-4
@@ -264,20 +264,20 @@ save the filters as an image :
 Running the Code
 ++++++++++++++++
 
-To run the code :
+To run the code:
 
 .. code-block:: bash
 
   python dA.py
 
-The resulted filters when we do not use any noise are :
+The resulted filters when we do not use any noise are:
 
 .. figure:: images/filters_corruption_0.png
     :align: center
 
 
 
-The filters for 30 percent noise :
+The filters for 30 percent noise:
 
 
 .. figure:: images/filters_corruption_30.png
