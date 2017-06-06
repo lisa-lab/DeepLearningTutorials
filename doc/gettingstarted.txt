@@ -331,7 +331,7 @@ The NLL of our classifier is a differentiable surrogate for the zero-one loss,
 and we use the gradient of this function over our training data as a
 supervised learning signal for deep learning of a classifier.
 
-This can be computed using the following line of code :
+This can be computed using the following line of code:
 
 .. code-block:: python
 
@@ -357,7 +357,7 @@ algorithm in which we repeatedly make small steps downward on an error
 surface defined by a loss function of some parameters.
 For the purpose of ordinary gradient descent we consider that the training
 data is rolled into the loss function. Then the pseudocode of this
-algorithm can be described as :
+algorithm can be described as:
 
 .. code-block:: python
 
@@ -425,7 +425,7 @@ but this choice is almost arbitrary (though harmless).
     to the batch size used.
 
 All code-blocks above show pseudocode of how the algorithm looks like. Implementing such
-algorithm in Theano can be done as follows :
+algorithm in Theano can be done as follows:
 
 .. code-block:: python
 
