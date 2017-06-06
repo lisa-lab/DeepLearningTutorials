@@ -178,13 +178,13 @@ The code below shows how this can be done, in a way which is analogous to our pr
 
 .. literalinclude:: ../code/mlp.py
 
-The user can then run the code by calling :
+The user can then run the code by calling:
 
 .. code-block:: bash
 
     python code/mlp.py
 
-The output one should expect is of the form :
+The output one should expect is of the form:
 
 .. code-block:: bash
 
