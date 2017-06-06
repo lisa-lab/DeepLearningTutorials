@@ -85,7 +85,7 @@ MNIST Dataset
  variables and access it based on the minibatch index, given a fixed
  and known batch size. The reason behind shared variables is
  related to using the GPU. There is a large overhead when copying data
- into the GPU memory. If you would copy data on request ( each minibatch
+ into the GPU memory. If you would copy data on request (each minibatch
  individually when needed) as the code will do if you do not use shared
  variables, due to this overhead, the GPU code will not be much faster
  then the CPU code (maybe even slower). If you have your data in
