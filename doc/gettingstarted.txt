@@ -147,7 +147,7 @@ MNIST Dataset
 
 The data has to be stored as floats on the GPU ( the right
 ``dtype`` for storing on the GPU is given by ``theano.config.floatX``).
-To get around this shortcomming for the labels, we store them as float,
+To get around this shortcoming for the labels, we store them as float,
 and then cast it to int.
 
 .. note::
@@ -316,7 +316,7 @@ The likelihood of the correct class is not the same as the
 number of right predictions, but from the point of view of a randomly
 initialized classifier they are pretty similar.
 Remember that likelihood and zero-one loss are different objectives;
-you should see that they are corralated on the validation set but
+you should see that they are correlated on the validation set but
 sometimes one will rise while the other falls, or vice-versa.
 
 Since we usually speak in terms of minimizing a loss function, learning will
@@ -421,7 +421,7 @@ but this choice is almost arbitrary (though harmless).
     because it controls the number of updates done to your parameters. Training the same model
     for 10 epochs using a batch size of 1 yields completely different results compared
     to training for the same 10 epochs but with a batchsize of 20. Keep this in mind when
-    switching between batch sizes and be prepared to tweak all the other parameters acording
+    switching between batch sizes and be prepared to tweak all the other parameters according
     to the batch size used.
 
 All code-blocks above show pseudocode of how the algorithm looks like. Implementing such
