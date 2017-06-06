@@ -286,7 +286,7 @@ In this tutorial, :math:`f` is defined as:
 
     f(x) = {\rm argmax}_k P(Y=k | x, \theta)
 
-In python, using Theano this can be written as :
+In python, using Theano this can be written as:
 
 .. code-block:: python
 
