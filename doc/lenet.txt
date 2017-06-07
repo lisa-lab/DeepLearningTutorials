@@ -543,7 +543,7 @@ the task.
 
 Filter Shape
 ************
-Common filter shapes found in the litterature vary greatly, usually based on
+Common filter shapes found in the literature vary greatly, usually based on
 the dataset. Best results on MNIST-sized images (28x28) are usually in the 5x5
 range on the first layer, while natural image datasets (often with hundreds of pixels in each
 dimension) tend to use larger first-layer filters of shape 12x12 or 15x15.
