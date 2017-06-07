@@ -75,10 +75,10 @@ previous state, as needed.
 .. figure:: images/lstm_memorycell.png
     :align: center
 
-    **Figure 1** : Illustration of an LSTM memory cell.
+    **Figure 1**: Illustration of an LSTM memory cell.
 
 The equations below describe how a layer of memory cells is updated at every
-timestep :math:`t`. In these equations :
+timestep :math:`t`. In these equations:
 
 *       :math:`x_t` is the input to the memory cell layer at time :math:`t`
 *       :math:`W_i`, :math:`W_f`, :math:`W_c`, :math:`W_o`, :math:`U_i`,
@@ -89,7 +89,7 @@ timestep :math:`t`. In these equations :
 
 First, we compute the values for :math:`i_t`, the input gate, and
 :math:`\widetilde{C_t}` the candidate value for the states of the memory
-cells at time :math:`t` :
+cells at time :math:`t`:
 
 .. math::
     :label: 1
@@ -102,7 +102,7 @@ cells at time :math:`t` :
     \widetilde{C_t} = tanh(W_c x_t + U_c h_{t-1} + b_c)
 
 Second, we compute the value for :math:`f_t`, the activation of the memory
-cells' forget gates at time :math:`t` :
+cells' forget gates at time :math:`t`:
 
 .. math::
     :label: 3
@@ -111,7 +111,7 @@ cells' forget gates at time :math:`t` :
 
 Given the value of the input gate activation :math:`i_t`, the forget gate
 activation :math:`f_t` and the candidate state value :math:`\widetilde{C_t}`,
-we can compute :math:`C_t` the memory cells' new state at time :math:`t` :
+we can compute :math:`C_t` the memory cells' new state at time :math:`t`:
 
 .. math::
     :label: 4
@@ -119,7 +119,7 @@ we can compute :math:`C_t` the memory cells' new state at time :math:`t` :
     C_t = i_t * \widetilde{C_t} + f_t * C_{t-1}
 
 With the new state of the memory cells, we can compute the value of their
-output gates and, subsequently, their outputs :
+output gates and, subsequently, their outputs:
 
 .. math::
     :label: 5
@@ -139,7 +139,7 @@ In this variant, the activation of a cell’s output gate does not depend on the
 memory cell’s state :math:`C_t`. This allows us to perform part of the
 computation more efficiently (see the implementation note, below, for
 details). This means that, in the variant we have implemented, there is no
-matrix :math:`V_o` and equation :eq:`5` is replaced by equation :eq:`5-alt` :
+matrix :math:`V_o` and equation :eq:`5` is replaced by equation :eq:`5-alt`:
 
 .. math::
     :label: 5-alt
@@ -170,7 +170,7 @@ concatenating the four matrices :math:`W_*` into a single weight matrix
 :math:`W` and performing the same concatenation on the weight matrices
 :math:`U_*` to produce the matrix :math:`U` and the bias vectors :math:`b_*`
 to produce the vector :math:`b`. Then, the pre-nonlinearity activations can
-be computed with :
+be computed with:
 
 .. math::
 
@@ -187,11 +187,11 @@ Code - Citations - Contact
 Code
 ====
 
-The LSTM implementation can be found in the two following files :
+The LSTM implementation can be found in the two following files:
 
-* `lstm.py <http://deeplearning.net/tutorial/code/lstm.py>`_ : Main script. Defines and train the model.
+* `lstm.py <http://deeplearning.net/tutorial/code/lstm.py>`_: Main script. Defines and train the model.
 
-* `imdb.py <http://deeplearning.net/tutorial/code/imdb.py>`_ : Secondary script. Handles the loading and preprocessing of the IMDB dataset.
+* `imdb.py <http://deeplearning.net/tutorial/code/imdb.py>`_: Secondary script. Handles the loading and preprocessing of the IMDB dataset.
 
 After downloading both scripts and putting both in the same folder, the user
 can run the code by calling:
@@ -202,7 +202,7 @@ can run the code by calling:
 
 The script will automatically download the data and decompress it.
 
-**Note** : The provided code supports the Stochastic Gradient Descent (SGD),
+**Note**: The provided code supports the Stochastic Gradient Descent (SGD),
 AdaDelta and RMSProp optimization methods. You are advised to use AdaDelta or
 RMSProp because SGD appears to performs poorly on this task with this
 particular model.

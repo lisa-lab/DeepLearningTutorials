@@ -6,7 +6,7 @@ Stacked Denoising Autoencoders (SdA)
 .. note::
   This section assumes you have already read through :doc:`logreg`
   and :doc:`mlp`. Additionally it uses the following Theano functions
-  and concepts : `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, `Random numbers`_, `floatX`_. If you intend to run the code on GPU also read `GPU`_.
+  and concepts: `T.tanh`_, `shared variables`_, `basic arithmetic ops`_, `T.grad`_, `Random numbers`_, `floatX`_. If you intend to run the code on GPU also read `GPU`_.
 
 .. _T.tanh: http://deeplearning.net/software/theano/tutorial/examples.html?highlight=tanh
 

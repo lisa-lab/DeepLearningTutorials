@@ -6,7 +6,7 @@ Deep Belief Networks
 .. note::
   This section assumes the reader has already read through :doc:`logreg`
   and :doc:`mlp` and :doc:`rbm`. Additionally it uses the following Theano
-  functions and concepts : `T.tanh`_, `shared variables`_, `basic arithmetic
+  functions and concepts: `T.tanh`_, `shared variables`_, `basic arithmetic
   ops`_, `T.grad`_, `Random numbers`_, `floatX`_. If you intend to run the
   code on GPU also read `GPU`_.
 
@@ -210,7 +210,7 @@ obtained over these sets.
 Putting it all together
 +++++++++++++++++++++++
 
-The few lines of code below constructs the deep belief network : 
+The few lines of code below constructs the deep belief network: 
 
 .. literalinclude:: ../code/DBN.py
   :start-after: # numpy random generator
