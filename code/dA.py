@@ -195,7 +195,7 @@ class dA(object):
 
     def get_corrupted_input(self, input, corruption_level):
         """This function keeps ``1-corruption_level`` entries of the inputs the
-        same and zero-out randomly selected subset of size ``coruption_level``
+        same and zero-out randomly selected subset of size ``corruption_level``
         Note : first argument of theano.rng.binomial is the shape(size) of
                random numbers that it should produce
                second argument is the number of trials
