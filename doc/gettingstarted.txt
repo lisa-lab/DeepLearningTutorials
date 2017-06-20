@@ -22,7 +22,7 @@ On each learning algorithm page, you will be able to download the corresponding 
 
     git clone https://github.com/lisa-lab/DeepLearningTutorials.git
 
-On linux systems, after cloning, all datasets can be downloaded at once with:
+On Linux or Mac systems, after cloning, all datasets can be downloaded at once with:
 
     cd DeeepLearningTutorials/data
     ./download.sh
