@@ -24,7 +24,7 @@ On each learning algorithm page, you will be able to download the corresponding 
 
 On Linux or Mac systems, after cloning, all datasets can be downloaded at once with:
 
-    cd DeeepLearningTutorials/data
+    cd DeepLearningTutorials/data
     ./download.sh
     
 
