@@ -17,7 +17,7 @@ Modeling and generating sequences of polyphonic music with the RNN-RBM
   The script also assumes that the content of the `Nottingham Database of folk tunes <http://www.iro.umontreal.ca/~lisa/deep/data/Nottingham.zip>`_ has been extracted in the ``../data`` directory.
   Alternative MIDI datasets are available `here <http://www-etud.iro.umontreal.ca/~boulanni/icml2012>`_.
   
-  Note that both dependencies above can be setup automatically by running the ``download.sh`` script in the ``../data`` directory.
+  Note that both dependencies above can be setup automatically by running the `download.sh <https://github.com/lisa-lab/DeepLearningTutorials/blob/master/data/download.sh>`_ script in the ``../data`` directory of the `Deep Learning Tutorials repository <https://github.com/lisa-lab/DeepLearningTutorials>`_.
 
 .. caution::
   Need Theano 0.6 or more recent.
