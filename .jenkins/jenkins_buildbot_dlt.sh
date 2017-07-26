@@ -79,4 +79,4 @@ THEANO_FLAGS=${FLAGS},mode=FAST_RUN,floatX=float32 ${NOSETESTS} ${XUNIT}${FILE} 
 echo "==== Executing nosetests with mode=FAST_RUN,floatX=float32,device=cuda"
 NAME=dlt_float32_cuda
 FILE=${BUILDBOT_DIR}/${NAME}_tests.xml
-PYTHONPATH=${BUILDBOT_DIR}/Theano:${BUILDBOT_DIR}/DeepLearningTutorials/code:${PYTHONPATH} THEANO_FLAGS=${FLAGS},mode=FAST_RUN,floatX=float32,device=cuda nosetests-2.7 test.py ${XUNIT}${FILE} ${SUITE}${NAME}
+PYTHONPATH=${BUILDBOT_DIR}/Theano:${BUILDBOT_DIR}/DeepLearningTutorials/code:${PYTHONPATH} THEANO_FLAGS=${FLAGS},mode=FAST_RUN,floatX=float32,device=cuda ${NOSETESTS} test.py ${XUNIT}${FILE} ${SUITE}${NAME}
