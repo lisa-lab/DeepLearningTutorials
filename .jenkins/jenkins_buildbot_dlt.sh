@@ -24,7 +24,7 @@ cd ${BUILDBOT_DIR}
 
 # Make fresh clone (with no history since we don't need it)
 rm -rf libgpuarray
-git clone --depth 1 "https://github.com/Theano/libgpuarray.git"
+git clone "https://github.com/Theano/libgpuarray.git"
 
 (cd libgpuarray && echo "libgpuarray commit" && git rev-parse HEAD)
 
