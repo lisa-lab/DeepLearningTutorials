@@ -8,6 +8,9 @@ export LIBRARY_PATH=/usr/local/cuda/lib64:$LIBRARY_PATH
 # MKL
 export MKL_THREADING_LAYER=GNU
 
+# Set OpenMP threads for stability of speedtests
+export OMP_NUM_THREADS=1
+
 BUILDBOT_DIR=$WORKSPACE/nightly_build
 
 mkdir -p ${BUILDBOT_DIR}
