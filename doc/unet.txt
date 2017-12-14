@@ -102,15 +102,22 @@ Advantages
 Code
 ++++
 
+.. warning::
+
+    * Current code works with Python 2 only.
+    * If you use Theano with GPU backend (e.g. with Theano flag ``device=cuda``),
+      you will need at least 12GB free in your video RAM.
+
 The U-Net implementation can be found in the following GitHub repo:
 
-* `Unet.py <https://github.com/Lasagne/Recipes/blob/master/modelzoo/Unet.py>`_ : Main script. Defines the model
+* `Unet_lasagne_recipes.py <../code/unet/Unet_lasagne_recipes.py>`_, from original main script
+  `Unet.py <https://github.com/Lasagne/Recipes/blob/master/modelzoo/Unet.py>`_. Defines the model.
 
-* `train_unet.py <../code/unet/train_unet.py>`_ : Training loop.
+* `train_unet.py <../code/unet/train_unet.py>`_ : Training loop (main script to use).
 
 
 The user must install `Lasagne <http://lasagne.readthedocs.io/en/latest/user/installation.html>`_ ,
-`SimpleITK <http://www.simpleitk.org/SimpleITK/resources/software.html>`_ and 
+`SimpleITK <http://www.simpleitk.org/SimpleITK/resources/software.html>`_ and
 clone the GitHub repo `Dataset Loaders <https://github.com/fvisin/dataset_loaders>`_.
 
 Change the ``dataset_loaders/config.ini`` file to set the right path for the dataset:
@@ -118,8 +125,13 @@ Change the ``dataset_loaders/config.ini`` file to set the right path for the dat
 .. code-block:: cfg
 
     [isbi_em_stacks]
-    shared_path = /path/to/DeepLearningTutorials/data/isbi_challenge_em_stacks
+    shared_path = /path/to/DeepLearningTutorials/data/isbi_challenge_em_stacks/
 
+Folder indicated at section ``[isbi_em_stacks]`` should contain files:
+
+* ``test-volume.tif``
+* ``train-labels.tif``
+* ``train-volume.tif``
 
 The user can now build a U-Net with a specified number of input channels and number of classes.
 First include the Lasagne layers needed to define the U-Net architecture :
@@ -128,7 +140,7 @@ First include the Lasagne layers needed to define the U-Net architecture :
   :start-after: start-snippet-1
   :end-before: end-snippet-1
 
-The *net* variable will be an ordered dictionary containing the layers' name as key and the layer instance as value.
+The *net* variable will be an ordered dictionary containing layers names as keys and layers instances as value.
 This is needed to be able to concatenate the feature maps from the contracting to expanding path.
 
 
@@ -171,15 +183,12 @@ References
 If you use this tutorial, please cite the following papers.
 
 * `[pdf] <https://arxiv.org/pdf/1505.04597.pdf>`__ Olaf Ronneberger, Philipp Fischer, Thomas Brox. U_Net: Convolutional Networks for Biomedical Image Segmentation. May 2015.
-* `[GitHub Repo] <https://github.com/fvisin/dataset_loaders>`_ Francesco Visin, Adriana Romero - Dataset loaders: a python library to load and preprocess datasets. 2017
-
+* `[GitHub Repo] <https://github.com/fvisin/dataset_loaders>`__ Francesco Visin, Adriana Romero - Dataset loaders: a python library to load and preprocess datasets. 2017.
 
 Papers related to Theano/Lasagne:
 
-* `[pdf] <https://arxiv.org/pdf/1605.02688.pdf>`_ Theano Development Team. Theano: A Python framework for fast computation of mathematical expresssions. May 2016.
-
-
-* `[website] <https://zenodo.org/record/27878#.WQocDrw18yc>`_ Sander Dieleman, Jan Schluter, Colin Raffel, Eben Olson, Søren Kaae Sønderby, Daniel Nouri, Daniel Maturana, Martin Thoma, Eric Battenberg, Jack Kelly, Jeffrey De Fauw, Michael Heilman, diogo149, Brian McFee, Hendrik Weideman, takacsg84, peterderivaz, Jon, instagibbs, Dr. Kashif Rasul, CongLiu, Britefury, and Jonas Degrave, “Lasagne: First release.” (2015).
+* `[pdf] <https://arxiv.org/pdf/1605.02688.pdf>`__ Theano Development Team. Theano: A Python framework for fast computation of mathematical expresssions. May 2016.
+* `[website] <https://zenodo.org/record/27878#.WQocDrw18yc>`__ Sander Dieleman, Jan Schluter, Colin Raffel, Eben Olson, Søren Kaae Sønderby, Daniel Nouri, Daniel Maturana, Martin Thoma, Eric Battenberg, Jack Kelly, Jeffrey De Fauw, Michael Heilman, diogo149, Brian McFee, Hendrik Weideman, takacsg84, peterderivaz, Jon, instagibbs, Dr. Kashif Rasul, CongLiu, Britefury, and Jonas Degrave, “Lasagne: First release.” (2015).
 
 
 Thank you!

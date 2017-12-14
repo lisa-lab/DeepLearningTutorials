@@ -192,7 +192,7 @@ class ThreadedDataset_1D(ThreadedDataset):
             'channel_shift_range': 0,
             'fill_mode': 'nearest',
             'cval': 0,
-            'cvalMask': 0,
+            'cval_mask': 0,
             'horizontal_flip': False,
             'vertical_flip': False,
             'rescale': None,
@@ -282,6 +282,7 @@ class ThreadedDataset_1D(ThreadedDataset):
         self.return_sequence = seq_length != 0
         self.seq_length = seq_length if seq_length else 1
         self.overlap = overlap if overlap is not None else self.seq_length - 1
+        self.one_subset_per_batch = False
         self.batch_size = batch_size
         self.queues_size = queues_size
         self.return_one_hot = return_one_hot

@@ -1,9 +1,9 @@
 #!/usr/bin/env python2
-
+from __future__ import absolute_import, print_function, division
 import os
 import argparse
 import time
-from getpass import getuser
+import json
 from distutils.dir_util import copy_tree
 
 import numpy as np
@@ -16,7 +16,6 @@ from lasagne.regularization import regularize_network_params
 
 from dataset_loaders.images.isbi_em_stacks import IsbiEmStacksDataset
 from Unet_lasagne_recipes import build_UNet
-# from metrics import jaccard, accuracy, crossentropy
 
 
 _FLOATX = config.floatX
@@ -131,7 +130,7 @@ def train(dataset, learn_step=0.005,
 
     savepath = os.path.join(savepath, dataset, exp_name)
     # loadpath = os.path.join(loadpath, dataset, exp_name)
-    print savepath
+    print(savepath)
     # print loadpath
 
     if not os.path.exists(savepath):
@@ -197,9 +196,9 @@ def train(dataset, learn_step=0.005,
     void_labels = train_iter.void_labels
     nb_in_channels = train_iter.data_shape[0]
 
-    print "Batch. train: %d, val %d, test %d" % (n_batches_train, n_batches_val, n_batches_test)
-    print "Nb of classes: %d" % (n_classes)
-    print "Nb. of input channels: %d" % (nb_in_channels)
+    print("Batch. train: %d, val %d, test %d" % (n_batches_train, n_batches_val, n_batches_test))
+    print("Nb of classes: %d" % (n_classes))
+    print("Nb. of input channels: %d" % (nb_in_channels))
 
     #
     # Build network
@@ -213,7 +212,7 @@ def train(dataset, learn_step=0.005,
     #
     # Define and compile theano functions
     #
-    print "Defining and compiling training functions"
+    print("Defining and compiling training functions")
     prediction = lasagne.layers.get_output(output_layer, input_var)
     loss = crossentropy_metric(prediction, target_var, void_labels)
 
@@ -226,7 +225,7 @@ def train(dataset, learn_step=0.005,
 
     train_fn = theano.function([input_var, target_var], loss, updates=updates)
 
-    print "Defining and compiling test functions"
+    print("Defining and compiling test functions")
     test_prediction = lasagne.layers.get_output(output_layer, input_var,deterministic=True)
     test_loss = crossentropy_metric(test_prediction, target_var, void_labels)
     test_acc = accuracy_metric(test_prediction, target_var, void_labels)
@@ -244,15 +243,15 @@ def train(dataset, learn_step=0.005,
     patience = 0
 
     # Training main loop
-    print "Start training"
+    print("Start training")
     for epoch in range(num_epochs):
         # Single epoch training and validation
         start_time = time.time()
         cost_train_tot = 0
         # Train
-        print 'Training steps '
+        print('Training steps ')
         for i in range(n_batches_train):
-            print i
+            print(i)
             # Get minibatch
             X_train_batch, L_train_batch = train_iter.next()
             L_train_batch = np.reshape(L_train_batch, np.prod(L_train_batch.shape))
@@ -269,9 +268,9 @@ def train(dataset, learn_step=0.005,
         acc_val_tot = 0
         jacc_val_tot = np.zeros((2, n_classes))
 
-        print 'Validation steps'
+        print('Validation steps')
         for i in range(n_batches_val):
-            print i
+            print(i)
             # Get minibatch
             X_val_batch, L_val_batch = val_iter.next()
             L_val_batch = np.reshape(L_val_batch, np.prod(L_val_batch.shape))
@@ -301,7 +300,7 @@ def train(dataset, learn_step=0.005,
                              jacc_perclass_valid[1],
                              jacc_valid[epoch],
                              time.time()-start_time)
-        print out_str
+        print(out_str)
 
         with open(os.path.join(savepath, "unet_output.log"), "a") as f:
             f.write(out_str + "\n")
@@ -353,7 +352,7 @@ def train(dataset, learn_step=0.005,
                     "jacc test class 0 %f, jacc test class 1 %f, jacc test %f"
                 out_str = out_str % (err_test, acc_test, jacc_test_perclass[0],
                                      jacc_test_perclass[1], jacc_test)
-                print out_str
+                print(out_str)
             if savepath != loadpath:
                 print('Copying model and other training files to {}'.format(loadpath))
                 copy_tree(savepath, loadpath)
@@ -387,9 +386,9 @@ def main():
                         type=int,
                         nargs='+',
                         default=[5, 5, 1],
-                        help='Batch size [train, val, test]')
+                        help='Batch size [train, val, test]. Default: -batch_size 5 5 1')
     parser.add_argument('-data_augmentation',
-                        type=dict,
+                        type=json.loads,
                         default={'rotation_range':25,
                                  'shear_range':0.41,
                                  'horizontal_flip':True,
