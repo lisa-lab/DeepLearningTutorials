@@ -107,24 +107,10 @@ def conlleval(p, g, w, filename, script_path):
 
     return get_perf(filename, script_path)
 
-
-def download(origin, destination):
-    '''
-    download the corresponding atis file
-    from http://www-etud.iro.umontreal.ca/~mesnilgr/atis/
-    '''
-    print('Downloading data from %s' % origin)
-    urllib.urlretrieve(origin, destination)
-
-
 def get_perf(filename, folder):
     ''' run conlleval.pl perl script to obtain
     precision/recall and F1 score '''
     _conlleval = os.path.join(folder, 'conlleval.pl')
-    if not os.path.isfile(_conlleval):
-        url = 'http://www-etud.iro.umontreal.ca/~mesnilgr/atis/conlleval.pl'
-        download(url, _conlleval)
-        os.chmod(_conlleval, stat.S_IRWXU)  # give the execute permissions
 
     proc = subprocess.Popen(["perl",
                             _conlleval],
@@ -288,6 +274,7 @@ def main(param=None):
     folder = os.path.join(os.path.dirname(__file__), folder_name)
     if not os.path.exists(folder):
         os.mkdir(folder)
+    script_path = os.path.dirname(__file__)
 
     # load the dataset
     train_set, valid_set, test_set, dic = atisfold(param['fold'])
@@ -351,12 +338,12 @@ def main(param=None):
                              groundtruth_test,
                              words_test,
                              folder + '/current.test.txt',
-                             folder)
+                             script_path)
         res_valid = conlleval(predictions_valid,
                               groundtruth_valid,
                               words_valid,
                               folder + '/current.valid.txt',
-                              folder)
+                              script_path)
 
         if res_valid['f1'] > best_f1:
 
