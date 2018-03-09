@@ -17,10 +17,9 @@
 # url:       http://www.clips.uantwerpen.be/conll2000/chunking/
 # started:   1998-09-25
 # version:   2018-03-09
-# author:    Erik Tjong Kim Sang <erikt@uia.ua.ac.be>
-#
-# with modifications by Grégoire Mesnil for Deep Learning Tutorials
-# https://github.com/lisa-lab/DeepLearningTutorials
+# original author:  Erik Tjong Kim Sang <erikt@uia.ua.ac.be>
+# modifications:    Grégoire Mesnil for Deep Learning Tutorials
+#                   https://github.com/lisa-lab/DeepLearningTutorials
 
 use strict;
 
