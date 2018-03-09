@@ -3,7 +3,7 @@
 # usage:     conlleval [-l] [-r] [-d delimiterTag] [-o oTag] < file
 #            README: http://www.clips.uantwerpen.be/conll2000/chunking/output.html
 # options:   l: generate LaTeX output for tables like in
-#               http://cnts.uia.ac.be/conll2003/ner/example.tex
+#               https://www.clips.uantwerpen.be/conll2003/ner/example.tex
 #            r: accept raw result tags (without B- and I- prefix;
 #                                       assumes one word per chunk)
 #            d: alternative delimiter tag (default is single space)
