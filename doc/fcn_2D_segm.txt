@@ -1,0 +1,271 @@
+.. _fcn_2D_segm:
+
+Fully Convolutional Networks (FCN) for 2D segmentation
+******************************************************
+
+.. note::
+    This section assumes the reader has already read through :doc:`lenet` for
+    convolutional networks motivation.
+
+Summary
++++++++
+
+Segmentation task is different from classification task because it requires predicting
+a class for each pixel of the input image, instead of only 1 class for the whole input.
+Classification needs to understand *what* is in the input (namely, the context). However,
+in order to predict what is in the input for each pixel, segmentation needs to recover
+not only *what* is in the input, but also *where*.
+
+.. figure:: images/cat_segmentation.png
+    :align: center
+    :scale: 35%
+
+    **Figure 1** : Segmentation network (from FCN paper)
+
+**Fully Convolutional Networks** (FCNs) owe their name to their architecture, which is
+built only from locally connected layers, such as convolution, pooling and upsampling.
+Note that no dense layer is used in this kind of architecture. This reduces the number
+of parameters and computation time. Also, the network can work regardless of the original
+image size, without requiring any fixed number of units at any stage, givent that all
+connections are local. To obtain a segmentation map (output), segmentation
+networks usually have 2 parts :
+
+*  Downsampling path : capture semantic/contextual information
+*  Upsampling path : recover spatial information
+
+The **downsampling path** is used to extract and interpret the context (*what*), while the
+**upsampling path** is used to enable precise localization (*where*). Furthermore, to fully
+recover the fine-grained spatial information lost in the pooling or downsampling layers, we
+often use skip connections.
+
+A skip connection is a connection that bypasses at least one layer. Here, it
+is often used to transfer local information by concatenating or summing feature
+maps from the downsampling path with feature maps from the upsampling path. Merging features
+from various resolution levels helps combining context information with spatial information.
+
+
+Data
+++++
+
+The polyps dataset can be found `here <https://drive.google.com/file/d/0B_60jvsCt1hhZWNfcW4wbHE5N3M/view>`__.
+There is a total of 912 images taken from 36 patients.
+
+* Training set : 20 patients and 547 frames
+* Validation set : 8 patients and 183 frames
+* Test set : 8 patients and 182 frames
+
+Each pixel is labelled between 2 classes : polype or background.
+The size of the images vary. We use data augmentation for training, as specified
+in the default arguments in the code given below. Note that
+the data augmentation is necessary for training with batch size greater than 1
+in order to have same image size with a random cropping. If no random cropping,
+the batch size for the training set must be set to 1, like for validation and test
+sets (where there is no data augmentation).
+
+
+In each of the training, validation and test directory, the input images are in the
+``/images`` directory and the polyps masks (segmentation maps) are in ``/masks2``. The
+segmentation maps in the ``/masks2`` directory indicate the presence or absence
+of polyps for each pixel. The other subdirectories (``/masks3`` and ``/masks4``) are,
+respectively, for a segmentation task with 3 and 4 classes, but will not be
+presented here.
+
+
+Model
++++++
+
+There are variants of the FCN architecture, which mainly differ in the spatial precision of
+their output. For example, the figures below show the FCN-32, FCN-16 and FCN-8 variants. In the
+figures, convolutional layers are represented as vertical lines between pooling layers, which
+explicitely show the relative size of the feature maps.
+
+.. figure:: images/fcn.png
+    :align: center
+    :scale: 50%
+
+    **Figure 2** : FCN architecture (from FCN paper)
+
+**Difference between the 3 FCN variants**
+
+As shown below, these 3 different architectures differ in the stride of the last convolution,
+and the skip connections used to obtain the output segmentation maps. We will use the term
+*downsampling path* to refer to the network up to *conv7* layer and we will use the term
+*upsampling path* to refer to the network composed of all layers after *conv7*. It is worth
+noting that the 3 FCN architectures share the same downsampling path, but differ in their
+respective upsampling paths.
+
+
+1. **FCN-32** : Directly produces the segmentation map from *conv7*, by using a
+transposed convolution layer with stride 32.
+
+2. **FCN-16** : Sums the 2x upsampled prediction from *conv7*
+(using a transposed convolution with stride 2) with *pool4* and then
+produces the segmentation map, by using a transposed convolution layer with stride 16
+on top of that.
+
+3. **FCN-8** : Sums the 2x upsampled *conv7* (with a stride 2 transposed convolution)
+with *pool4*, upsamples them with a stride 2 transposed convolution and sums them
+with *pool3*, and applies a transposed convolution layer with stride 8 on the resulting
+feature maps to obtain the segmentation map.
+
+
+.. figure:: images/fcn_schema.png
+    :align: center
+    :scale: 65%
+
+    **Figure 3** : FCN architecture (from FCN paper)
+
+As explained above, the upsampling paths of the FCN variants are different, since they
+use different skip connection layers and strides for the last convolution, yielding
+different segmentations, as shown in Figure 4. Combining layers that have different
+precision helps retrieving fine-grained spatial information, as well as coarse
+contextual information.
+
+.. figure:: images/fcn32_16_8.png
+    :align: center
+    :scale: 30%
+
+    **Figure 4** : FCN results (from FCN paper)
+
+Note that the FCN-8 architecture was used on the polyps dataset below,
+since it produces more precise segmentation maps.
+
+
+Metrics
+=======
+
+**Per pixel accuracy**
+
+This metric is self explanatory, since it outputs the class prediction accuracy
+per pixel.
+
+.. math::
+   :label: jaccard
+
+    acc(P, GT) = \frac{|\text{pixels correctly predicted}|}{|\text{total nb of pixels}|}
+
+
+**Jaccard (Intersection over Union)**
+
+This evaluation metric is often used for image segmentation, since it is more structured.
+The jaccard is a per class evaluation metric, which computes the number of pixels in
+the intersection between the
+predicted and ground truth segmentation maps for a given class, divided by the
+number of pixels in the union between those two segmentation maps,
+also for that given class.
+
+.. math::
+   :label: jaccard_equation
+
+    jacc(P(class), GT(class)) = \frac{|P(class)\cap GT(class)|}{|P(class)\cup GT(class)|}
+
+where `P` is the predicted segmentation map and `GT` is the ground
+truth segmentation map. `P(class)` is then the binary mask indicating if each
+pixel is predicted as *class* or not. In general, the closer to 1, the better.
+
+.. figure:: images/jaccard.png
+    :align: center
+    :scale: 40%
+
+    **Figure 5** : Jaccard visualisation (from this `website <http://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/>`__)
+
+Code
+++++
+
+.. warning::
+
+    * Current code works with Python 2 only.
+    * If you use Theano with GPU backend (e.g. with Theano flag ``device=cuda``),
+      you will need at least 12GB free in your video RAM.
+
+The FCN-8 implementation can be found in the following files:
+
+* `fcn8.py  <../code/fcn_2D_segm/fcn8.py>`_  : Defines the model.
+* `train_fcn8.py <../code/fcn_2D_segm/train_fcn8.py>`_ : Training loop (main script to use).
+
+
+The user must install `Lasagne <http://lasagne.readthedocs.io/en/latest/user/installation.html>`_ ,
+and clone the GitHub repo `Dataset Loaders <https://github.com/fvisin/dataset_loaders>`_.
+
+.. code-block:: bash
+
+    ## Installation of dataset_loaders.
+
+    # dataset_loaders depends on Python modules matplotlib, numpy, scipy, Pillow, scikit-image, seaborn, and h5py.
+    # They can all be installed via conda.
+    conda install matplotlib numpy Pillow scipy scikit-image seaborn h5py
+
+    git clone https://github.com/fvisin/dataset_loaders.git
+
+    cd dataset_loaders/
+
+    pip install -e .
+
+
+Change the ``dataset_loaders/config.ini`` file and add the right path for the dataset:
+
+.. code-block:: bash
+
+    ## Into `dataset_loaders` git folder.
+
+    # If ``config.ini`` does not yet exit, create it:
+    cd dataset_loaders
+    touch config.ini
+
+    # ``config.ini`` must have at least the section ``[general]`` which indicates a work directory.
+
+.. code-block:: cfg
+
+    [general]
+    datasets_local_path = /the/local/path/where/the/datasets/will/be/copied
+
+    [polyps912]
+    shared_path = /path/to/DeepLearningTutorials/data/polyps_split7/
+
+Folder indicated at section ``[polyps912]`` should be the unzipped dataset archive ``polyps_split7.zip``, with sub-folders:
+
+* ``test``,
+* ``train``
+* ``valid``
+
+We used Lasagne layers, as you can see in the code below.
+
+.. literalinclude:: ../code/fcn_2D_segm/fcn8.py
+  :start-after: start-snippet-1
+  :end-before: end-snippet-1
+
+Running ``train_fcn8.py`` on a Titan X lasted for around 3.5 hours, ending with the following:
+
+.. code-block:: text
+
+    $ THEANO_FLAGS=device=cuda0,floatX=float32,dnn.conv.algo_fwd=time_on_shape_change,dnn.conv.algo_bwd_filter=time_on_shape_change,dnn.conv.algo_bwd_data=time_on_shape_change python train_fcn8.py
+    [...]
+    EPOCH 221: Avg epoch training cost train 0.031036, cost val 0.313757, acc val 0.954686, jacc val class 0 0.952469, jacc val class 1 0.335233, jacc val 0.643851 took 56.401966 s
+    FINAL MODEL: err test  0.473100, acc test 0.924871, jacc test class 0  0.941239, jacc test class 1 0.426777, jacc test 0.684008
+
+There is some variability in the training process. Another run of the same command gave the following after 6.5 hours:
+
+.. code-block:: text
+
+    EPOCH 344: Avg epoch training cost train 0.089571, cost val 0.272069, acc val 0.923673, jacc val class 0 0.926739, jacc val class 1 0.204083, jacc val 0.565411 took 56.540339 s
+    FINAL MODEL: err test  0.541459, acc test 0.846444, jacc test class 0  0.875290, jacc test class 1 0.186454, jacc test 0.530872
+
+
+References
+++++++++++
+
+If you use this tutorial, please cite the following papers.
+
+* `[pdf] <https://people.eecs.berkeley.edu/~jonlong/long_shelhamer_fcn.pdf>`__ Long, J., Shelhamer, E., Darrell, T. Fully Convolutional Networks for Semantic Segmentation. 2014.
+* `[pdf] <https://arxiv.org/pdf/1612.00799.pdf>`__ David Vázquez, Jorge Bernal, F. Javier Sánchez, Gloria Fernández-Esparrach, Antonio M. López, Adriana Romero, Michal Drozdzal, Aaron Courville. A Benchmark for Endoluminal Scene Segmentation of Colonoscopy Images. (2016).
+* `[GitHub Repo] <https://github.com/fvisin/dataset_loaders>`__ Francesco Visin, Adriana Romero - Dataset loaders: a python library to load and preprocess datasets. 2017.
+
+Papers related to Theano/Lasagne:
+
+* `[pdf] <https://arxiv.org/pdf/1605.02688.pdf>`__ Theano Development Team. Theano: A Python framework for fast computation of mathematical expresssions. May 2016.
+* `[website] <https://zenodo.org/record/27878#.WQocDrw18yc>`__ Sander Dieleman, Jan Schluter, Colin Raffel, Eben Olson, Søren Kaae Sønderby, Daniel Nouri, Daniel Maturana, Martin Thoma, Eric Battenberg, Jack Kelly, Jeffrey De Fauw, Michael Heilman, diogo149, Brian McFee, Hendrik Weideman, takacsg84, peterderivaz, Jon, instagibbs, Dr. Kashif Rasul, CongLiu, Britefury, and Jonas Degrave, “Lasagne: First release.” (2015).
+
+
+Thank you!
+
+
