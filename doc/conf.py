@@ -25,11 +25,14 @@ import sys, os
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo']
 
 try:
-    from sphinx.ext import pngmath
-    extensions.append('sphinx.ext.pngmath')
+    from sphinx.ext import imgmath
+    extensions.append('sphinx.ext.imgmath')
 except ImportError:
-    print >>sys.stderr, 'Warning: could not import sphinx.ext.pngmath'
-    pass
+    try:
+        from sphinx.ext import pngmath
+        extensions.append('sphinx.ext.pngmath')
+    except ImportError:
+        pass
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
@@ -155,12 +158,16 @@ htmlhelp_basename = 'deeplearningdoc'
 
 # Options for LaTeX output
 # ------------------------
+latex_elements = {
+    # The paper size ('letter' or 'a4').
+    #latex_paper_size = 'letter',
 
-# The paper size ('letter' or 'a4').
-#latex_paper_size = 'letter'
+    # The font size ('10pt', '11pt' or '12pt').
+    'pointsize': '11pt',
 
-# The font size ('10pt', '11pt' or '12pt').
-latex_font_size = '11pt'
+    # Additional stuff for the LaTeX preamble.
+    #latex_preamble = '',
+}
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
