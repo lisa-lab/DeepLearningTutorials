@@ -1,0 +1,243 @@
+.. _cnn_1D_segm:
+
+Network for 1D segmentation
+***************************
+
+.. note::
+    This section assumes the reader has already read through :doc:`lenet` for
+    convolutional networks motivation and :doc:`fcn_2D_segm` for segmentation
+    standard network.
+
+
+Summary
++++++++
+
+The fundamental notions behind segmentation have been explained in :doc:`fcn_2D_segm`.
+A particularity here is that some of these notions will be applied to 1D
+segmentation. However, almost every Lasagne layer used for 2D segmentation have
+their respective 1D layer, so the implementation would look alike if the same
+model was used.
+
+
+
+
+Data
+++++
+
+The `BigBrain <https://bigbrain.loris.ca/main.php>`__ dataset is a 3D ultra-high resolution model of the brain reconstructed from 2D sections.
+We are interested in the outer part of the brain, the cortex.
+More precisely, we are interested in segmenting the 6 different layers of the cortex in 3D.
+Creating an expertly labelled training dataset with each 2D section (shown in figure 1) is unfeasible. Instead of giving as input a 2D image of one section of the brain, we give as input 1D vectors with information from across the cortex, extracted from smaller portions of manually labelled cortex
+as shown in Figure 2. The final dataset is not available yet, a preliminary version
+is available `here <https://drive.google.com/file/d/0B3tbeSUS2FsVOVlIamlDdkNBQUE/>`_ .
+
+.. figure:: images/big_brain_section.png
+    :align: center
+    :scale: 100%
+
+    **Figure 1** : Big Brain section
+
+.. figure:: images/ray.png
+    :align: center
+    :scale: 50%
+
+    **Figure 2** : Ray extraction from segmentated cortex
+
+We will call *rays* the vectors of size 200 going from outside the brain and
+through the cortex. As the images were stained for cell bodies, the intensity of each pixel of these rays represents the cell densities
+and sizes contained in the cortical layer to which the pixel belongs. Since the 6 cortical layers
+have different properties (cell density and size), the intensity profile can be used to
+detect boundaries of the cortical layers.
+
+Each ray has 2 input channels, one representing the smoothed intensity and the other,
+the raw version, as shown in Figure 3. The next figure, Figure 4, shows the
+ground truth segmentation map, where each different color represent
+a different label. The purple color indicate that these pixels are
+outside the cortex, while the 6 other colors represent the 6 cortical layers.
+For example, the first layer of the cortex is between pixels ~ 35-55. The cortex
+for this sample starts at pixel ~35 and ends at pixel ~170.
+
+
+.. figure:: images/raw_smooth.png
+    :align: center
+    :scale: 100%
+
+    **Figure 3** : Raw and smooth intensity profiles (input channels)
+
+
+.. figure:: images/labels.png
+    :align: center
+    :scale: 100%
+
+    **Figure 4** : Cortical layers labels for this ray
+
+
+
+Model
++++++
+
+We first started our experiment with more complex models, but we finally found that
+the simpler model present here had enough capacity to learn how and where the layer boundaries are.
+This model (depicted in Figure 5) is composed of 8 identical blocks, followed by a
+last convolution and a softmax non linearity.
+
+Each block is composed of :
+
+* Batch Normalization layer
+* Rectify nonlinearity layer
+* Convolution layer, with kernel size 25, with enough padding such that the convolution does not change the feature resolution, and 64 features maps
+
+The last convolution has kernel size 1 and *number of classes* feature maps.
+The softmax is then
+used to detect which of these classes is more likely for each pixel.
+Note that any input image size could be used here, since the model is built from
+locally connected layers exclusively.
+
+.. figure:: images/cortical_layers_net.png
+    :align: center
+    :scale: 100%
+
+    **Figure 5** : Model
+
+Note that we didn't use any pooling, because it was not needed. However, if
+pooling layers were used, an upsampling path would have been necessary to recover full
+spatial size of the input ray. Also, since each pixel of the output prediction has
+a receptive field that includes all of the input pixel, the network is able to extract
+enough contextual information.
+
+
+
+
+
+
+
+Results
++++++++
+
+The model outputs a vector of the same size as the input (here, 200).
+There are 7 class labels, including the 6 cortical layers and the 'not in the brain yet'
+label. You can see in Figure 6 below the output of the model for some ray. The top
+of the plot represent the ground truth segmentation, while the bottoms represent
+the predicted segmentation. As you can see, there is only a small number of pixels
+not correctly segmented.
+
+.. figure:: images/cortical_ray_result.png
+    :align: center
+    :scale: 100%
+
+    **Figure 6** : Ground truth (top) vs prediction (bottom) for 1 ray
+
+However, since the purpose was to do 3D segmentation by using 1D segmentation
+of the rays, we needed to put back the rays on the brain section. After interpolation
+between those rays and smoothing, we get the results shown in Figure 7. The colored
+lines are from 3D meshes based on the prediction from the model, intersected with a 2D section, and the grayscale stripes correspond to the
+ground truth. As you can see, it achieves really good results on the small manually labelled
+sample, which extend well to previously unsegmented cortex.
+
+
+
+.. figure:: images/cortical_valid1.png
+    :align: center
+    :scale: 40%
+
+    **Figure 7** : Results put on the brain section
+
+
+Code
+++++
+
+.. warning::
+
+    * Current code works with Python 2 only.
+    * If you use Theano with GPU backend (e.g. with Theano flag ``device=cuda``),
+      you will need at least 12GB free in your video RAM.
+
+The FCN implementation can be found in the following file:
+
+* `fcn1D.py <../code/cnn_1D_segm/fcn1D.py>`_ : Main script. Defines the model.
+* `train_fcn1D.py <../code/cnn_1D_segm/train_fcn1D.py>`_ : Training loop
+
+Change the ``dataset_loaders/config.ini`` file and add the right path for the dataset:
+
+.. code-block:: cfg
+
+    [cortical_layers]
+    shared_path = /path/to/DeepLearningTutorials/data/cortical_layers/
+
+Folder indicated at section ``[cortical_layers]`` should contain a sub-folder named ``6layers_segmentation``
+(you can obtain it by just renaming the folder extracted from ``TrainingData190417.tar.gz``) which should
+itself contain files:
+
+* ``training_cls_indices.txt``
+* ``training_cls.txt``
+* ``training_geo.txt``
+* ``training_raw.txt``
+* ``training_regions.txt``
+
+
+First define a *bn+relu+conv* block that returns the name of the last layer of
+the block. Since the implementation uses a dictionary variable *net* that keeps
+the layer's name as key and the actual layer object as variable, the name of the
+last layer is sufficient
+
+.. literalinclude:: ../code/cnn_1D_segm/fcn1D.py
+  :start-after: start-snippet-bn_relu_conv
+  :end-before: end-snippet-bn_relu_conv
+
+The model is composed of 8 of these blocks, as seen below. Note that the
+model implementation is very tweakable, since the depth (number of blocks), the
+type of block, the filter size are the number of filters can all be changed by user.
+However, the hyperparameters used here were:
+
+* filter_size = 25
+* n_filters = 64
+* depth = 8
+* block = bn_relu_conv
+
+.. literalinclude:: ../code/cnn_1D_segm/fcn1D.py
+  :start-after: start-snippet-convolutions
+  :end-before: end-snippet-convolutions
+
+Finally, the last convolution and softmax are achieved by :
+
+.. literalinclude:: ../code/cnn_1D_segm/fcn1D.py
+  :start-after: start-snippet-output
+  :end-before: end-snippet-output
+
+Running ``train_fcn1D.py`` on a Titan X lasted for around 4 hours, ending with the following:
+
+.. code-block:: text
+
+    THEANO_FLAGS=device=cuda0,floatX=float32,dnn.conv.algo_fwd=time_once,dnn.conv.algo_bwd_data=time_once,dnn.conv.algo_bwd_filter=time_once,gpuarray.preallocate=1 python train_fcn1D.py
+    [...]
+    EPOCH 412: Avg cost train 0.065615, acc train 0.993349, cost val 0.041758, acc val 0.984398, jacc val per class ['0: 0.981183', '1: 0.953546', '2: 0.945765', '3: 0.980471', '4: 0.914617', '5: 0.968710', '6: 0.971049'], jacc val 0.959335 took 31.422823 s
+    saving last model
+
+
+References
+++++++++++
+
+If you use this tutorial, please cite the following papers:
+
+* References for BigBrain:
+
+  * `[pdf] <https://bigbrain.loris.ca/papers/HBM2014poster.pdf>`__ Lewis, L.B. et al.: BigBrain: Initial Tissue Classification and Surface Extraction, HBM 2014.
+  * `[website] <https://www.sciencemag.org/content/340/6139/1472.abstract>`__ Amunts, K. et al.: "BigBrain: An Ultrahigh-Resolution 3D Human Brain Model", Science (2013) 340 no. 6139 1472-1475, June 2013.
+  * `[pdf] <https://bigbrain.loris.ca/papers/Poster-A0-OHBM-2012.pdf>`__ Bludau, S. et al.: Two new Cytoarchitectonic Areas of the Human Frontal Pole, OHBM 2012.
+  * `[pdf] <https://bigbrain.loris.ca/papers/HBM2010poster.pdf>`__ Lepage, C. et al.: Automatic Repair of Acquisition Defects in Reconstruction of Histology Sections of a Human Brain, HBM 2010.
+
+* `[GitHub Repo] <https://github.com/fvisin/dataset_loaders>`__ Francesco Visin, Adriana Romero - Dataset loaders: a python library to load and preprocess datasets. 2017
+
+Papers related to Theano/Lasagne:
+
+* `[pdf] <https://arxiv.org/pdf/1605.02688.pdf>`_ Theano Development Team. Theano: A Python framework for fast computation of mathematical expresssions. May 2016.
+* `[website] <https://zenodo.org/record/27878#.WQocDrw18yc>`__ Sander Dieleman, Jan Schluter, Colin Raffel, Eben Olson, Søren Kaae Sønderby, Daniel Nouri, Daniel Maturana, Martin Thoma, Eric Battenberg, Jack Kelly, Jeffrey De Fauw, Michael Heilman, diogo149, Brian McFee, Hendrik Weideman, takacsg84, peterderivaz, Jon, instagibbs, Dr. Kashif Rasul, CongLiu, Britefury, and Jonas Degrave, “Lasagne: First release.” (2015).
+
+
+Acknowledgements
+================
+
+This work was done in collaboration with Konrad Wagstyl, PhD student, University of Cambridge.
+We would like to thank Professor Alan Evans' `[MCIN lab] <https://www.mcin-cnim.ca>`_ and Professor Katrin Amunts' `[INM-1 lab] <https://www.fz-juelich.de/inm/inm-1/EN/Home/home_node.html>`_.
+
+Thank you!
