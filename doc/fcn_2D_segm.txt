@@ -234,6 +234,23 @@ We used Lasagne layers, as you can see in the code below.
   :start-after: start-snippet-1
   :end-before: end-snippet-1
 
+Running ``train_fcn8.py`` on a Titan X lasted for around 3.5 hours, ending with the following:
+
+.. code-block:: text
+
+    $ THEANO_FLAGS=device=cuda0,floatX=float32,dnn.conv.algo_fwd=time_on_shape_change,dnn.conv.algo_bwd_filter=time_on_shape_change,dnn.conv.algo_bwd_data=time_on_shape_change python train_fcn8.py
+    [...]
+    EPOCH 221: Avg epoch training cost train 0.031036, cost val 0.313757, acc val 0.954686, jacc val class 0 0.952469, jacc val class 1 0.335233, jacc val 0.643851 took 56.401966 s
+    FINAL MODEL: err test  0.473100, acc test 0.924871, jacc test class 0  0.941239, jacc test class 1 0.426777, jacc test 0.684008
+
+There is some variability in the training process. Another run of the same command gave the following after 6.5 hours:
+
+.. code-block:: text
+
+    EPOCH 344: Avg epoch training cost train 0.089571, cost val 0.272069, acc val 0.923673, jacc val class 0 0.926739, jacc val class 1 0.204083, jacc val 0.565411 took 56.540339 s
+    FINAL MODEL: err test  0.541459, acc test 0.846444, jacc test class 0  0.875290, jacc test class 1 0.186454, jacc test 0.530872
+
+
 References
 ++++++++++
 
