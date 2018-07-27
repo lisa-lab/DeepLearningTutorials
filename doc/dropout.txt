@@ -1,0 +1,41 @@
+.. index:: Dropout
+
+.. _dropout:
+
+Dropout
+=====================
+
+.. note::
+    This section assumes the reader has already read through :doc:`mlp`. 
+    Overfitting can be reduced by using dropout to prevent complex co-adaptations
+    on the training data. The explanation of the model in this section 
+    is based on the MLP model. 
+    Additionally, it uses the following new Theano functions and concepts:
+    `T.cast`_. 
+    If you intend to run the code on GPU also read `GPU`_.
+
+
+.. note::
+    The code for this section is available for download `here`_.
+
+.. _here: http://deeplearning.net/tutorial/code/dropout.py
+
+.. _T.cast: http://deeplearning.net/software/theano/library/tensor/basic.html#casting
+
+.. _GPU: http://deeplearning.net/software/theano/tutorial/using_gpu.html
+
+
+The next architecture we are going to present using Theano is the
+single-hidden-layer Multi-Layer Perceptron (MLP) with 20% dropout 
+to the input data and 50% dropout to the hidden layers. 
+
+The Model
++++++++++
+This model is same as the MLP with the units in the hidden layers dropped 
+randomly with a probability of 50% and input layer dropped with a 
+probability of 20%. Before adding the first hidden layer, 20% dropout is applied to 
+the input data. Then, 50% dropout is added to the first hidden layer followed by 50% 
+dropout to the Logistic Regression layer. This is done via the _dropsout method. 
+The _dropsout method takes in the following parameters, random state , layer and a decimal
+denoting the probability of retaining the units. The method multiplies the input with mask and 
+scales it up by 1/(1-rate). 

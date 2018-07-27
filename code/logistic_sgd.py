@@ -58,8 +58,10 @@ class LogisticRegression(object):
     determine a class membership probability.
     """
 
-    def __init__(self, input, n_in, n_out):
+    def __init__(self, input, n_in, n_out, W=None, b=None):
         """ Initialize the parameters of the logistic regression
+        Weight matrix W is of shape (n_in,n_out)
+        and the bias vector b is of shape (n_out,).
 
         :type input: theano.tensor.TensorType
         :param input: symbolic variable that describes the input of the
@@ -75,24 +77,23 @@ class LogisticRegression(object):
 
         """
         # start-snippet-1
-        # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
-        self.W = theano.shared(
-            value=numpy.zeros(
-                (n_in, n_out),
-                dtype=theano.config.floatX
-            ),
-            name='W',
-            borrow=True
-        )
-        # initialize the biases b as a vector of n_out 0s
-        self.b = theano.shared(
-            value=numpy.zeros(
-                (n_out,),
-                dtype=theano.config.floatX
-            ),
-            name='b',
-            borrow=True
-        )
+        # initialize with 0 the weights W as a matrix of shape (n_in, n_out) if 
+        #the parameter W is None
+        if W is None:
+            self.W = theano.shared(
+                    value=numpy.zeros((n_in, n_out), dtype=theano.config.floatX),
+                    name='W')
+        else:
+            self.W = W
+
+        # initialize the biases b as a vector of n_out 0s if the parameter b is
+        #none
+        if b is None:
+            self.b = theano.shared(
+                    value=numpy.zeros((n_out,), dtype=theano.config.floatX),
+                    name='b')
+        else:
+            self.b = b
 
         # symbolic expression for computing the matrix of class-membership
         # probabilities
