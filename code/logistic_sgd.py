@@ -453,7 +453,7 @@ def predict():
     """
 
     # load the saved model
-    classifier = pickle.load(open('best_model.pkl'))
+    classifier = pickle.load(open('best_model.pkl', 'rb'))
 
     # compile a predictor function
     predict_model = theano.function(
