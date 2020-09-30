@@ -1,4 +1,4 @@
-Deep Learning Tutorials
+please include in titles Machine learning and Deep Learning Tutorials
 =======================
 
 Deep Learning is a new area of Machine Learning research, which has been
